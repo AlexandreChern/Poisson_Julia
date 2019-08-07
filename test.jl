@@ -169,6 +169,8 @@ A = D2 + SAT_W + SAT_E + SAT_S + SAT_N
 b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
 
 
+A = H_tilde*A;
+b = H_tilde*b;
 ## Solving with GPU
 ## Generate Cuda Arrays
 A_d = cu(A)
@@ -178,7 +180,9 @@ init_guess_copy = init_guess;
 init_guess = cu(init_guess);
 
 # Numerical Solutions
-result_1 = @benchmark A\b
+
+#result_1 = @benchmark A\b
+
 num_sol = A\b
 num_sol = reshape(num_sol, N_y+1, N_x + 1)
 num_err = sqrt((num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:]))
@@ -186,18 +190,21 @@ log_num_err = log2.(num_err)
 
 ## Iterative Solutions
 ## GPU
-result_2 = @benchmark cg!(init_guess,A_d,b_d)
-cu_sol = cg!(init_guess,A_d,b_d)
+
+#result_2 = @benchmark cg!(init_guess,A_d,b_d)
+#cu_sol = cg!(init_guess,A_d,b_d)
+cu_sol = cg(A_d,b_d)
 cu_sol = collect(cu_sol)
 cu_sol = reshape(cu_sol, N_y + 1, N_x + 1)
 iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:]))
 log_iter_GPU_err = log2.(iter_GPU_err)
 
 ## CPU  using BLAS
-result_3 = @benchmark cg!(init_guess_copy,A,b)
-iter_sol = cg!(init_guess_copy,A,b)
+#result_3 = @benchmark cg!(init_guess_copy,A,b)
+#iter_sol = cg!(init_guess_copy,A,b)
+iter_sol = cg(A,b)
 iter_sol = reshape(iter_sol,N_y+1, N_x+1)
-iter_CPU_err = sqrt((iter_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:]))
+iter_CPU_err = sqrt((iter_sol[:] - analy_sol[:])' * H_tilde * (iter_sol[:] - analy_sol[:]))
 log_iter_CPU_err = log2.(iter_CPU_err)
 
 #rel_err = sqrt(err)
@@ -209,17 +216,17 @@ log_iter_CPU_err = log2.(iter_CPU_err)
 #push!(iter_errs,iter_err)
 
 println("For CPU LU Decomposition:")
-display(result_1)
+#display(result_1)
 println()
 
 
 println("For GPU Iterative:")
-display(result_2)
+#display(result_2)
 println()
 
 
 println("For CPU Iterative")
-display(result_3)
+#display(result_3)
 println()
 
 println("Error Comparisons")
