@@ -1,2 +1,2 @@
 #srun --pty --gres=gpu:1 --mem=4G --time=60 --partition=testgpu bash
-srun --pty --account=erickson  --gres=gpu:1 --mem=8G --time=360 --partition=testgpu bash
+srun --pty --account=erickson  --gres=gpu:1 --mem=8G --time=480 --partition=testgpu bash

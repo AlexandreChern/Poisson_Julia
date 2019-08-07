@@ -202,7 +202,9 @@ log_iter_CPU_err = log2.(iter_CPU_err)
 
 #rel_err = sqrt(err)
 #rel_iter_err = sqrt(iter_err)
-    
+
+
+
 #push!(rel_errs,rel_err)
 #push!(iter_errs,iter_err)
 
