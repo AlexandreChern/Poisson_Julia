@@ -105,7 +105,8 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8]
 rel_errs = []
 iter_errs = []
 #for k = 1:4
-k = 4
+k = 3
+println("k =: ", k)
 i = j  = k
 hx = h_list_x[i]   
 hy = h_list_y[j]
@@ -176,9 +177,9 @@ b = H_tilde*b;
 ## Generate Cuda Arrays
 A_d = cu(A)
 b_d = cu(b)
-#init_guess = rand(length(b))
-#init_guess_copy = init_guess;
-#init_guess = cu(init_guess);
+init_guess = rand(length(b))
+init_guess_copy = init_guess;
+init_guess = cu(init_guess);
 
 # Numerical Solutions
 
@@ -192,20 +193,20 @@ log_num_err = log2.(num_err)
 ## Iterative Solutions
 ## GPU
 
-#result_2 = @benchmark cg!(init_guess,A_d,b_d)
-result_2 = @benchmark cg(A_d,b_d)
-#cu_sol = cg!(init_guess,A_d,b_d)
-cu_sol = cg(A_d,b_d)
+result_2 = @benchmark cg!(init_guess,A_d,b_d)
+#result_2 = @benchmark cg(A_d,b_d)
+cu_sol = cg!(init_guess,A_d,b_d)
+#cu_sol = cg(A_d,b_d)
 cu_sol = collect(cu_sol)
 cu_sol = reshape(cu_sol, N_y + 1, N_x + 1)
 iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:]))
 log_iter_GPU_err = log2.(iter_GPU_err)
 
 ## CPU  using BLAS
-#result_3 = @benchmark cg!(init_guess_copy,A,b)
-result_3 = @benchmark cg(A,b)
-#iter_sol = cg!(init_guess_copy,A,b)
-iter_sol = cg(A,b)
+result_3 = @benchmark cg!(init_guess_copy,A,b)
+#result_3 = @benchmark cg(A,b)
+iter_sol = cg!(init_guess_copy,A,b)
+#iter_sol = cg(A,b)
 iter_sol = reshape(iter_sol,N_y+1, N_x+1)
 iter_CPU_err = sqrt((iter_sol[:] - analy_sol[:])' * H_tilde * (iter_sol[:] - analy_sol[:]))
 log_iter_CPU_err = log2.(iter_CPU_err)

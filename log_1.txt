@@ -1,0 +1,1043 @@
+Omit --global to set the identity only in this repository.
+
+fatal: unable to auto-detect email address (got 'yiminc@n120.(none)')
+[yiminc@n120 Poisson_2d]$ git config --global user.email napoleonalexandre@gmail.com
+[yiminc@n120 Poisson_2d]$ git config --global user.name Alexandre Chern
+[yiminc@n120 Poisson_2d]$ git ad .
+git: 'ad' is not a git command. See 'git --help'.
+
+Did you mean one of these?
+    add
+    am
+[yiminc@n120 Poisson_2d]$ git add /
+fatal: '/' is outside repository
+[yiminc@n120 Poisson_2d]$ git add .
+[yiminc@n120 Poisson_2d]$ git commit
+[master (root-commit) 4104ea7] Initial Commit
+ 7 files changed, 1332 insertions(+)
+ create mode 100644 Poisson_2d
+ create mode 100644 Poisson_2d.jl
+ create mode 100644 Poisson_2d_new.jl
+ create mode 100644 diagonal_sbp.jl
+ create mode 100644 gpu_enable.sh
+ create mode 100644 j
+ create mode 100644 test.jl
+[yiminc@n120 Poisson_2d]$ ls
+diagonal_sbp.jl  gpu_enable.sh  j  Poisson_2d  Poisson_2d.jl  Poisson_2d_new.jl  test.jl
+[yiminc@n120 Poisson_2d]$ git status
+# On branch master
+
+▽
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+init_guess = rand(length(b))
+nothing to commit, working directory clean
+
+▽
+init_guess = rand(length(b))
+[yiminc@n120 Poisson_2d]$ git log
+commit 4104ea77f538943c707636c3eb91be3cc9c2645e
+Author: Alexandre <napoleonalexandre@gmail.com>
+Date:   Tue Aug 6 14:12:46 2019 -0700
+
+    Initial Commit
+[yiminc@n120 Poisson_2d]$ git config --global user.name "Alexandre Chern"
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ jobs
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ ls
+diagonal_sbp.jl  gpu_enable.sh  j  Poisson_2d  Poisson_2d.jl  Poisson_2d_new.jl  test.jl
+Made some modifications to gpu_enable.sh and test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  160.55 KiB
+  allocs estimate:  68
+  --------------
+  minimum time:     175.368 μs (0.00% GC)
+  median time:      180.411 μs (0.00% GC)
+  mean time:        193.717 μs (5.39% GC)
+  maximum time:     70.494 ms (98.85% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.64 KiB
+  allocs estimate:  159
+  --------------
+  minimum time:     127.415 μs (0.00% GC)
+  median time:      134.722 μs (0.00% GC)
+  mean time:        140.819 μs (0.94% GC)
+  maximum time:     19.511 ms (22.85% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+
+▽
+
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  2.97 KiB
+  allocs estimate:  13
+  --------------
+  minimum time:     1.113 μs (0.00% GC)
+  median time:      1.172 μs (0.00% GC)
+  mean time:        1.443 μs (11.24% GC)
+  maximum time:     176.561 μs (98.53% GC)
+  --------------
+  samples:          10000
+  evals/sample:     10
+Error Comparisons
+For CPU LU Decomposition:
+0.007086547124086672
+-7.140701430166181
+
+For GPU Iterative:
+0.0065654991941978625
+-7.25087957702997
+
+For CPU Iterative:
+0.006560070959829555
+-7.252072864202796
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ git status
+# On branch master
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#   modified:   gpu_enable.sh
+#   modified:   test.jl
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+[yiminc@n120 Poisson_2d]$ git add .
+[yiminc@n120 Poisson_2d]$ git commit
+[master c79df54] Made some modifications to gpu_enable.sh and test.jl
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+[yiminc@n120 Poisson_2d]$ git logs
+git: 'logs' is not a git command. See 'git --help'.
+
+Did you mean this?
+    log
+[yiminc@n120 Poisson_2d]$ git log
+commit c79df54602e03591d2f60df885ca051ecb762280
+Author: Alexandre Chern <napoleonalexandre@gmail.com>
+Date:   Wed Aug 7 11:35:31 2019 -0700
+
+    Made some modifications to gpu_enable.sh and test.jl
+
+commit 4104ea77f538943c707636c3eb91be3cc9c2645e
+Author: Alexandre <napoleonalexandre@gmail.com>
+Date:   Tue Aug 6 14:12:46 2019 -0700
+
+    Initial Commit
+[yiminc@n120 Poisson_2d]$ ls
+diagonal_sbp.jl  gpu_enable.sh  j  Poisson_2d  Poisson_2d.jl  Poisson_2d_new.jl  test.jl
+[yiminc@n120 Poisson_2d]$ git log --oneline
+c79df54 Made some modifications to gpu_enable.sh and test.jl
+4104ea7 Initial Commit
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+ERROR: LoadError: MethodError: no method matching lu!(::SparseMatrixCSC{Float64,Int64}, ::Val{true}; check=true)
+Closest candidates are:
+  lu!(!Matched::Union{DenseArray{T<:Union{Complex{Float32}, Complex{Float64}, Float32, Float64},2}, ReinterpretArray{T<:Union{Complex{Float32}, Complex{Float64}, Float32, Float64},2,S,A} where S where A<:Union{SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray}, ReshapedArray{T<:Union{Complex{Float32}, Complex{Float64}, Float32, Float64},2,A,MI} where MI<:Tuple{Vararg{SignedMultiplicativeInverse{Int64},N} where N} where A<:Union{ReinterpretArray{T,N,S,A} where S where A<:Union{SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray} where N where T, SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray}, SubArray{T<:Union{Complex{Float32}, Complex{Float64}, Float32, Float64},2,A,I,L} where L where I<:Tuple{Vararg{Union{Int64, AbstractRange{Int64}, AbstractCartesianIndex},N} where N} where A<:Union{ReinterpretArr
+▽
+161
+ay{T,N,S,A} where S where A<:Union{SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray} where N where T, ReshapedArray{T,N,A,MI} where MI<:Tuple{Vararg{SignedMultiplicativeInverse{Int64},N} where N} where A<:Union{ReinterpretArray{T,N,S,A} whe161
+re S where A<:Union{SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray} where N where T, SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray} where N where T, DenseArray}}, ::Union{Val{false}, Val{true}}; check) where T<:Union{Complex{Float32}, Complex{Float64}, Float32, Float64} at /home/conda/feedstock_root/build_artifacts/julia_1560178187757/work/usr/share/julia/stdlib/v1.1/LinearAlgebra/src/lu.jl:37
+  lu!(!Matched::Union{Hermitian{T,S}, Symmetric{T,S}} where S where T, ::Union{Val{false}, Val{true}}; check) at /home/conda/feedstock_root/build_artifacts/julia_1560178187757/work/usr/share/julia/stdlib/v1.1/LinearAlgebra/src/lu.jl:45
+  lu!(!Matched::Union{DenseArray{T,2}, ReinterpretArray{T,2,S,A} where S where A<:Union{S
+
+▽
+
+▽
+183
+ubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray}, ReshapedArray{T,2,A,MI} where MI<:Tuple{Vararg{SignedMultiplicativeInverse{Int64},N} where N} where A<:Union{ReinterpretArray{T,N,S,A} where S where A<:Union{SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray} where N where T, SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray}, SubArray{T,2,A,I,L} where L where I<:Tuple{Vararg{Union{Int64, AbstractRange{Int64}, AbstractCartesianIndex},N} where N} where A<:Union{ReinterpretArray{T,N,S,A} where S where A<:Union{SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray} where N where T, ReshapedArray{T,N,A,MI} where MI<:Tuple{Vararg{SignedMultiplicativeInverse{Int64},N} where N} where A<:Union{ReinterpretArray{T,N,S,A} where S where A<:Union{SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray} where N where T, SubArray{T,N,A,I,true} where I<:Union{Tuple{Vararg{Real,N} where N}, Tuple{AbstractUnitRange,Vararg{Any,N} where N}} where A<:DenseArray where N where T, DenseArray} where N where T, DenseArray}} where T, ::Union{Val{false}, Val{true}}; check) at /home/conda/feedstock_root/build_artifacts/julia_1560178187757/work/usr/share/julia/stdlib/v1.1/LinearAlgebra/src/lu.jl:86
+  ...
+Stacktrace:
+ [1] #lu!#104(::Bool, ::Function, ::Hermitian{Float64,SparseMatrixCSC{Float64,Int64}}, ::Val{true}) at /home/conda/feedstock_root/build_artifacts/julia_1560178187757/work/usr/share/julia/stdlib/v1.1/LinearAlgebra/src/lu.jl:46
+ [2] (::getfield(LinearAlgebra, Symbol("#kw##lu!")))(::NamedTuple{(:check,),Tuple{Bool}}, ::typeof(lu!), ::Hermitian{Float64,SparseMatrixCSC{Float64,Int64}}, ::Val{true}) at ./none:0
+ [3] #lu#107(::Bool, ::Function, ::Hermitian{Float64,SparseMatrixCSC{Float64,Int64}}, ::Val{true}) at /home/conda/feedstock_root/build_artifacts/julia_1560178
+▽
+    e_S = kron(I_Nx,e_1y);
+187757/work/usr/share/julia/stdlib/v1.1/LinearAlgebra/src/lu.jl:142
+ [4] lu(::Hermitian{Float64,SparseMatrixCSC{Float64,Int64}}, ::Val{true}) at /home/conda/feedstock_root/build_artifacts/julia_1560178187757/work/usr/share/julia/stdlib/v1.1/LinearAlgebra/src/lu.jl:142 (repeats 2 times)
+ [5] \(::Hermitian{Float64,SparseMatrixCSC{Float64,Int64}}, ::SparseMatrixCSC{Float64,Int64}) at /home/conda/feedstock_root/build_artifacts/julia_1560178187757/work/usr/share/julia/stdlib/v1.1/LinearAlgebra/src/generic.jl:905
+ [6] \(::SparseMatrixCSC{Float64,Int64}, ::SparseMatrixCSC{Float64,Int64}) at /home/conda/feedstock_root/build_artifacts/julia_1560178187757/work/usr/share/julia/stdlib/v1.1/SparseArrays/src/linalg.jl:1291
+ [7] top-level scope at none:0
+ [8] include at ./boot.jl:326 [inlined]
+ [9] include_relative(::Module, ::String) at ./loading.jl:1038
+ [10] include(::Module, ::String) at ./sysimg.jl:29
+ [11] exec_options(::Base.JLOptions) at ./client.jl:267
+ [12] _start() at ./client.jl:436
+in expression starting at /gpfs/home/yiminc/sbp-sat/Poisson_2d/test.jl:186
+[yiminc@n120 Poisson_2d]$ vim test.jl
+
+[2]+  Stopped                 vim test.jl
+[yiminc@n120 Poisson_2d]$ fg
+vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+▽
+
+ERROR: LoadError: UndefVarError: result_1 not defined
+Stacktrace:
+ [1] top-level scope at none:0
+ [2] include at ./boot.jl:326 [inlined]
+ [3] include_relative(::Module, ::String) at ./loading.jl:1038
+ [4] include(::Module, ::String) at ./sysimg.jl:29
+ [5] exec_options(::Base.JLOptions) at ./client.jl:267
+ [6] _start() at ./client.jl:436
+in expression starting at /gpfs/home/yiminc/sbp-sat/Poisson_2d/test.jl:217
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.007086547124086606
+-7.140701430166194
+
+▽
+tau_N = -1
+
+For GPU Iterative:
+0.007086041174173116
+-7.140804436253167
+
+For CPU Iterative:
+0.007081352105701212
+-7.1417594314233
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+▽
+169 b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.0017350148872397378
+-9.170836242806795
+
+For GPU Iterative:
+0.002149200064317593
+-8.861984498329903
+
+For CPU Iterative:
+0.0018289092831189273
+-9.094800767826003
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+▽
+
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.0004318775701879337
+-11.177089988262498
+
+For GPU Iterative:
+0.0016517886603906822
+-9.241755173032296
+correct some bugs
+
+For CPU Iterative:
+0.0006408254974684571
+-10.607780828027112
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.00010787002811426388
+-13.178418314515534
+
+For GPU Iterative:
+0.00777111866830035
+-7.007661992201322
+
+For CPU Iterative:
+0.0006589201418008548
+-10.567608751962757
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+ERROR: LoadError: DomainError with -2.4143516534093408e-8:
+sqrt will only return a complex result if called with a complex argument. Try sqrt(Complex(x)).
+Stacktrace:
+ [1] throw_complex_domainerror(::Symbol, ::Float64) at ./math.jl:31
+ [2] sqrt(::Float64) at ./math.jl:492
+ [3] top-level scope at none:0
+ [4] include at ./boot.jl:326 [inlined]
+ [5] include_relative(::Module, ::String) at ./loading.jl:1038
+ [6] include(::Module, ::String) at ./sysimg.jl:29
+ [7] exec_options(::Base.JLOptions) at ./client.jl:267
+ [8] _start() at ./client.jl:436
+in expression starting at /gpfs/home/yiminc/sbp-sat/Poisson_2d/test.jl:207
+[yiminc@n120 Poisson_2d]$ vim test.jl
+
+▽
+    e_1y = sparse(e(1,N_y+1));
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.00010787002811426388
+-13.178418314515534
+
+For GPU Iterative:
+0.0009097956680428841
+-10.102169814240533
+
+For CPU Iterative:
+0.00010786837214276869
+-13.1784404622821
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+
+▽
+    N_x = Integer(m_list[i]);
+[yiminc@n120 Poisson_2d]$ git status
+# On branch master
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#   modified:   test.jl
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+[yiminc@n120 Poisson_2d]$ git add .
+[yiminc@n120 Poisson_2d]$ git commit
+[master be2b1a7] correct some bugs
+ 1 file changed, 16 insertions(+), 9 deletions(-)
+[yiminc@n120 Poisson_2d]$ git log
+commit be2b1a7040ce678fa4bd0e84651a64f2e5611e57
+Author: Alexandre Chern <napoleonalexandre@gmail.com>
+Date:   Wed Aug 7 12:04:29 2019 -0700
+
+    correct some bugs
+
+commit c79df54602e03591d2f60df885ca051ecb762280
+Author: Alexandre Chern <napoleonalexandre@gmail.com>
+Date:   Wed Aug 7 11:35:31 2019 -0700
+
+    Made some modifications to gpu_enable.sh and test.jl
+
+commit 4104ea77f538943c707636c3eb91be3cc9c2645e
+Author: Alexandre <napoleonalexandre@gmail.com>
+Date:   Tue Aug 6 14:12:46 2019 -0700
+
+▽
+    x = range(0,step=hx,1);
+
+    Initial Commit
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.007086547124086606
+-7.140701430166194
+
+For GPU Iterative:
+0.007165743901695433
+-7.124667801029182
+
+For CPU Iterative:
+0.007086546754164188
+-7.140701505475826
+
+▽
+A_d = cu(A)
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.0017350148872397378
+-9.170836242806795
+
+For GPU Iterative:
+0.0018113177800744105
+-9.108744607772852
+
+For CPU Iterative:
+0.0017350162161283164
+-9.170835137813263
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia tes
+ERROR: could not open file /gpfs/home/yiminc/sbp-sat/Poisson_2d/tes
+Stacktrace:
+ [1] include at ./boot.jl:326 [inlined]
+ [2] include_relative(::Module, ::String) at ./loading.jl:1038
+ [3] include(::Module, ::String) at ./sysimg.jl:29
+ [4] exec_options(::Base.JLOptions) at ./client.jl:267
+ [5] _start() at ./client.jl:436
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.0004318775701879337
+-11.177089988262498
+
+For GPU Iterative:
+0.0005650965793420106
+-10.789214923295214
+
+For CPU Iterative:
+0.00043187684950190137
+-11.177092395729577
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.00010787002811426388
+-13.178418314515534
+
+For GPU Iterative:
+0.0009097956680428841
+-10.102169814240533
+
+For CPU Iterative:
+0.00010786837214276869
+-13.1784404622821
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+
+▽
+A_d = cu(A)
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.007086547124086606
+-7.140701430166194
+
+For GPU Iterative:
+0.007165743901695433
+-7.124667801029182
+
+For CPU Iterative:
+0.007086546754164188
+-7.140701505475826
+
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.0017350148872397378
+-9.170836242806795
+
+For GPU Iterative:
+0.0018113177800744105
+-9.108744607772852
+
+
+▽
+156
+For CPU Iterative:
+
+▽
+
+0.0017350162161283164
+-9.170835137813263
+
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+Error Comparisons
+For CPU LU Decomposition:
+0.0004318775701879337
+-11.177089988262498
+
+For GPU Iterative:
+0.0005650965793420106
+-10.789214923295214
+
+For CPU Iterative:
+0.00043187684950190137
+-11.177092395729577
+
+For CPU LU Decomposition:
+
+For GPU Iterative:
+
+For CPU Iterative
+
+
+▽
+129 # Analytical Solutions
+Error Comparisons
+
+▽
+#init_guess = rand(length(b))
+For CPU LU Decomposition:
+
+▽
+178 #init_guess = rand(length(b))
+0.00010787002811426388
+-13.178418314515534
+
+For GPU Iterative:
+0.0009097956680428841
+-10.102169814240533
+
+For CPU Iterative:
+0.00010786837214276869
+-13.1784404622821
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+ERROR: LoadError: UndefVarError: A not defined
+Stacktrace:
+ [1] ##core#367() at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:297
+ [2] ##sample#368(::BenchmarkTools.Parameters) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:303
+ [3] #_run#8(::Bool, ::String, ::Base.Iterators.Pairs{Symbol,Integer,NTuple{4,Symbol},NamedTuple{(:samples, :evals, :gctrial, :gcsample),Tuple{Int64,Int64,Bool,Bool}}}, ::Function, ::BenchmarkTools.Benchmark{Symbol("##benchmark#366")}, ::BenchmarkTools.Parameters) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:331
+ [4] (::getfield(Base, Symbol("#inner#2")){Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}},typeof(BenchmarkTools._run),Tuple{BenchmarkTools.Benchmark{Symbol("##benchmark#366")},BenchmarkTools.Parameters}})() at ./none:0
+ [5] #invokelatest#1 at ./essentials.jl:746 [inlined]
+ [6] #invokelatest at ./none:0 [inlined]
+ [7] #run_result#19 at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:32 [inlined]
+ [8] #run_result at ./none:0 [inlined]
+ [9] #run#21(::Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}}, ::Function, ::BenchmarkTools.Benchmark{Symbol("##benchmark#366")}, ::BenchmarkTools.Parameters) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:46
+ [10] #run at ./none:0 [inlined] (repeats 2 times)
+ [11] #warmup#24 at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:79 [inlined]
+ [12] warmup(::BenchmarkTools.Benchmark{Symbol("##benchmark#366")}) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:79
+ [13] top-level scope at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:213
+ [14] top-level scope at /gpfs/home/yiminc/sbp-sat/Poisson_2d/test.jl:184
+ [15] include at ./boot.jl:326 [inlined]
+ [16] include_relative(::Module, ::String) at ./loading.jl:1038
+ [17] include(::Module, ::String) at ./sysimg.jl:29
+ [18] exec_options(::Base.JLOptions) at ./client.jl:267
+ [19] _start() at ./client.jl:436
+in expression starting at /gpfs/home/yiminc/sbp-sat/Poisson_2d/test.jl:107
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+ERROR: LoadError: UndefVarError: A not defined
+Stacktrace:
+ [1] ##core#367() at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:297
+ [2] ##sample#368(::BenchmarkTools.Parameters) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:303
+ [3] #_run#8(::Bool, ::String, ::Base.Iterators.Pairs{Symbol,Integer,NTuple{4,Symbol},NamedTuple{(:samples, :evals, :gctrial, :gcsample),Tuple{Int64,Int64,Bool,Bool}}}, ::Function, ::BenchmarkTools.Benchmark{Symbol("##benchmark#366")}, ::BenchmarkTools.Parameters) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:331
+
+▽
+    HI_y = kron(I_Nx,HIy);
+ [4] (::getfield(Base, Symbol("#inner#2")){Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}},typeof(BenchmarkTools._run),Tuple{BenchmarkTools.Benchmark{Symbol("##benchmark#366")},BenchmarkTools.Parameters}})() at ./none:0
+ [5] #invokelatest#1 at ./essentials.jl:746 [inlined]
+ [6] #invokelatest at ./none:0 [inlined]
+ [7] #run_result#19 at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:32 [inlined]
+ [8] #run_result at ./none:0 [inlined]
+ [9] #run#21(::Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}}, ::Function, ::BenchmarkTools.Benchmark{Symbol("##benchmark#366")}, ::BenchmarkTools.Parameters) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:46
+ [10] #run at ./none:0 [inlined] (repeats 2 times)
+ [11] #warmup#24 at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:79 [inlined]
+ [12] warmup(::BenchmarkTools.Benchmark{Symbol("##benchmark#366")}) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:79
+ [13] top-level scope at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:213
+ [14] top-level scope at /gpfs/home/yiminc/sbp-sat/Poisson_2d/test.jl:184
+ [15] include at ./boot.jl:326 [inlined]
+ [16] include_relative(::Module, ::String) at ./loading.jl:1038
+ [17] include(::Module, ::String) at ./sysimg.jl:29
+ [18] exec_options(::Base.JLOptions) at ./client.jl:267
+ [19] _start() at ./client.jl:436
+in expression starting at /gpfs/home/yiminc/sbp-sat/Poisson_2d/test.jl:107
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  68.99 KiB
+  allocs estimate:  60
+  --------------
+  minimum time:     64.696 μs (0.00% GC)
+  median time:      78.999 μs (0.00% GC)
+  mean time:        90.066 μs (10.36% GC)
+  maximum time:     70.603 ms (98.38% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  133.59 KiB
+  allocs estimate:  2922
+  --------------
+  minimum time:     1.948 ms (0.00% GC)
+  median time:      2.104 ms (0.00% GC)
+  mean time:        2.130 ms (0.88% GC)
+  maximum time:     6.792 ms (52.40% GC)
+  --------------
+  samples:          2344
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  4.44 KiB
+  allocs estimate:  16
+
+▽
+    y = range(0,step=hy,1);
+  --------------
+  minimum time:     13.647 μs (0.00% GC)
+  median time:      14.963 μs (0.00% GC)
+  mean time:        15.627 μs (1.69% GC)
+  maximum time:     1.511 ms (98.42% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.007086547124086606
+-7.140701430166194
+
+For GPU Iterative:
+0.007165743901695433
+-7.124667801029182
+
+For CPU Iterative:
+0.007086546754164188
+-7.140701505475826
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  250.24 KiB
+  allocs estimate:  60
+  --------------
+  minimum time:     283.445 μs (0.00% GC)
+  median time:      299.304 μs (0.00% GC)
+  mean time:        313.602 μs (3.55% GC)
+  maximum time:     68.942 ms (98.94% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  247.30 KiB
+  allocs estimate:  5369
+  --------------
+  minimum time:     3.952 ms (0.00% GC)
+  median time:      4.225 ms (0.00% GC)
+  mean time:        4.265 ms (0.79% GC)
+  maximum time:     8.330 ms (41.71% GC)
+  --------------
+  samples:          1172
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  13.03 KiB
+  allocs estimate:  16
+
+▽
+    y = range(0,step=hy,1);
+  --------------
+  minimum time:     91.357 μs (0.00% GC)
+  median time:      97.031 μs (0.00% GC)
+  mean time:        101.164 μs (0.74% GC)
+  maximum time:     1.858 ms (94.65% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.0017350148872397378
+-9.170836242806795
+
+For GPU Iterative:
+0.0018113177800744105
+-9.108744607772852
+
+For CPU Iterative:
+0.0017350162161283164
+-9.170835137813263
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  988.21 KiB
+  allocs estimate:  60
+  --------------
+  minimum time:     1.099 ms (0.00% GC)
+  median time:      1.144 ms (0.00% GC)
+  mean time:        1.179 ms (2.57% GC)
+  maximum time:     70.569 ms (98.10% GC)
+  --------------
+  samples:          4228
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  474.91 KiB
+  allocs estimate:  10276
+  --------------
+  minimum time:     9.132 ms (0.00% GC)
+  median time:      9.371 ms (0.00% GC)
+  mean time:        9.463 ms (0.71% GC)
+  maximum time:     15.823 ms (37.93% GC)
+  --------------
+  samples:          529
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  44.31 KiB
+  allocs estimate:  18
+  --------------
+  minimum time:     632.086 μs (0.00% GC)
+  median time:      650.283 μs (0.00% GC)
+  mean time:        653.537 μs (0.22% GC)
+  maximum time:     1.624 ms (58.99% GC)
+  --------------
+  samples:          7630
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.0004318775701879337
+-11.177089988262498
+
+For GPU Iterative:
+0.0005650965793420106
+-10.789214923295214
+
+For CPU Iterative:
+0.00043187684950190137
+-11.177092395729577
+
+[yiminc@n120 Poisson_2d]$ vim test.jl
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  4.03 MiB
+  allocs estimate:  62
+  --------------
+  minimum time:     5.373 ms (0.00% GC)
+  median time:      5.657 ms (0.00% GC)
+  mean time:        5.792 ms (2.43% GC)
+  maximum time:     75.456 ms (91.91% GC)
+  --------------
+  samples:          863
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  921.78 KiB
+  allocs estimate:  19901
+  --------------
+  minimum time:     66.187 ms (0.00% GC)
+  median time:      66.520 ms (0.00% GC)
+  mean time:        66.801 ms (0.28% GC)
+  maximum time:     72.860 ms (9.26% GC)
+  --------------
+  samples:          75
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  166.58 KiB
+  allocs estimate:  23
+  --------------
+  minimum time:     5.233 ms (0.00% GC)
+
+▽
+  median time:      5.311 ms (0.00% GC)
+
+▽
+g_W = sin.(π*y)
+  mean time:        5.337 ms (0.08% GC)
+  maximum time:     6.519 ms (11.62% GC)
+  --------------
+  samples:          937
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.00010787002811426388
+-13.178418314515534
+
+For GPU Iterative:
+0.0009097956680428841
+-10.102169814240533
+
+For CPU Iterative:
+0.00010786837214276869
+-13.1784404622821
+
+[yiminc@n120 Poisson_2d]$ julia test.jl
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  4.03 MiB
+  allocs estimate:  62
+  --------------
+  minimum time:     5.419 ms (0.00% GC)
+  median time:      5.674 ms (0.00% GC)
+
+▽
+
+  mean time:        5.867 ms (2.45% GC)
+  maximum time:     75.722 ms (91.92% GC)
+  --------------
+  samples:          852
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  921.78 KiB
+  allocs estimate:  19901
+  --------------
+  minimum time:     66.190 ms (0.00% GC)
+  median time:      66.380 ms (0.00% GC)
+  mean time:        66.597 ms (0.20% GC)
+  maximum time:     70.319 ms (5.21% GC)
+  --------------
+  samples:          76
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  166.58 KiB
+  allocs estimate:  23
+  --------------
+  minimum time:     5.232 ms (0.00% GC)
+  median time:      5.309 ms (0.00% GC)
+  mean time:        5.386 ms (0.12% GC)
+  maximum time:     6.898 ms (0.00% GC)
+  --------------
+  samples:          928
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.00010787002811426388
+-13.178418314515534
+
+For GPU Iterative:
+0.0009097956680428841
+-10.102169814240533
+
+For CPU Iterative:
+0.00010786837214276869
+-13.1784404622821
+
+[yiminc@n120 Poisson_2d]$ ls
+diagonal_sbp.jl  gpu_enable.sh  j  Poisson_2d  Poisson_2d.jl  Poisson_2d_new.jl  test.jl
+[yiminc@n120 Poisson_2d]$ cp test.jl test_rand_init.jl
+[yiminc@n120 Poisson_2d]$ vim test
+[yiminc@n120 Poisson_2d]$ vim test_rand_init.jl
+[yiminc@n120 Poisson_2d]$ julia test_rand_init.jl
+ERROR: LoadError: UndefVarError: init_guess not defined
+Stacktrace:
+ [1] ##core#369() at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:297
+ [2] ##sample#370(::BenchmarkTools.Parameters) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:303
+ [3] #_run#9(::Bool, ::String, ::Base.Iterators.Pairs{Symbol,Integer,NTuple{4,Symbol},NamedTuple{(:samples, :evals, :gctrial, :gcsample),Tuple{Int64,Int64,Bool,Bool}}}, ::Function, ::BenchmarkTools.Benchmark{Symbol("##benchmark#368")}, ::BenchmarkTools.Parameters) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:331
+ [4] (::getfield(Base, Symbol("#inner#2")){Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}},typeof(BenchmarkTools._run),Tuple{BenchmarkTools.Benchmark{Symbol("##benchmark#368")},BenchmarkTools.Parameters}})() at ./none:0
+ [5] #invokelatest#1 at ./essentials.jl:746 [inlined]
+ [6] #invokelatest at ./none:0 [inlined]
+ [7] #run_result#19 at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:32 [inlined]
+
+▽
+    (D2x, S0x, SNx, HI2x, H2x, r2x) = diagonal_sbp_D2(p,N_x,xc=(0,1));
+ [8] #run_result at ./none:0 [inlined]
+
+▽
+    D1_y = kron(I_Nx,D1y);
+ [9] #run#21(::Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}}, ::Function, ::BenchmarkTools.Benchmark{Symbol("##benchmark#368")}, ::BenchmarkTools.Parameters) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:46
+ [10] #run at ./none:0 [inlined] (repeats 2 times)
+ [11] #warmup#24 at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:79 [inlined]
+ [12] warmup(::BenchmarkTools.Benchmark{Symbol("##benchmark#368")}) at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:79
+ [13] top-level scope at /home/yiminc/.julia/packages/BenchmarkTools/mVOqg/src/execution.jl:213
+ [14] include at ./boot.jl:326 [inlined]
+ [15] include_relative(::Module, ::String) at ./loading.jl:1038
+ [16] include(::Module, ::String) at ./sysimg.jl:29
+ [17] exec_options(::Base.JLOptions) at ./client.jl:267
+ [18] _start() at ./client.jl:436
+in expression starting at /gpfs/home/yiminc/sbp-sat/Poisson_2d/test_rand_init.jl:195
+[yiminc@n120 Poisson_2d]$ vim test_rand_init.jl
+[yiminc@n120 Poisson_2d]$ julia test
+ERROR: could not open file /gpfs/home/yiminc/sbp-sat/Poisson_2d/test
+Stacktrace:
+ [1] include at ./boot.jl:326 [inlined]
+ [2] include_relative(::Module, ::String) at ./loading.jl:1038
+ [3] include(::Module, ::String) at ./sysimg.jl:29
+ [4] exec_options(::Base.JLOptions) at ./client.jl:267
+ [5] _start() at ./client.jl:436
+[yiminc@n120 Poisson_2d]$ julia test_rand_init.jl
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  4.03 MiB
+  allocs estimate:  62
+  --------------
+  minimum time:     5.394 ms (0.00% GC)
+  median time:      5.646 ms (0.00% GC)
+  mean time:        5.799 ms (2.47% GC)
+  maximum time:     75.623 ms (91.92% GC)
+  --------------
+  samples:          862
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.75 KiB
+  allocs estimate:  166
+  --------------
+  minimum time:     575.300 μs (0.00% GC)
+  median time:      594.921 μs (0.00% GC)
+  mean time:        599.566 μs (0.18% GC)
+  maximum time:     19.543 ms (22.51% GC)
+  --------------
+  samples:          8302
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  100.27 KiB
+  allocs estimate:  18
+  --------------
+  minimum time:     32.005 μs (0.00% GC)
+  median time:      33.961 μs (0.00% GC)
+  mean time:        37.629 μs (7.66% GC)
+  maximum time:     910.327 μs (92.87% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.00010787002811426388
+-13.178418314515534
+
+For GPU Iterative:
+0.008161221651032839
+-6.936999159675074
+
+For CPU Iterative:
+0.00010786690741458203
+-13.178460052551207
+
+[yiminc@n120 Poisson_2d]$ vim test_rand_init.jl
+[yiminc@n120 Poisson_2d]$ vim test_rand_init.jl
+[yiminc@n120 Poisson_2d]$ julia test_rand_init.jl
+k =: 3
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  988.21 KiB
+  allocs estimate:  60
+  --------------
+  minimum time:     1.101 ms (0.00% GC)
+  median time:      1.148 ms (0.00% GC)
+  mean time:        1.182 ms (2.68% GC)
+  maximum time:     70.857 ms (98.09% GC)
+  --------------
+  samples:          4217
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.75 KiB
+  allocs estimate:  166
+  --------------
+  minimum time:     142.444 μs (0.00% GC)
+  median time:      160.514 μs (0.00% GC)
+  mean time:        163.182 μs (0.26% GC)
+  maximum time:     18.778 ms (22.49% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  26.91 KiB
+  allocs estimate:  15
+  --------------
+  minimum time:     9.295 μs (0.00% GC)
+  median time:      10.043 μs (0.00% GC)
+  mean time:        11.309 μs (8.40% GC)
+  maximum time:     1.003 ms (97.67% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.0004318775701879337
+-11.177089988262498
+
+For GPU Iterative:
+0.0014575597342812846
+-9.422229274934114
+
+For CPU Iterative:
+0.0004318769360208349
+-11.17709210671102
+
+[yiminc@n120 Poisson_2d]$ srun: Force Terminated job 9698377
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+
