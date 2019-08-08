@@ -1,0 +1,1074 @@
+  [73 , 100]  =  0.480954
+  [74 , 100]  =  0.884836
+  [75 , 100]  =  0.490571
+  [76 , 100]  =  0.0185824
+  [77 , 100]  =  0.775737
+  [78 , 100]  =  0.100306
+  [79 , 100]  =  0.347496
+  [80 , 100]  =  0.0650336
+  [81 , 100]  =  0.964086
+  [82 , 100]  =  0.627371
+  [83 , 100]  =  0.85578
+  [84 , 100]  =  0.489994
+  [85 , 100]  =  0.929101
+  [86 , 100]  =  0.446806
+  [87 , 100]  =  0.71295
+  [88 , 100]  =  0.629692
+  [89 , 100]  =  0.845872
+  [90 , 100]  =  0.903339
+  [91 , 100]  =  0.151537
+  [92 , 100]  =  0.297501
+  [93 , 100]  =  0.753959
+  [94 , 100]  =  0.302846
+  [95 , 100]  =  0.519286
+  [96 , 100]  =  0.866338
+  [97 , 100]  =  0.644811
+  [98 , 100]  =  0.377426
+  [99 , 100]  =  0.688366
+  [100, 100]  =  0.0872938
+
+julia> CuArray{Float64}(A_sparse)
+100×100 CuArray{Float64,2}:
+ 0.610647    0.814248   0.282321   0.456728    0.870955     0.436484   0.354767    0.295863   …  0.427869    0.389973    0.13276    0.360435   0.6705     0.0766268  0.187106    0.987451
+ 0.671214    0.69267    0.167236   0.690475    0.132291     0.440379   0.0560303   0.712738      0.422475    0.942313    0.234174   0.928265   0.201511   0.15345    0.0496298   0.257514
+ 0.964498    0.376255   0.792491   0.307669    0.000950584  0.634535   0.80277     0.102603      0.759373    0.614756    0.196472   0.950469   0.967044   0.141709   0.978378    0.559483
+ 0.811316    0.809862   0.581788   0.917655    0.376633     0.529335   0.0430327   0.634325      0.921693    0.642041    0.259589   0.0878001  0.837701   0.681976   0.358109    0.133032
+ 0.333308    0.496462   0.411451   0.0019733   0.831115     0.711031   0.280356    0.0881283     0.00103992  0.140108    0.230779   0.634978   0.268242   0.149667   0.782366    0.133912
+ 0.894333    0.326168   0.211179   0.302604    0.534083     0.570386   0.220128    0.436493   …  0.452212    0.983025    0.472001   0.578232   0.483004   0.0926392  0.649732    0.122189
+ 0.465913    0.168747   0.351473   0.834529    0.148807     0.535961   0.573577    0.954691      0.375946    0.308079    0.623949   0.954591   0.0685576  0.942631   0.480377    0.393494
+ 0.157223    0.382447   0.781998   0.130629    0.737266     0.542802   0.0338555   0.929875      0.208446    0.883545    0.56225    0.527096   0.940611   0.0940408  0.0317657   0.799166
+ 0.275621    0.443521   0.191793   0.15922     0.61859      0.614705   0.479917    0.597879      0.263636    0.307178    0.568505   0.726028   0.779252   0.778877   0.739144    0.482048
+ 0.969306    0.181048   0.539367   0.144512    0.38477      0.774725   0.202401    0.658105      0.607622    0.428539    0.890361   0.354887   0.952107   0.227117   0.85537     0.582182
+ 0.447358    0.896671   0.465911   0.908552    0.104133     0.653803   0.063366    0.0763579  …  0.442445    0.576014    0.703151   0.706989   0.865093   0.488544   0.616174    0.523864
+ 0.233434    0.118818   0.927606   0.4096      0.146102     0.653363   0.369809    0.885902      0.0156581   0.453689    0.716124   0.327444   0.835547   0.0947657  0.319212    0.1345
+ 0.887816    0.824789   0.433987   0.859485    0.596409     0.120075   0.593013    0.354932      0.0567369   0.0301388   0.364155   0.703811   0.282254   0.271736   0.713378    0.154422
+ 0.792139    0.535323   0.409682   0.131189    0.946056     0.971439   0.00168366  0.423541      0.484439    0.833323    0.344408   0.743145   0.563614   0.617142   0.132052    0.756374
+ 0.568005    0.718054   0.634997   0.630659    0.540921     0.663271   0.0632485   0.877623      0.103891    0.853881    0.955427   0.475232   0.701975   0.499678   0.37314     0.337584
+ 0.916317    0.170742   0.431121   0.604817    0.323926     0.309233   0.879332    0.129036   …  0.452492    0.407694    0.282232   0.311559   0.192569   0.203352   0.482283    0.548504
+ 0.516152    0.549337   0.850615   0.609675    0.112575     0.43571    0.39243     0.124488      0.125199    0.694802    0.329838   0.379873   0.571484   0.0798541  0.00738888  0.155396
+ 0.0236739   0.315087   0.0969739  0.470756    0.684196     0.742495   0.627302    0.89891       0.234703    0.777517    0.400102   0.394127   0.0367565  0.808657   0.0700874   0.977734
+ 0.84716     0.945358   0.941885   0.140921    0.13469      0.287077   0.176377    0.207438      0.474363    0.0686525   0.442779   0.668992   0.992595   0.937418   0.246754    0.0256759
+ 0.60066     0.540803   0.860383   0.180928    0.512337     0.451674   0.665091    0.43188       0.35968     0.23324     0.0457039  0.584184   0.182475   0.956045   0.839336    0.948515
+ 0.766088    0.865408   0.803487   0.831979    0.188464     0.214807   0.040799    0.204175   …  0.354021    0.65212     0.239756   0.767172   0.261706   0.811373   0.00243484  0.872156
+ 0.879106    0.646197   0.647378   0.954985    0.237987     0.927831   0.121556    0.295709      0.0995898   0.224581    0.519815   0.928512   0.0329258  0.178538   0.134257    0.374083
+ 0.1674      0.664433   0.965409   0.412141    0.86558      0.150782   0.664848    0.598882      0.471243    0.207488    0.78658    0.0271515  0.311571   0.964242   0.0101903   0.129678
+ 0.606482    0.165529   0.992792   0.456368    0.136535     0.181258   0.867719    0.555028      0.620642    0.168926    0.621677   0.935791   0.599213   0.535102   0.0596118   0.842147
+ 0.00338081  0.237623   0.14287    0.314125    0.22834      0.835546   0.890296    0.772955      0.119363    0.40386     0.0386209  0.0150587  0.811361   0.218985   0.878556    0.0493449
+ 0.232656    0.727806   0.87197    0.71408     0.518816     0.829184   0.355431    0.348931   …  0.234151    0.29467     0.0593713  0.464496   0.324198   0.0990144  0.909796    0.772419
+ 0.482792    0.682822   0.193727   0.797664    0.884757     0.205302   0.151075    0.371209      0.669739    0.356751    0.515107   0.647623   0.144706   0.542671   0.622227    0.633978
+ 0.653149    0.26529    0.879433   0.581105    0.667509     0.931117   0.67094     0.20434       0.69013     0.308533    0.838986   0.724293   0.639646   0.522958   0.542203    0.981041
+ 0.635302    0.785099   0.108294   0.569538    0.0463014    0.393686   0.405577    0.727763      0.20382     0.225652    0.211149   0.0134191  0.091231   0.256791   0.334798    0.895981
+ 0.800562    0.0263679  0.34171    0.958838    0.71009      0.663332   0.435398    0.151943      0.9115      0.775087    0.295188   0.857723   0.97255    0.510369   0.426333    0.829699
+ 0.223547    0.34988    0.377031   0.336965    0.964893     0.86212    0.27448     0.990289   …  0.657394    0.578325    0.450356   0.188112   0.349521   0.859886   0.557269    0.327518
+ 0.578784    0.611285   0.437483   0.135715    0.441076     0.105946   0.572565    0.258106      0.620532    0.597547    0.625043   0.515868   0.0176983  0.983581   0.168113    0.202228
+ 0.263368    0.165299   0.971224   0.885011    0.458364     0.746582   0.787736    0.958713      0.15054     0.683539    0.651866   0.847388   0.363905   0.817478   0.0811967   0.249729
+ 0.454803    0.591098   0.106244   0.682192    0.620773     0.0329991  0.383433    0.909249      0.583136    0.00745964  0.807319   0.770048   0.506391   0.581403   0.442586    0.447552
+ 0.406802    0.0975209  0.352887   0.219971    0.279045     0.542613   0.0605204   0.961935      0.434971    0.344402    0.498011   0.288081   0.330053   0.325288   0.254533    0.967348
+ ⋮                                                          ⋮                                 ⋱                                     ⋮
+ 0.64581     0.512095   0.696337   0.426218    0.878493     0.0367554  0.211839    0.52056       0.0176127   0.822071    0.375361   0.849585   0.233845   0.992948   0.339749    0.381086
+ 0.152498    0.888022   0.66264    0.743075    0.481856     0.990949   0.00368697  0.341752      0.285569    0.91584     0.630131   0.951806   0.877228   0.388919   0.647975    0.673084
+ 0.981668    0.0892595  0.657712   0.229115    0.305267     0.227962   0.747485    0.935109      0.579298    0.0607252   0.695286   0.960268   0.467417   0.363098   0.55004     0.305579
+ 0.475843    0.604077   0.157971   0.27019     0.561838     0.445433   0.588605    0.13158       0.512817    0.244967    0.777082   0.686271   0.768691   0.0240674  0.750725    0.41097
+ 0.520227    0.910069   0.718173   0.323839    0.630226     0.358705   0.19292     0.184253   …  0.603891    0.260031    0.496092   0.100639   0.772005   0.0480157  0.701351    0.822045
+ 0.0424802   0.571114   0.58851    0.331279    0.115042     0.756466   0.191262    0.899426      0.877181    0.560821    0.962468   0.506955   0.521993   0.407435   0.314242    0.741911
+ 0.697052    0.218655   0.903376   0.842409    0.738782     0.374678   0.26765     0.246115      0.351739    0.534837    0.615433   0.134726   0.158304   0.0235363  0.132511    0.480954
+ 0.862752    0.910711   0.838609   0.17208     0.613757     0.919951   0.578536    0.220228      0.191671    0.259286    0.28402    0.957397   0.557802   0.727093   0.731114    0.884836
+ 0.534361    0.529757   0.284016   0.132331    0.250756     0.90798    0.492713    0.566071      0.737361    0.4466      0.754961   0.416597   0.634069   0.843759   0.587426    0.490571
+ 0.610034    0.0301188  0.734034   0.795438    0.33332      0.852638   0.295518    0.844855   …  0.280335    0.566264    0.808647   0.785655   0.965615   0.569141   0.237305    0.0185824
+ 0.915952    0.740096   0.366977   0.785517    0.767279     0.862907   0.276721    0.855091      0.318767    0.877987    0.186352   0.613742   0.0669217  0.847597   0.740415    0.775737
+ 0.234931    0.901279   0.0900231  0.894214    0.546942     0.739161   0.752178    0.673321      0.736846    0.877175    0.0904167  0.9983     0.954311   0.216161   0.0014151   0.100306
+ 0.553047    0.148401   0.78482    0.157227    0.816147     0.856595   0.101797    0.669736      0.922421    0.778901    0.970882   0.427037   0.225504   0.786136   0.986428    0.347496
+ 0.921586    0.883479   0.549734   0.991082    0.433568     0.621942   0.174952    0.603746      0.727352    0.947131    0.735482   0.346138   0.159788   0.927735   0.331847    0.0650336
+ 0.472901    0.110625   0.857634   0.490666    0.0892299    0.67501    0.254988    0.658817   …  0.374927    0.138757    0.732926   0.472712   0.471649   0.571556   0.885956    0.964086
+ 0.199429    0.70576    0.464422   0.371238    0.579294     0.425913   0.237004    0.426688      0.465579    0.67421     0.171429   0.016388   0.39591    0.351143   0.401948    0.627371
+ 0.922746    0.910888   0.991506   0.227304    0.566195     0.186433   0.586164    0.558522      0.0161328   0.468707    0.537976   0.915272   0.340658   0.725339   0.668597    0.85578
+ 0.207297    0.851258   0.814396   0.879238    0.513011     0.81261    0.37156     0.880747      0.281457    0.50658     0.190489   0.826092   0.437197   0.964005   0.0779269   0.489994
+ 0.478489    0.062865   0.13892    0.383032    0.295815     0.485037   0.961936    0.645429      0.933953    0.0709281   0.373751   0.608524   0.591433   0.106568   0.237939    0.929101
+ 0.355403    0.542768   0.688203   0.276603    0.997027     0.961876   0.514105    0.169215   …  0.196634    0.145451    0.643087   0.659376   0.508966   0.0687986  0.912064    0.446806
+ 0.519796    0.458204   0.623844   0.343117    0.43235      0.693176   0.427889    0.429239      0.176973    0.97973     0.957277   0.809342   0.662542   0.930209   0.14401     0.71295
+ 0.458207    0.548096   0.700123   0.14787     0.26233      0.425275   0.738024    0.876649      0.527497    0.243826    0.0116976  0.303257   0.847625   0.504571   0.395388    0.629692
+ 0.292431    0.465651   0.273948   0.553642    0.896251     0.946914   0.929657    0.257789      0.575462    0.243174    0.274771   0.934701   0.448309   0.0862126  0.663596    0.845872
+ 0.963606    0.17689    0.110626   0.873145    0.744051     0.465289   0.727355    0.617401      0.605525    0.503369    0.777875   0.867141   0.0030953  0.0431302  0.378618    0.903339
+ 0.889819    0.941764   0.790361   0.963511    0.700925     0.821841   0.269862    0.118898   …  0.832658    0.526255    0.156198   0.843399   0.916089   0.875895   0.316039    0.151537
+ 0.243474    0.328895   0.98372    0.49665     0.371252     0.523195   0.398577    0.350476      0.348159    0.455315    0.0995388  0.0531614  0.657259   0.743095   0.297856    0.297501
+ 0.577406    0.511491   0.104928   0.683129    0.656335     0.772537   0.584752    0.969663      0.876665    0.701833    0.374765   0.96104    0.637849   0.519701   0.281028    0.753959
+ 0.667086    0.58098    0.414449   2.26226e-5  0.652928     0.678318   0.885059    0.433687      0.559907    0.940823    0.034192   0.0701416  0.0632494  0.450191   0.0798989   0.302846
+ 0.381504    0.189201   0.492388   0.963625    0.724257     0.254734   0.179984    0.4473        0.954646    0.445712    0.659047   0.736943   0.653959   0.31888    0.0340346   0.519286
+ 0.656156    0.974174   0.235914   0.118934    0.829856     0.124436   0.374926    0.317125   …  0.908584    0.877442    0.563709   0.2005     0.409833   0.919694   0.578534    0.866338
+ 0.147477    0.81278    0.981024   0.815663    0.538041     0.194681   0.252104    0.201437      0.349142    0.514679    0.785917   0.119794   0.653817   0.828217   0.0403087   0.644811
+ 0.102399    0.664172   0.0769853  0.326236    0.913454     0.981567   0.672789    0.899004      0.384854    0.31353     0.979271   0.46384    0.468713   0.73767    0.216872    0.377426
+ 0.247636    0.604667   0.923539   0.176055    0.236963     0.908202   0.666123    0.803742      0.778928    0.928023    0.548736   0.844945   0.918368   0.115054   0.237077    0.688366
+ 0.0312068   0.738804   0.590622   0.293696    0.653357     0.894178   0.745062    0.614557      0.489392    0.769703    0.888311   0.226162   0.212471   0.132346   0.12189     0.0872938
+
+julia> A = Matrix(I,n,n);
+
+julia> sizeof(A)
+10000
+
+julia> n
+100
+
+julia> A_d = CuArray{float64}(A);
+ERROR: UndefVarError: float64 not defined
+Stacktrace:
+ [1] top-level scope at none:0
+
+julia> A_d = CuArray{Float64}(A);
+
+julia> sizeof(A_d)
+80000
+
+julia> A_sparse = sparse(A);
+
+julia> sizeof(A_sparse);
+
+julia> sizeof(A_sparse)
+40
+
+julia> A_d_sparse = CuArray{Float64}(A_d)
+100×100 CuArray{Float64,2}:
+ 1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ ⋮                        ⋮                        ⋮                        ⋮                   ⋱                      ⋮                        ⋮                        ⋮
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0
+
+julia> A_d_sparse = CuArray{Float64}(A_d);
+
+julia> sizeof(A_d_sparse)
+80000
+
+julia> A = Matrix(I,n,n)
+100×100 Array{Bool,2}:
+  true  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false   true  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false   true  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false   true  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false   true  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false   true  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false   true  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false   true  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false   true  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false   true  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false   true  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false   true  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false   true  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false   true     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+
+▽
+# Analytical Solutions
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+
+▽
+## Formulation 1
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+
+▽
+# Forming SAT terms
+
+## Formulation 1
+SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W
+SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
+SAT_S = tau_S*HI_y*E_S*BS_y
+SAT_N = tau_N*HI_y*E_N*BS_y
+
+SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W
+SAT_E_r = tau_E*HI_x*E_E*e_E + beta*HI_x*BS_x'*E_E*e_E
+SAT_S_r = tau_S*HI_y*E_S*e_S
+SAT_N_r = tau_N*HI_y*E_N*e_N
+
+
+
+▽
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    e_Ny = sparse(e(N_y+1,N_y+1));
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+     ⋮                                  ⋮                                  ⋮                       ⋱                           ⋮                                  ⋮
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false      true  false  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false   true  false  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false   true  false  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false   true  false  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false   true  false  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false   true  false  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false   true  false  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false   true  false  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false  …  false  false  false  false  false  false  false  false   true  false  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false   true  false  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false   true  false  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false   true  false
+ false  false  false  false  false  false  false  false  false  false  false  false  false  false     false  false  false  false  false  false  false  false  false  false  false  false   true
+
+julia> A = Matrix(I,n,n);
+
+julia> A_sparse = sparse(A);
+
+julia> A_cuda = CuArray{Float64}(A);
+
+julia> A_sparse_cuda = CuArray{Float64}(A);
+
+julia> A_cuda_sparse = sparse(A_cuda);
+
+julia> sizeof(A)
+10000
+
+julia> sizeof(A_sparse)
+40
+
+julia> sizeof(A_cuda)
+80000
+
+▽
+init_guess = rand(length(b))
+
+julia> sizeof(A_sparse_cuda)
+80000
+
+julia> sizeof(A_cuda_sparse)
+48
+
+julia> exit()
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ ls
+diagonal_sbp.jl  gpu_enable.sh  log_1.txt  no_bench_test.jl  Poisson_2d  Poisson_2d.jl  Poisson_2d_new.jl  rand_init_test.jl  sub_test  test_cg.jl  test_minres.jl
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@talapas-ln2 Poisson_2d]$ sh gpu_enable.sh
+srun: job 9699146 queued and waiting for resources
+srun: job 9699146 has been allocated resources
+[yiminc@n120 Poisson_2d]$ julia
+               _
+   _       _ _(_)_     |  Documentation: https://docs.julialang.org
+  (_)     | (_) (_)    |
+   _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Version 1.1.1
+ _/ |\__'_|_|_|\__'_|  |  conda-forge-julia release
+|__/                   |
+
+julia> using LinearAlgebra, CuArrays, SparseArrays
+
+julia> A = Matrix(I,n,n);
+ERROR: UndefVarError: n not defined
+Stacktrace:
+ [1] top-level scope at none:0
+
+julia> n = 100;
+
+julia> A_sparse = sparse(A);
+ERROR: UndefVarError: A not defined
+Stacktrace:
+ [1] top-level scope at none:0
+
+julia> n = 100;
+
+julia> A = Matrix(I,n,n);
+
+julia> A_sparse = sparse(A);
+
+julia> A_cuda = CuArray{Float64}(A);
+
+julia> A_sparse_cuda = CuArray{Float64}(A_sparse);
+
+julia> A_cuda_sparse = sparse(A_cuda);
+
+▽
+
+
+julia> sizeof(A)
+10000
+
+julia> sizeof(A_sparse)
+40
+
+julia> sizeof(A_cuda)
+80000
+
+julia> sizeof(A_sparse_cuda)
+80000
+
+julia> sizeof(A_cuda_sparse)
+48
+
+julia> A_sparse_cuda = CuArray{Float64}(A_sparse);
+
+julia> A_cuda_sparse = sparse(A_cuda);
+
+
+▽
+157
+julia> exit()
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+
+▽
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+ 65
+  memory estimate:  22.27 MiB
+  allocs estimate:  71
+  --------------
+  minimum time:     30.163 ms (2.00% GC)
+  median time:      31.657 ms (1.98% GC)
+  mean time:        32.290 ms (3.80% GC)
+  maximum time:     109.387 ms (69.61% GC)
+  --------------
+  samples:          155
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  137.02 KiB
+  allocs estimate:  194
+  --------------
+  minimum time:     197.916 μs (0.00% GC)
+  median time:      213.891 μs (0.00% GC)
+  mean time:        223.567 μs (2.38% GC)
+  maximum time:     2.193 ms (60.17% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  391.27 KiB
+  allocs estimate:  18
+  --------------
+  minimum time:     129.327 μs (0.00% GC)
+  median time:      132.917 μs (0.00% GC)
+  mean time:        144.462 μs (6.87% GC)
+  maximum time:     1.398 ms (86.69% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+2.6961960383353787e-5
+-15.178715076859145
+
+For GPU Iterative:
+2.695927613909053e-5
+-15.17885871399138
+
+For CPU Iterative:
+2.6958797861476867e-5
+-15.17888430870166
+
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+ERROR: LoadError: OutOfMemoryError()
+Stacktrace:
+
+▽
+    N_y = Integer(n_list[j]);
+ [1] try_alloc(::Int64, ::Int64) at /home/yiminc/.julia/packages/CuArrays/eFBar/src/memory.jl:343
+ [2] try_alloc at /home/yiminc/.julia/packages/CuArrays/eFBar/src/memory.jl:256 [inlined]
+ [3] macro expansion at /home/yiminc/.julia/packages/TimerOutputs/7zSea/src/TimerOutput.jl:216 [inlined]
+ [4] macro expansion at /home/yiminc/.julia/packages/CuArrays/eFBar/src/memory.jl:378 [inlined]
+ [5] macro expansion at ./util.jl:213 [inlined]
+ [6] alloc(::Int64) at /home/yiminc/.julia/packages/CuArrays/eFBar/src/memory.jl:357
+ [7] CuArray{Float64,2}(::UndefInitializer, ::Tuple{Int64,Int64}) at /home/yiminc/.julia/packages/CuArrays/eFBar/src/array.jl:38
+ [8] CuArray{Float64,2}(::SparseMatrixCSC{Float64,Int64}) at /home/yiminc/.julia/packages/CuArrays/eFBar/src/array.jl:106
+ [9] CuArray{Float64,N} where N(::SparseMatrixCSC{Float64,Int64}) at /home/yiminc/.julia/packages/CuArrays/eFBar/src/array.jl:114
+ [10] top-level scope at none:0
+ [11] include at ./boot.jl:326 [inlined]
+ [12] include_relative(::Module, ::String) at ./loading.jl:1038
+ [13] include(::Module, ::String) at ./sysimg.jl:29
+ [14] exec_options(::Base.JLOptions) at ./client.jl:267
+ [15] _start() at ./client.jl:436
+in expression starting at /gpfs/home/yiminc/sbp-sat/Poisson_2d/test_cg.jl:183
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+
+[1]+  Stopped                 vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ fg
+vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  4.03 MiB
+  allocs estimate:  62
+  --------------
+  minimum time:     5.388 ms (0.00% GC)
+  median time:      5.640 ms (0.00% GC)
+  mean time:        5.788 ms (2.92% GC)
+  maximum time:     82.190 ms (92.61% GC)
+  --------------
+  samples:          864
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  40.11 KiB
+  allocs estimate:  200
+  --------------
+  minimum time:     148.903 μs (0.00% GC)
+  median time:      155.080 μs (0.00% GC)
+  mean time:        162.585 μs (1.66% GC)
+  maximum time:     4.727 ms (50.58% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  100.27 KiB
+  allocs estimate:  18
+
+▽
+    (D2y, S0y, SNy, HI2y, H2y, r2y) = diagonal_sbp_D2(p,N_y,xc=(0,1));
+  --------------
+  minimum time:     32.444 μs (0.00% GC)
+  median time:      34.350 μs (0.00% GC)
+  mean time:        37.897 μs (7.59% GC)
+  maximum time:     909.824 μs (92.61% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.00010787002811426388
+-13.178418314515534
+
+For GPU Iterative:
+0.0001078661304888605
+-13.1784704437912
+
+Fix sparsity issue, GPU memory issue, Float type issue
+For CPU Iterative:
+0.00010786659703950642
+-13.178464203752325
+
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  988.21 KiB
+  allocs estimate:  60
+  --------------
+  minimum time:     1.092 ms (0.00% GC)
+  median time:      1.150 ms (0.00% GC)
+  mean time:        1.189 ms (3.26% GC)
+  maximum time:     78.365 ms (98.25% GC)
+  --------------
+  samples:          4194
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  15.66 KiB
+  allocs estimate:  199
+  --------------
+  minimum time:     142.169 μs (0.00% GC)
+  median time:      150.041 μs (0.00% GC)
+  mean time:        156.368 μs (1.17% GC)
+  maximum time:     8.357 ms (35.70% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  26.91 KiB
+  allocs estimate:  15
+  --------------
+  minimum time:     9.345 μs (0.00% GC)
+  median time:      10.165 μs (0.00% GC)
+  mean time:        11.551 μs (8.80% GC)
+  maximum time:     1.318 ms (97.79% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.0004318775701879337
+-11.177089988262498
+
+For GPU Iterative:
+
+▽
+    e_W = kron(e_1x,I_Ny);
+0.0004318751954281865
+-11.177097921213331
+
+For CPU Iterative:
+0.00043187520040107716
+-11.177097904601206
+
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ git add .
+warning: You ran 'git add' with neither '-A (--all)' or '--ignore-removal',
+whose behaviour will change in Git 2.0 with respect to paths you removed.
+Paths like 'j' that are
+removed from your working tree are ignored with this version of Git.
+
+* 'git add --ignore-removal <pathspec>', which is the current default,
+  ignores paths you removed from your working tree.
+
+* 'git add --all <pathspec>' will let you also record the removals.
+
+Run 'git status' to check the paths you removed from your working tree.
+
+[yiminc@n120 Poisson_2d]$ git add --all
+[yiminc@n120 Poisson_2d]$ git add --all .
+[yiminc@n120 Poisson_2d]$ git add .
+[yiminc@n120 Poisson_2d]$ git commit
+[master d30f300] Fix sparsity issue, GPU memory issue, Float type issue
+ 7 files changed, 1275 insertions(+), 12 deletions(-)
+ delete mode 100644 j
+ create mode 100644 no_bench_test.jl
+ create mode 100644 sub_test/diagonal_sbp.jl
+ create mode 100644 sub_test/test.jl
+ rename test_rand_init.jl => test_cg.jl (95%)
+ rename test.jl => test_minres.jl (96%)
+[yiminc@n120 Poisson_2d]$ git log
+commit d30f300cc8aa1bc6c265c4ac7cf8aa8623e12132
+Author: Alexandre Chern <napoleonalexandre@gmail.com>
+Date:   Wed Aug 7 19:52:32 2019 -0700
+
+    Fix sparsity issue, GPU memory issue, Float type issue
+
+commit 6606b213ccada22e1d93a29384f8916ae2e990b8
+Author: Alexandre Chern <napoleonalexandre@gmail.com>
+Date:   Wed Aug 7 16:21:37 2019 -0700
+
+    Some changes
+
+commit 1ba140161ec7023943ab31d17ed3eb135cccd92e
+Author: Alexandre Chern <napoleonalexandre@gmail.com>
+Date:   Wed Aug 7 13:26:48 2019 -0700
+
+    Run some test with log files
+
+
+▽
+    y = range(0,step=hy,1);
+commit be2b1a7040ce678fa4bd0e84651a64f2e5611e57
+Author: Alexandre Chern <napoleonalexandre@gmail.com>
+Date:   Wed Aug 7 12:04:29 2019 -0700
+
+    correct some bugs
+
+commit c79df54602e03591d2f60df885ca051ecb762280
+Author: Alexandre Chern <napoleonalexandre@gmail.com>
+Date:   Wed Aug 7 11:35:31 2019 -0700
+
+    Made some modifications to gpu_enable.sh and test.jl
+
+commit 4104ea77f538943c707636c3eb91be3cc9c2645e
+Author: Alexandre <napoleonalexandre@gmail.com>
+Date:   Tue Aug 6 14:12:46 2019 -0700
+
+    Initial Commit
+[yiminc@n120 Poisson_2d]$ git commit
+# On branch master
+nothing to commit, working directory clean
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+Value for k:  1
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  68.99 KiB
+  allocs estimate:  60
+  --------------
+  minimum time:     65.296 μs (0.00% GC)
+  median time:      79.323 μs (0.00% GC)
+  mean time:        91.308 μs (11.61% GC)
+  maximum time:     77.668 ms (98.51% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  7.64 KiB
+  allocs estimate:  196
+  --------------
+  minimum time:     147.319 μs (0.00% GC)
+  median time:      154.238 μs (0.00% GC)
+  mean time:        161.432 μs (1.24% GC)
+  maximum time:     18.003 ms (47.59% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  2.97 KiB
+  allocs estimate:  13
+  --------------
+
+▽
+    y = range(0,step=hy,1);
+  minimum time:     1.136 μs (0.00% GC)
+  median time:      1.247 μs (0.00% GC)
+  mean time:        1.500 μs (10.80% GC)
+  maximum time:     173.838 μs (98.60% GC)
+  --------------
+  samples:          10000
+  evals/sample:     10
+Error Comparisons
+For CPU LU Decomposition:
+0.007086547124086606
+-7.140701430166194
+
+For GPU Iterative:
+0.00708654835730423
+-7.140701179105027
+
+For CPU Iterative:
+0.007086548357304256
+-7.1407011791050214
+
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+Value for k:  2
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  250.24 KiB
+  allocs estimate:  60
+  --------------
+  minimum time:     282.127 μs (0.00% GC)
+  median time:      298.909 μs (0.00% GC)
+  mean time:        314.821 μs (4.29% GC)
+  maximum time:     76.795 ms (99.08% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  9.36 KiB
+  allocs estimate:  196
+  --------------
+  minimum time:     151.854 μs (0.00% GC)
+  median time:      164.708 μs (0.00% GC)
+  mean time:        170.425 μs (0.90% GC)
+  maximum time:     12.769 ms (31.99% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  8.13 KiB
+  allocs estimate:  13
+  --------------
+
+▽
+    y = range(0,step=hy,1);
+  minimum time:     3.338 μs (0.00% GC)
+  median time:      3.651 μs (0.00% GC)
+  mean time:        4.186 μs (10.35% GC)
+  maximum time:     221.436 μs (97.12% GC)
+  --------------
+  samples:          10000
+  evals/sample:     8
+Error Comparisons
+For CPU LU Decomposition:
+0.0017350148872397378
+-9.170836242806795
+
+For GPU Iterative:
+0.0017350156665552736
+-9.170835594792525
+
+For CPU Iterative:
+0.0017350156665501897
+-9.17083559479675
+
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+Value for k:  3
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  988.21 KiB
+  allocs estimate:  60
+  --------------
+  minimum time:     1.101 ms (0.00% GC)
+  median time:      1.151 ms (0.00% GC)
+  mean time:        1.192 ms (3.16% GC)
+  maximum time:     77.335 ms (98.25% GC)
+  --------------
+  samples:          4182
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  15.66 KiB
+  allocs estimate:  199
+  --------------
+  minimum time:     149.805 μs (0.00% GC)
+  median time:      156.302 μs (0.00% GC)
+  mean time:        162.754 μs (1.09% GC)
+  maximum time:     8.259 ms (33.47% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  26.91 KiB
+  allocs estimate:  15
+  --------------
+
+▽
+    m_list = 1 ./h_list_x;
+  minimum time:     9.160 μs (0.00% GC)
+  median time:      9.867 μs (0.00% GC)
+  mean time:        11.159 μs (8.58% GC)
+  maximum time:     1.260 ms (98.24% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.0004318775701879337
+-11.177089988262498
+
+For GPU Iterative:
+0.00043187690950167665
+-11.177092195298894
+
+For CPU Iterative:
+0.000431876909700185
+-11.17709219463577
+
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+Value for k:  4
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  4.03 MiB
+  allocs estimate:  62
+  --------------
+  minimum time:     5.380 ms (0.00% GC)
+  median time:      5.653 ms (0.00% GC)
+  mean time:        5.812 ms (2.95% GC)
+  maximum time:     82.464 ms (92.60% GC)
+  --------------
+  samples:          860
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  40.11 KiB
+  allocs estimate:  200
+  --------------
+  minimum time:     156.175 μs (0.00% GC)
+  median time:      162.038 μs (0.00% GC)
+  mean time:        170.256 μs (1.67% GC)
+  maximum time:     4.479 ms (49.80% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  100.27 KiB
+  allocs estimate:  18
+  --------------
+  minimum time:     32.245 μs (0.00% GC)
+  median time:      33.625 μs (0.00% GC)
+  mean time:        37.008 μs (7.24% GC)
+  maximum time:     1.192 ms (93.90% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+0.00010787002811426388
+-13.178418314515534
+
+For GPU Iterative:
+0.0001078635343685085
+-13.17850516697088
+
+For CPU Iterative:
+0.00010786353221933307
+-13.178505195716506
+
+[yiminc@n120 Poisson_2d]$ vim test_cg.jl
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+Value for k:  5
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  22.27 MiB
+  allocs estimate:  71
+  --------------
+  minimum time:     31.326 ms (1.91% GC)
+  median time:      31.966 ms (1.89% GC)
+  mean time:        32.590 ms (3.71% GC)
+  maximum time:     109.056 ms (70.34% GC)
+  --------------
+  samples:          154
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  137.02 KiB
+  allocs estimate:  194
+  --------------
+  minimum time:     197.569 μs (0.00% GC)
+  median time:      218.045 μs (0.00% GC)
+  mean time:        237.000 μs (3.03% GC)
+  maximum time:     2.639 ms (68.06% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  391.27 KiB
+  allocs estimate:  18
+  --------------
+  minimum time:     129.029 μs (0.00% GC)
+  median time:      132.508 μs (0.00% GC)
+  mean time:        144.329 μs (6.63% GC)
+  maximum time:     1.643 ms (88.77% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+2.6961960383353787e-5
+-15.178715076859145
+
+For GPU Iterative:
+2.6958112818164724e-5
+-15.178920969132564
+
+For CPU Iterative:
+2.695811170128648e-5
+-15.178921028903614
+
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+Value for k:  5
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  22.27 MiB
+  allocs estimate:  71
+  --------------
+  minimum time:     30.973 ms (1.85% GC)
+  median time:      31.724 ms (1.90% GC)
+  mean time:        32.359 ms (3.70% GC)
+  maximum time:     109.103 ms (70.00% GC)
+  --------------
+  samples:          155
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  137.02 KiB
+  allocs estimate:  194
+  --------------
+  minimum time:     198.611 μs (0.00% GC)
+  median time:      217.588 μs (0.00% GC)
+  mean time:        228.298 μs (2.48% GC)
+  maximum time:     2.092 ms (50.61% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  391.27 KiB
+  allocs estimate:  18
+  --------------
+  minimum time:     128.857 μs (0.00% GC)
+  median time:      138.564 μs (0.00% GC)
+  mean time:        149.506 μs (6.85% GC)
+  maximum time:     1.408 ms (87.24% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+2.6961960383353787e-5
+-15.178715076859145
+
+For GPU Iterative:
+2.6968400937576576e-5
+-15.178370493383182
+
+For CPU Iterative:
+2.69684005148621e-5
+-15.178370515996614
+
+[yiminc@n120 Poisson_2d]$ julia test_cg.jl
+Value for k:  5
+For CPU LU Decomposition:
+BenchmarkTools.Trial:
+  memory estimate:  22.27 MiB
+  allocs estimate:  71
+  --------------
+  minimum time:     30.976 ms (1.93% GC)
+  median time:      31.820 ms (1.92% GC)
+  mean time:        32.446 ms (3.74% GC)
+  maximum time:     109.240 ms (70.05% GC)
+  --------------
+  samples:          155
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  137.02 KiB
+  allocs estimate:  194
+  --------------
+  minimum time:     197.374 μs (0.00% GC)
+  median time:      218.284 μs (0.00% GC)
+  mean time:        229.577 μs (2.59% GC)
+  maximum time:     2.501 ms (66.75% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  391.27 KiB
+  allocs estimate:  18
+  --------------
+  minimum time:     129.361 μs (0.00% GC)
+  median time:      132.702 μs (0.00% GC)
+  mean time:        144.768 μs (7.16% GC)
+  maximum time:     1.339 ms (83.87% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+Error Comparisons
+For CPU LU Decomposition:
+2.6961960383353787e-5
+-15.178715076859145
+
+For GPU Iterative:
+2.6958274573927378e-5
+-15.178912312609087
+
+For CPU Iterative:
+2.6957803768541e-5
+-15.17893750838063
+
+[yiminc@n120 Poisson_2d]$
