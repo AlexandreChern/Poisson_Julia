@@ -105,8 +105,8 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8]
 rel_errs = []
 iter_errs = []
 #for k = 1:4
-k = 1
-println("k =: ", k)
+k = 3
+println("Value for k:  ", k)
 i = j  = k
 hx = h_list_x[i]   
 hy = h_list_y[j]
@@ -175,11 +175,18 @@ A = H_tilde*A;
 b = H_tilde*b;
 ## Solving with GPU
 ## Generate Cuda Arrays
-A_d = cu(A)
-b_d = cu(b)
+#A_d = cu(A)
+#b_d = cu(b)
+
+#A_d = CuArray{Float64}(A)
+#b_d = CuArray{Float64}(b)
+
+A_d = sparse(CuArray{Float64}(A))
+b_d = sparse(CuArray{Float64}(b))
+
 init_guess = rand(length(b))
 init_guess_copy = init_guess;
-init_guess = cu(init_guess);
+init_guess = CuArray{Float64}(init_guess);
 
 # Numerical Solutions
 
