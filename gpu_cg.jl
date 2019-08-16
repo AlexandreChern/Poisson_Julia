@@ -105,8 +105,8 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8]
 rel_errs = []
 iter_errs = []
 #for k = 1:4
-k = 1
-println("k =: ", k)
+k = 3
+println("Value for k:  ", k)
 i = j  = k
 hx = h_list_x[i]   
 hy = h_list_y[j]
@@ -124,6 +124,28 @@ N_y = Integer(n_list[j])
 (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
     
     
+D1_x = sparse(CuArray{Float64}(D1_x));
+D1_y = sparse(CuArray{Float64}(D1_y));
+D2_x = sparse(CuArray{Float64}(D2_x));
+D2_y = sparse(CuArray{Float64}(D2_y));
+D_2 = sparse(CuArray{Float64}(D2));
+HI_x = sparse(CuArray{Float64}(D2_y));
+HI_y = sparse(CuArray{Float64}(HI_y));
+BS_x = sparse(CuArray{Float64}(BS_x));
+BS_y = sparse(CuArray{Float64}(BS_y));
+HI_tilde = sparse(CuArray{Float64}(HI_tilde));
+H_tilde = sparse(CuArray{Float64}(H_tilde));
+I_Nx = sparse(CuArray{Float64}(I_Nx));
+I_Ny = sparse(CuArray{Float64}(I_Ny));
+e_E = sparse(CuArray{Float64}(e_E));
+e_W = sparse(CuArray{Float64}(e_W));
+e_S = sparse(CuArray{Float64}(e_S));
+e_N = sparse(CuArray{Float64}(e_N));
+E_E = sparse(CuArray{Float64}(E_E));
+E_W = sparse(CuArray{Float64}(E_W));
+E_S = sparse(CuArray{Float64}(E_S));
+E_N = sparse(CuArray{Float64}(E_N));
+
 
 # CUDA H_tilde
 #cu_H_tilde = cu(H_tilde)
@@ -143,15 +165,15 @@ beta = 1
 # Forming SAT terms
 
 ## Formulation 1
-SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W    
-SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
-SAT_S = tau_S*HI_y*E_S*BS_y
-SAT_N = tau_N*HI_y*E_N*BS_y
+SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W;    
+SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E;
+SAT_S = tau_S*HI_y*E_S*BS_y;
+SAT_N = tau_N*HI_y*E_N*BS_y;
     
-SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W
-SAT_E_r = tau_E*HI_x*E_E*e_E + beta*HI_x*BS_x'*E_E*e_E
-SAT_S_r = tau_S*HI_y*E_S*e_S
-SAT_N_r = tau_N*HI_y*E_N*e_N
+SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W;
+SAT_E_r = tau_E*HI_x*E_E*e_E + beta*HI_x*BS_x'*E_E*e_E;
+SAT_S_r = tau_S*HI_y*E_S*e_S;
+SAT_N_r = tau_N*HI_y*E_N*e_N;
 
 
 
@@ -167,31 +189,35 @@ g_N = π*cos.(π*x .+ π)
 
     
 # Solving with CPU
-A = D2 + SAT_W + SAT_E + SAT_S + SAT_N
-b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
+A = D2 + SAT_W + SAT_E + SAT_S + SAT_N;
+b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N;
 
-## Convert to Sparse again
-A = sparse(A)
-b = sparse(b)
 
 A = H_tilde*A;
 b = H_tilde*b;
 ## Solving with GPU
 ## Generate Cuda Arrays
-A_d = cu(A)
-b_d = cu(b)
+#A_d = cu(A)
+#b_d = cu(b)
+
+#A_d = CuArray{Float64}(A)
+#b_d = CuArray{Float64}(b)
+
+A_d = sparse(CuArray{Float64}(A))
+b_d = sparse(CuArray{Float64}(b))
+
 init_guess = rand(length(b))
 init_guess_copy = init_guess;
-init_guess = cu(init_guess);
+init_guess = CuArray{Float64}(init_guess);
 
 # Numerical Solutions
 
-result_1 = @benchmark A\b
+#result_1 = @benchmark A\b
 
-num_sol = A\b
-num_sol = reshape(num_sol, N_y+1, N_x + 1)
-num_err = sqrt((num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:]))
-log_num_err = log2.(num_err)
+#num_sol = A\b
+#num_sol = reshape(num_sol, N_y+1, N_x + 1)
+#num_err = sqrt((num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:]))
+#log_num_err = log2.(num_err)
 
 ## Iterative Solutions
 ## GPU
@@ -206,13 +232,13 @@ iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_s
 log_iter_GPU_err = log2.(iter_GPU_err)
 
 ## CPU  using BLAS
-result_3 = @benchmark cg!(init_guess_copy,A,b)
-#result_3 = @benchmark cg(A,b)
-iter_sol = cg!(init_guess_copy,A,b)
+#result_3 = @benchmark cg!(init_guess_copy,A,b)
+##result_3 = @benchmark cg(A,b)
+#iter_sol = cg!(init_guess_copy,A,b)
 #iter_sol = cg(A,b)
-iter_sol = reshape(iter_sol,N_y+1, N_x+1)
-iter_CPU_err = sqrt((iter_sol[:] - analy_sol[:])' * H_tilde * (iter_sol[:] - analy_sol[:]))
-log_iter_CPU_err = log2.(iter_CPU_err)
+#iter_sol = reshape(iter_sol,N_y+1, N_x+1)
+#iter_CPU_err = sqrt((iter_sol[:] - analy_sol[:])' * H_tilde * (iter_sol[:] - analy_sol[:]))
+#log_iter_CPU_err = log2.(iter_CPU_err)
 
 #rel_err = sqrt(err)
 #rel_iter_err = sqrt(iter_err)
@@ -222,9 +248,9 @@ log_iter_CPU_err = log2.(iter_CPU_err)
 #push!(rel_errs,rel_err)
 #push!(iter_errs,iter_err)
 
-println("For CPU LU Decomposition:")
-display(result_1)
-println()
+#println("For CPU LU Decomposition:")
+#display(result_1)
+#println()
 
 
 println("For GPU Iterative:")
@@ -232,24 +258,24 @@ display(result_2)
 println()
 
 
-println("For CPU Iterative")
-display(result_3)
-println()
+#println("For CPU Iterative")
+#display(result_3)
+#println()
 
-println("Error Comparisons")
-println("For CPU LU Decomposition:")
-println(num_err)
-println(log_num_err)
-println()
+#println("Error Comparisons")
+#println("For CPU LU Decomposition:")
+#println(num_err)
+#println(log_num_err)
+#println()
 
 println("For GPU Iterative:")
 println(iter_GPU_err)
 println(log_iter_GPU_err)
 println()
 
-println("For CPU Iterative:")
-println(iter_CPU_err)
-println(log_iter_CPU_err)
-println()
+##println("For CPU Iterative:")
+#println(iter_CPU_err)
+#println(log_iter_CPU_err)
+#println()
 
 #end

@@ -193,62 +193,76 @@ log_num_err = log2.(num_err)
 ## GPU
 
 #result_2 = @benchmark cg!(init_guess,A_d,b_d;maxiter=100000)
-result_2 = @benchmark cg!(init_guess,A_d,b_d)
+#result_2 = @benchmark cg!(init_guess,A_d,b_d)
 #result_2 = @benchmark cg(A_d,b_d;maxiter=10000)
-cu_sol = cg!(init_guess,A_d,b_d)
+#cu_sol = cg!(init_guess,A_d,b_d)
 #cu_sol = cg(A_d,b_d)
-cu_sol = collect(cu_sol)
-cu_sol = reshape(cu_sol, N_y + 1, N_x + 1)
-iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:]))
-log_iter_GPU_err = log2.(iter_GPU_err)
+#cu_sol = collect(cu_sol)
+#cu_sol = reshape(cu_sol, N_y + 1, N_x + 1)
+#iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:]))
+#log_iter_GPU_err = log2.(iter_GPU_err)
 
 ## CPU  using BLAS
 #result_3 = @benchmark cg!(init_guess_copy,A,b)
-result_3 = @benchmark cg(A,b)
+#result_3 = @benchmark cg(A,b)
 #iter_sol = cg!(init_guess_copy,A,b)
-iter_sol = cg(A,b)
-iter_sol = reshape(iter_sol,N_y+1, N_x+1)
-iter_CPU_err = sqrt((iter_sol[:] - analy_sol[:])' * H_tilde * (iter_sol[:] - analy_sol[:]))
-log_iter_CPU_err = log2.(iter_CPU_err)
+#iter_sol = cg(A,b)
+#iter_sol = reshape(iter_sol,N_y+1, N_x+1)
+#iter_CPU_err = sqrt((iter_sol[:] - analy_sol[:])' * H_tilde * (iter_sol[:] - analy_sol[:]))
+#log_iter_CPU_err = log2.(iter_CPU_err)
 
 #rel_err = sqrt(err)
 #rel_iter_err = sqrt(iter_err)
+
+
+## LU decomposition
+F = lu(A)
+U = F.U
+L = F.L
+result_4 = @benchmark U\L\
+lu_sol = U\L\b
+lu_sol = reshape(lu_sol, N_y + 1, N_x + 1)
+lu_err = sqrt((lu_sol[:] - analy_sol[:])'* H_tilde * (lu_sol[:] - analy_sol[:]))
+log_lu_err = log2.(lu_err)
 
 
 
 #push!(rel_errs,rel_err)
 #push!(iter_errs,iter_err)
 
-println("For CPU LU Decomposition:")
+println("For Direct \ solving")
 display(result_1)
 println()
 
-
-println("For GPU Iterative:")
-display(result_2)
+println("For LU decomposition solving")
+display(result_4)
 println()
 
+#println("For GPU Iterative:")
+#display(result_2)
+#println()
 
-println("For CPU Iterative")
-display(result_3)
-println()
 
-println()
+#println("For CPU Iterative")
+#display(result_3)
+#println()
 
-println("Error Comparisons")
-println("For CPU LU Decomposition:")
-println(num_err)
-println(log_num_err)
-println()
+#println()
 
-println("For GPU Iterative:")
-println(iter_GPU_err)
-println(log_iter_GPU_err)
-println()
+#println("Error Comparisons")
+#println("For CPU LU Decomposition:")
+#println(num_err)
+#println(log_num_err)
+#println()
 
-println("For CPU Iterative:")
-println(iter_CPU_err)
-println(log_iter_CPU_err)
-println()
+#println("For GPU Iterative:")
+#println(iter_GPU_err)
+#println(log_iter_GPU_err)
+#println()
+
+#println("For CPU Iterative:")
+#println(iter_CPU_err)
+#println(log_iter_CPU_err)
+#println()
 
 #end
