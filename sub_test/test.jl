@@ -105,7 +105,7 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8]
 rel_errs = []
 iter_errs = []
 #for k = 1:4
-k = 3
+k = 5
 i = j  = k
 hx = h_list_x[i]   
 hy = h_list_y[j]
@@ -219,8 +219,8 @@ log_num_err = log2.(num_err)
 F = lu(A)
 U = F.U
 L = F.L
-result_4 = @benchmark U\L\
-lu_sol = U\L\b
+result_4 = @benchmark U\(L\b)
+lu_sol = U\(L\b)
 lu_sol = reshape(lu_sol, N_y + 1, N_x + 1)
 lu_err = sqrt((lu_sol[:] - analy_sol[:])'* H_tilde * (lu_sol[:] - analy_sol[:]))
 log_lu_err = log2.(lu_err)
@@ -230,7 +230,7 @@ log_lu_err = log2.(lu_err)
 #push!(rel_errs,rel_err)
 #push!(iter_errs,iter_err)
 
-println("For Direct \ solving")
+println("For Direct backslash solving")
 display(result_1)
 println()
 
