@@ -38,6 +38,8 @@ using Parameters
     beta = 1
 end
 
+var_test = variables()
+
 function myMAT!(du::AbstractVector, u::AbstractVector,var_test::variables)
 	#Chunk below should be passed as input, but for now needs to match chunk below
 # 	h = 0.05 
