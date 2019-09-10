@@ -20,7 +20,8 @@ using SparseArrays
 using LinearMaps
 using IterativeSolvers
 using Parameters
-
+using BenchmarkTools
+using Plots
 
 
 @with_kw struct variables
@@ -38,7 +39,7 @@ using Parameters
     beta = 1
 end
 
-var_test = variables(h=0.001)
+var_test = variables(h=0.05)
 @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 
 #function myMAT!(du::AbstractVector, u::AbstractVector,var_test::variables)
@@ -95,20 +96,32 @@ end
 # @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 
 N = Nx*Ny
-g1 = -pi .* cos.(pi .* x)
-g2 = pi .* cos.(pi .* x .+ pi)
-g3 = sin.(pi .* y)
-g4 = sin.(pi .+ pi .* y)
+#g1 = -pi .* cos.(pi .* x)
+g1 = -pi * cos.(pi * x)
+#g2 = pi .* cos.(pi .* x .+ pi)
+g2 = pi * cos.(pi * x)
+#g3 = sin.(pi .* y)
+g3 = sin.(pi * y)
+#g4 = sin.(pi .+ pi .* y)
+g4 = sin.(pi .+ pi * y)
 
 f = spzeros(Nx,Ny)
 exactU = spzeros(Nx,Ny)
 
+# for i = 1:Nx
+# 	for j = 1:Ny
+# 		f[j,i] = -pi^2 .* sin.(pi .* x[i] + pi .* y[j]) - pi^2 .* sin.(pi .* x[i] + pi .* y[j])
+# 		exactU[j,i] = sin.(pi .* x[i] + pi .* y[j]) # bug for inconsistence in shape with exactU defined previuosly
+# 	end
+# end
+
 for i = 1:Nx
 	for j = 1:Ny
-		f[j,i] = -pi^2 .* sin.(pi .* x[i] + pi .* y[j]) - pi^2 .* sin.(pi .* x[i] + pi .* y[j])
-		exactU[j,i] = sin.(pi .* x[i] + pi .* y[j])
+		f[i,j] = -pi^2 .* sin.(pi .* x[i] + pi .* y[j]) - pi^2 .* sin.(pi .* x[i] + pi .* y[j])
+		exactU[i,j] = sin.(pi .* x[i] + pi .* y[j]) # bug for inconsistence in shape with exactU defined previuosly
 	end
 end
+
 
 f = f[:]
 exact = exactU[:]
@@ -139,6 +152,8 @@ b = -Hy(b12,Nx,Ny,dy)
 D = LinearMap(myMAT!, N; ismutating=true)
 u = cg(D,b,tol=1e-14)
 
+plot(x,y,reshape(u,Nx,Ny),st=:surface)
+
 diff = u - exact
 
 Hydiff = Hy(diff,Nx,Ny,dy)
@@ -147,3 +162,5 @@ HxHydiff = Hx(Hydiff,Nx,Ny,dx)
 err = sqrt(diff'*HxHydiff)
 
 @show err
+
+@benchmark cg(D,b,tol=1e-4)
