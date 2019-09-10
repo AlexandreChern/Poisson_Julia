@@ -24,7 +24,7 @@ using Parameters
 
 
 @with_kw struct variables
-    h = 0.05
+    h = 0.02
     dx = h
     dy = h
     x = 0:dx:1
@@ -38,7 +38,8 @@ using Parameters
     beta = 1
 end
 
-var_test = variables()
+var_test = variables(h=0.001)
+@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 
 #function myMAT!(du::AbstractVector, u::AbstractVector,var_test::variables)
 	#Chunk below should be passed as input, but for now needs to match chunk below
@@ -46,7 +47,7 @@ function myMAT!(du::AbstractVector, u::AbstractVector)
 # 	h = 0.05
 # 	dx = h
 # 	dy = h
-# 	x = 0:dx:1
+# 	x = 0:dx:1N
 #         y = 0:dy:1
 # 	Nx = length(x)
 #         Ny = length(y)
@@ -55,37 +56,37 @@ function myMAT!(du::AbstractVector, u::AbstractVector)
 #         alpha3 = -13/dy
 #         alpha4 = -13/dy
 #         beta = 1
-    @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+    #var_test = variables(h=0.01)
+    #@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 	########################################
 
-        du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
+    du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
+    du1 = BySy(u,Nx,Ny,dy)
+    du2 = VOLtoFACE(du1,1,Nx,Ny)
+    du3 = alpha1*Hyinv(du2,Nx,Ny,dy)  #compute action of P1
 
-        du1 = BySy(u,Nx,Ny,dy)
-        du2 = VOLtoFACE(du1,1,Nx,Ny)
-        du3 = alpha1*Hyinv(du2,Nx,Ny,dy)  #compute action of P1
+    du4 = BySy(u,Nx,Ny,dy)
+    du5 = VOLtoFACE(du4,2,Nx,Ny)
+    du6 = alpha2*Hyinv(du5,Nx,Ny,dy) #compute action of P2
 
-        du4 = BySy(u,Nx,Ny,dy)
-        du5 = VOLtoFACE(du4,2,Nx,Ny)
-        du6 = alpha2*Hyinv(du5,Nx,Ny,dy) #compute action of P2
+    du7 = VOLtoFACE(u,3,Nx,Ny)
+    du8 = BxSx_tran(du7,Nx,Ny,dx)
+    du9 = beta*Hxinv(du8,Nx,Ny,dx)
+    du10 = VOLtoFACE(u,3,Nx,Ny)
+    du11 = alpha3*Hxinv(du10,Nx,Ny,dx) #compute action of P3
 
-        du7 = VOLtoFACE(u,3,Nx,Ny)
-        du8 = BxSx_tran(du7,Nx,Ny,dx)
-        du9 = beta*Hxinv(du8,Nx,Ny,dx)
-        du10 = VOLtoFACE(u,3,Nx,Ny)
-        du11 = alpha3*Hxinv(du10,Nx,Ny,dx) #compute action of P3
-
-        du12 = VOLtoFACE(u,4,Nx,Ny)
-        du13 = BxSx_tran(du12,Nx,Ny,dx)
-        du14 = beta*Hxinv(du13,Nx,Ny,dx)
-        du15 = VOLtoFACE(u,4,Nx,Ny)
-        du16 = alpha4*Hxinv(du15,Nx,Ny,dx) #compute action of P4
+    du12 = VOLtoFACE(u,4,Nx,Ny)
+    du13 = BxSx_tran(du12,Nx,Ny,dx)
+    du14 = beta*Hxinv(du13,Nx,Ny,dx)
+    du15 = VOLtoFACE(u,4,Nx,Ny)
+    du16 = alpha4*Hxinv(du15,Nx,Ny,dx) #compute action of P4
 
 
-        du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
+    du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
 
         #compute action of -Hx kron Hy:
 
-        du17 = Hy(du0, Nx, Ny, dy)
+    du17 = Hy(du0, Nx, Ny, dy)
 	du[:] = -Hx(du17,Nx,Ny,dx)
 end
 
