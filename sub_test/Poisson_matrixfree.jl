@@ -97,12 +97,13 @@ end
 
 N = Nx*Ny
 #g1 = -pi .* cos.(pi .* x)
-g1 = -pi * cos.(pi * x)
 #g2 = pi .* cos.(pi .* x .+ pi)
-g2 = pi * cos.(pi * x)
 #g3 = sin.(pi .* y)
+# g4 = sin.(pi .+ pi .* y)
+
+g1 = -pi * cos.(pi * x)
+g2 = pi * cos.(pi * x .+ pi)
 g3 = sin.(pi * y)
-#g4 = sin.(pi .+ pi .* y)
 g4 = sin.(pi .+ pi * y)
 
 f = spzeros(Nx,Ny)
