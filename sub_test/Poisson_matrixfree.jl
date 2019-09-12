@@ -25,7 +25,7 @@ using Plots
 
 
 @with_kw struct variables
-    h = 0.02
+    h = 1/2^4
     dx = h
     dy = h
     x = 0:dx:1
@@ -39,7 +39,7 @@ using Plots
     beta = 1
 end
 
-var_test = variables(h=0.05)
+var_test = variables(h=1/2^4)
 @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 
 #function myMAT!(du::AbstractVector, u::AbstractVector,var_test::variables)
@@ -99,7 +99,7 @@ N = Nx*Ny
 #g1 = -pi .* cos.(pi .* x)
 g1 = -pi * cos.(pi * x)
 #g2 = pi .* cos.(pi .* x .+ pi)
-g2 = pi * cos.(pi * x)
+g2 = pi * cos.(pi * x .+ pi)
 #g3 = sin.(pi .* y)
 g3 = sin.(pi * y)
 #g4 = sin.(pi .+ pi .* y)
@@ -163,4 +163,7 @@ err = sqrt(diff'*HxHydiff)
 
 @show err
 
-@benchmark cg(D,b,tol=1e-4)
+benchmark_result_rand = @benchmark cg!(rand(length(b)),D,b)
+benchmark_result_norand = @benchmark cg(D,b)
+display(benchmark_result_rand)
+display(benchmark_result_norand)
