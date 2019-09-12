@@ -17,7 +17,7 @@ function eyes(n)
     return Matrix{Float64}(I,n,n)
 end
 
-function u(x,y)
+function u_new(x,y)
            return sin.(π*x .+ π*y)
        end
 
@@ -40,18 +40,18 @@ function Operators_2d(i, j, p=2, h_list_x = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7,
     # Matrix Size
     N_x = Integer(m_list[i]);
     N_y = Integer(n_list[j]);
-    
+
     (D1x, HIx, H1x, r1x) = diagonal_sbp_D1(p,N_x,xc=(0,1));
     (D2x, S0x, SNx, HI2x, H2x, r2x) = diagonal_sbp_D2(p,N_x,xc=(0,1));
 
 
     (D1y, HIy, H1y, r1y) = diagonal_sbp_D1(p,N_y,xc=(0,1));
     (D2y, S0y, SNy, HI2y, H2y, r2y) = diagonal_sbp_D2(p,N_y,xc=(0,1));
-    
+
     BSx = sparse(SNx - S0x);
     BSy = sparse(SNy - S0y);
-    
-    
+
+
     # Forming 2d Operators
     e_1x = sparse(e(1,N_x+1));
     e_Nx = sparse(e(N_x+1,N_x+1));
@@ -63,7 +63,7 @@ function Operators_2d(i, j, p=2, h_list_x = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7,
     I_Ny = sparse(eyes(N_y+1));
 
 
-    e_E = kron(e_Nx,I_Ny);  
+    e_E = kron(e_Nx,I_Ny);
     e_W = kron(e_1x,I_Ny);
     e_S = kron(I_Nx,e_1y);
     e_N = kron(I_Nx,e_Ny);
@@ -95,7 +95,7 @@ function Operators_2d(i, j, p=2, h_list_x = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7,
 
     HI_tilde = kron(HIx,HIx);
     H_tilde = kron(H1x,H1y);
-    
+
     return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
@@ -107,7 +107,7 @@ iter_errs = []
 #for k = 1:4
 k = 5
 i = j  = k
-hx = h_list_x[i]   
+hx = h_list_x[i]
 hy = h_list_y[j]
 
 x = range(0,step=hx,1)
@@ -118,19 +118,19 @@ n_list = 1 ./h_list_y
 # Matrix Size
 N_x = Integer(m_list[i])
 N_y = Integer(n_list[j])
-    
-# 2D operators 
+
+# 2D operators
 (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
-    
-    
+
+
 
 # CUDA H_tilde
 #cu_H_tilde = cu(H_tilde)
 
 # Analytical Solutions
-analy_sol = u(x,y')
+analy_sol = u_new(x,y')
 cu_analy_sol = cu(analy_sol)
-    
+
 # Penalty Parameters
 tau_E = -13/hx
 tau_W = -13/hx
@@ -138,15 +138,15 @@ tau_N = -1
 tau_S = -1
 
 beta = 1
-    
+
 # Forming SAT terms
 
 ## Formulation 1
-SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W    
+SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W
 SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
 SAT_S = tau_S*HI_y*E_S*BS_y
 SAT_N = tau_N*HI_y*E_N*BS_y
-    
+
 SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W
 SAT_E_r = tau_E*HI_x*E_E*e_E + beta*HI_x*BS_x'*E_E*e_E
 SAT_S_r = tau_S*HI_y*E_S*e_S
@@ -164,7 +164,7 @@ g_N = π*cos.(π*x .+ π)
 
 
 
-    
+
 # Solving with CPU
 A = D2 + SAT_W + SAT_E + SAT_S + SAT_N
 b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N

@@ -1,7 +1,5 @@
-using Compat
-import Compat: range, undef
-using Compat.SparseArrays
-using Compat.LinearAlgebra
+using SparseArrays
+using LinearAlgebra
 
 # DIAGONAL_SBP_D1 creates a diagonal norm SBP operator
 # (D, Hinv, H, r) = diagonal_sbp_D1(p, N; xc = (-1,1))
@@ -143,7 +141,7 @@ function diagonal_sbp_D1(p, N; xc = (-1, 1))
              [B_J1[:];B_J2[:];B_J3[:]],
              [B_V1[:];B_V2[:];B_V3[:]]/h, N+1, N+1)
 
-  r = Compat.range(xc[1], stop=xc[2], length=N+1)
+  r = range(xc[1], stop=xc[2], length=N+1)
 
   (D, HI, H, r)
 end
@@ -401,8 +399,8 @@ function diagonal_sbp_D2(p, N; xc = (-1, 1))
     M[1:11,1:11] = M[1:11,1:11]'+M[1:11,1:11]-diagm(0 => diag(M[1:11,1:11]));
 
     BS = zeros(1,16);
-                                            
-                                            
+
+
     BS[1:7] = -[-49/20 6 -15/2 20/3 -15/4 6/5 -1/6];
     e0 = zeros(11,1);
     e0[1] = 1;
@@ -449,7 +447,7 @@ function diagonal_sbp_D2(p, N; xc = (-1, 1))
   SN = sparse((N+1) * ones(length(BS)), (N+1):-1:(N+2-length(BS)),
               BS[:]/h, N+1, N+1);
 
-  r = Compat.range(xc[1], stop=xc[2], length=N+1)
+  r = range(xc[1], stop=xc[2], length=N+1)
 
   (D, S0, SN, HI, H, r)
 
@@ -462,7 +460,7 @@ end
 # (D, BS, Hinv, H, r) = variable_diagonal_sbp_D2(p, N, B; xc = (-1,1))
 #{{{
 function variable_diagonal_sbp_D2(p, N, B; xc = (-1, 1))
-  r = Compat.range(xc[1], stop=xc[2], length=N+1)
+  r = range(xc[1], stop=xc[2], length=N+1)
   variable_diagonal_sbp_D2(p, N, B(collect(r));xc=xc)
 end
 function variable_diagonal_sbp_D2(p, N, B::T; xc = (-1, 1)) where T <: Number
@@ -688,14 +686,14 @@ function variable_diagonal_sbp_D2(p, N, B::Array{Float64,1}; xc = (-1, 1))
 	10:N-8;
 	9:N-8;
 	8:N-8;
-	7:N-8] 
+	7:N-8]
     J_M = [7:N-8;
         8:N-8;
 	9:N-8;
 	10:N-8;
 	10:N-7;
 	10:N-6;
-	10:N-5] 
+	10:N-5]
     V_M =  [(-(11/360)B[(10:N-5).-3] + (1/40)B[(10:N-5).-2] + (1/40)B[(10:N-5).-1] - (11/360)B[(10:N-5)]);
     	    (+(1/20)B[(10:N-6).-3] + (7/40)B[(10:N-6).-2] - (3/10)B[(10:N-6).-1] + (7/40)B[(10:N-6)] + (1/20)B[(10:N-6).+1]);
             (-(1/40)B[(10:N-7).-3] -(3/10)B[(10:N-7).-2] - (17/40)B[(10:N-7).-1] - (17/40)B[(10:N-7)] - (3/10)B[(10:N-7).+1] - (1/40)B[(10:N-7).+2]);
@@ -708,7 +706,7 @@ function variable_diagonal_sbp_D2(p, N, B::Array{Float64,1}; xc = (-1, 1))
     M = sparse([I_M0[:];I_M[:];I_MN[:]],
                [J_M0[:];J_M[:];J_MN[:]],
                [V_M0[:];V_M[:];V_MN[:]])
-              
+
 
   else
     error(string("Operators for order ", p, " are not implemented"))
@@ -736,7 +734,7 @@ function variable_diagonal_sbp_D2(p, N, B::Array{Float64,1}; xc = (-1, 1))
               B[N+1]*BS[:]/h, N+1, N+1);
   D = HI * (-M + SN - S0)
 
-  r = Compat.range(xc[1], stop=xc[2], length=N+1)
+  r = range(xc[1], stop=xc[2], length=N+1)
 
   BS = SN - S0
   (D, BS, HI, H, r)
