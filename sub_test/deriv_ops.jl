@@ -5,18 +5,18 @@
 #Mattsson and Nordstrom, 2004.
 
 #Written for the 2D domain (x,y) \in (a, b) \times (c, d),
-#stacking the grid function in the vertical direction, 
-#so that, e.g., \partial u / \partial x \approx D \kron I and 
+#stacking the grid function in the vertical direction,
+#so that, e.g., \partial u / \partial x \approx D \kron I and
 #\partial u / \partial y \approx I \kron D
 #the faces of the 2D domain are label bottom to top, left to right, i.e.
 #side 1 is y = c, side 2 is y = d
 #side 3 is x = a, side 4 is x = b
 
-#D2x and D2y compute approximations to 
-#\partial^2 u / \partial x^2 and 
+#D2x and D2y compute approximations to
+#\partial^2 u / \partial x^2 and
 #\partial^2 u / \partial y^2, respectively
 
-#FACEtoVOL(face,u_face,Nx,Ny) maps the face value u_face to a full length vector at the 
+#FACEtoVOL(face,u_face,Nx,Ny) maps the face value u_face to a full length vector at the
 #nodes corresponding to face
 
 #BxSx \approx the traction on faces 3 and 4
@@ -28,40 +28,93 @@
 
 
 
+# function D2x(u, Nx, Ny, h) # Original implementation
+# 	N = Nx*Ny
+# 	y = zeros(N)
+# 	idx = 1:Ny
+# 	y[idx] = (u[idx] - 2 .* u[Ny .+ idx] + u[2*Ny .+ idx]) ./ h^2
+#
+# 	idx1 = Ny+1:N-Ny
+# 	y[idx1] = (u[idx1 .- Ny] - 2 .* u[idx1] + u[idx1 .+ Ny]) ./ h^2
+#
+# 	idx2 = N-Ny+1:N
+# 	y[idx2] = (u[idx2 .- 2*Ny] -2 .* u[idx2 .- Ny] + u[idx2]) ./ h^2
+#
+# 	return y
+# end
+
+# function D2x_new(u, Nx, Ny, h)
+# 	N = Nx*Ny;
+# 	y = zeros(N)
+# 	idx = 1:Ny
+# 	y[idx] = (u[idx] - 2 * u[Ny+1 : 2Ny] + u[2*Ny+1 : 3Ny]) / h^2
+#
+# 	idx1 = Ny+1:N-Ny
+# 	y[idx1] = (u[1 : N - 2Ny] - 2 * u[idx1] + u[2Ny+1 : N]) / h^2
+#
+# 	idx2 = N-Ny+1:N
+# 	y[idx2] = (u[N-3Ny+1 : N- 2*Ny] -2 * u[N-2Ny+1 : N- Ny] + u[idx2]) / h^2
+#
+# 	y
+# end
+
 function D2x(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
-	idx = 1:Ny
-	y[idx] = (u[idx] - 2 .* u[Ny .+ idx] + u[2*Ny .+ idx]) ./ h^2
+	for idx = 1:Ny
+		y[idx] = (u[idx] - 2 * u[Ny + idx] + u[2*Ny + idx]) / h^2
+	end
 
-	idx1 = Ny+1:N-Ny
-	y[idx1] = (u[idx1 .- Ny] - 2 .* u[idx1] + u[idx1 .+ Ny]) ./ h^2
+	for idx1 = Ny+1:N-Ny
+		y[idx1] = (u[idx1 - Ny] - 2 * u[idx1] + u[idx1 + Ny]) / h^2
+	end
 
-	idx2 = N-Ny+1:N
-	y[idx2] = (u[idx2 .- 2*Ny] -2 .* u[idx2 .- Ny] + u[idx2]) ./ h^2
-
+	for idx2 = N-Ny+1:N
+		y[idx2] = (u[idx2 - 2*Ny] -2 * u[idx2 - Ny] + u[idx2]) / h^2
+	end
 	return y
 end
 
 
+# function D2y(u, Nx, Ny, h)
+# 	N = Nx*Ny
+# 	y = zeros(N)
+# 	idx = 1:Ny:N-Ny+1
+# 	y[idx] = (u[idx] - 2 .* u[idx .+ 1] + u[idx .+ 2]) ./ h^2
+#
+# 	idx1 = Ny:Ny:N
+# 	y[idx1] = (u[idx1 .- 2] - 2 .* u[idx1 .- 1] + u[idx1]) ./ h^2
+#
+# 	for j = 1:Nx
+# 		idx = 2+(j-1)*Ny:j*Ny-1
+# 		y[idx] = (u[idx .- 1] - 2 .* u[idx] + u[idx .+ 1]) ./ h^2
+# 	end
+#
+# 	return y
+#
+# end
 
 function D2y(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
-	idx = 1:Ny:N-Ny+1
-	y[idx] = (u[idx] - 2 .* u[idx .+ 1] + u[idx .+ 2]) ./ h^2
+	for idx = 1:Ny:N-Ny+1
+		y[idx] = (u[idx] - 2 * u[idx + 1] + u[idx + 2]) / h^2
+	end
 
-	idx1 = Ny:Ny:N
-	y[idx1] = (u[idx1 .- 2] - 2 .* u[idx1 .- 1] + u[idx1]) ./ h^2
+	for idx1 = Ny:Ny:N
+		y[idx1] = (u[idx1 - 2] - 2 * u[idx1 .- 1] + u[idx1]) / h^2
+	end
 
 	for j = 1:Nx
-		idx = 2+(j-1)*Ny:j*Ny-1
-		y[idx] = (u[idx .- 1] - 2 .* u[idx] + u[idx .+ 1]) ./ h^2
+		for idx = 2+(j-1)*Ny:j*Ny-1
+			y[idx] = (u[idx - 1] - 2 * u[idx] + u[idx + 1]) / h^2
+		end
 	end
 
 	return y
 
 end
+
 
 function Dx(u, Nx, Ny, h)
 	N = Nx*Ny
@@ -129,7 +182,7 @@ function Hyinv(u, Nx, Ny, h)
 	end
 
 	return y
-	
+
 end
 
 function Hx(u, Nx, Ny, h)
@@ -147,7 +200,7 @@ function Hx(u, Nx, Ny, h)
 
         return y
 
-        
+
 end
 
 function Hy(u, Nx, Ny, h)
@@ -166,7 +219,7 @@ function Hy(u, Nx, Ny, h)
         end
 
         return y
-        
+
 end
 
 function FACEtoVOL(u_face, face, Nx, Ny)
@@ -187,7 +240,7 @@ function FACEtoVOL(u_face, face, Nx, Ny)
 	y[idx] = u_face
 
 	return y
-	
+
 end
 
 function VOLtoFACE(u, face, Nx, Ny)
@@ -242,7 +295,7 @@ function BxSx(u, Nx, Ny, h)
 	y[N-Ny .+ idx] = (1/h) .* (0.5 .* u[N-3*Ny .+ idx] - 2 .* u[N-2*Ny .+ idx] + 1.5 .* u[N-Ny .+ idx])
 
 	return y
-	
+
 end
 
 function BySy(u, Nx, Ny, h)
@@ -254,7 +307,7 @@ function BySy(u, Nx, Ny, h)
 
 	idx = Ny:Ny:N
 	y[idx] = (1/h) .* (0.5 .* u[idx .- 2] - 2 .* u[idx .- 1] + 1.5 .* u[idx])
-	
+
 	return y
 end
 
@@ -300,7 +353,3 @@ function BySy_tran(u, Nx, Ny, h)
 
 	return y
 end
-
-
-
-
