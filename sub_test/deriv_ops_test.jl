@@ -78,7 +78,7 @@
 function D2x(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
 	N = Nx*Ny
 	#y = similar(u)
-	y = similar(u)
+	#y = similar(u)
 	for idx = 1:Ny
 		y[idx] = (u[idx] - 2 * u[Ny + idx] + u[2*Ny + idx]) / h^2
 	end
@@ -171,6 +171,46 @@ function Dx(u, Nx, Ny, h)
 	return y
 end
 
+
+function Dx_test(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
+	N = Nx*Ny
+	y = similar(u)
+
+	for idx = 1:Ny
+		y[idx] = (u[idx + Ny] - u[idx]) / h
+	end
+
+	for idx1 = Ny+1:N-Ny
+		y[idx1] = (u[idx1 + Ny]-u[idx1 - Ny]) / (2*h)
+	end
+
+	for idx2 = N-Ny+1:N
+		y[idx2] = (u[idx2]-u[idx2 .- Ny]) ./ h
+	end
+	return y
+end
+
+
+
+function Dx_test!(y::Array{Float64,1},u::Array{Float64,1}, N::Int64,Nx::Int64, Ny::Int64, h::Float64)
+	#N = Nx*Ny
+	#y = similar(u)
+
+	for idx = 1:Ny
+		y[idx] = (u[idx + Ny] - u[idx]) / h
+	end
+
+	for idx1 = Ny+1:N-Ny
+		y[idx1] = (u[idx1 + Ny]-u[idx1 - Ny]) / (2*h)
+	end
+
+	for idx2 = N-Ny+1:N
+		y[idx2] = (u[idx2]-u[idx2 .- Ny]) ./ h
+	end
+	return y
+end
+
+
 function Dy(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
@@ -188,6 +228,28 @@ function Dy(u, Nx, Ny, h)
 
 	return y
 end
+
+function Dy_test(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = similar(u)
+
+	for idx = 1:Ny:N-Ny+1
+		y[idx] = (u[idx + 1] - u[idx]) / h
+	end
+
+	for idx = Ny:Ny:N
+		y[idx] = (u[idx] - u[idx - 1]) /h
+	end
+
+	for j = 1:Nx
+		for idx = 2+(j-1)*Ny:j*Ny-1
+			y[idx] = (u[idx + 1] - u[idx - 1]) / (2*h)
+		end
+	end
+
+	return y
+end
+
 
 function Hxinv(u, Nx, Ny, h)
 	N = Nx*Ny
