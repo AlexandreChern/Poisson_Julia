@@ -521,6 +521,21 @@ function By(Nx,Ny)
 	return y
 end
 
+
+function By_test(Nx,Ny)
+	N = Nx*Ny
+	y = zeros(N)
+
+	for idx = 1:Ny:N-Ny+1
+		y[idx] = -1 #* ones(Ny)
+	end
+
+	for idx = Ny:Ny:N
+		y[idx] = 1 #* ones(Ny)
+	end
+	return y
+end
+
 function BxSx(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
@@ -533,6 +548,33 @@ function BxSx(u, Nx, Ny, h)
 
 end
 
+function BxSx_test(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = zeros(N)
+
+	for idx = 1:Ny
+		y[idx] = (1/h) * (1.5 * u[idx] - 2 * u[idx + Ny] + 0.5 * u[idx + 2*Ny])
+		y[N-Ny + idx] = (1/h) * (0.5 * u[N-3*Ny + idx] - 2 * u[N-2*Ny + idx] + 1.5 * u[N-Ny + idx])
+	end
+	return y
+
+end
+
+function BxSx_test_2(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = zeros(N)
+
+	N1 = N-Ny
+	N2 = N-2Ny
+	N3 = N-3Ny
+	for idx = 1:Ny
+		y[idx] = (1/h) * (1.5 * u[idx] - 2 * u[idx + Ny] + 0.5 * u[idx + 2*Ny])
+		y[N1 + idx] = (1/h) * (0.5 * u[N3 + idx] - 2 * u[N2 + idx] + 1.5 * u[N1 + idx])
+	end
+	return y
+
+end   ## Not much
+
 function BySy(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
@@ -542,6 +584,21 @@ function BySy(u, Nx, Ny, h)
 
 	idx = Ny:Ny:N
 	y[idx] = (1/h) .* (0.5 .* u[idx .- 2] - 2 .* u[idx .- 1] + 1.5 .* u[idx])
+
+	return y
+end
+
+function BySy_test(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = zeros(N)
+
+	for idx = 1:Ny:N-Ny+1
+		y[idx] = (1/h) * (1.5 * u[idx] - 2 * u[idx + 1] + 0.5 * u[idx + 2])
+	end
+
+	for idx = Ny:Ny:N
+		y[idx] = (1/h) * (0.5 * u[idx - 2] - 2 * u[idx - 1] + 1.5 * u[idx])
+	end
 
 	return y
 end
@@ -563,6 +620,33 @@ function BxSx_tran(u, Nx, Ny, h)
 	y[idx] += (-2 .* u[idxN]) .* (1/h)
 	idx = N-3*Ny+1:N-2*Ny
 	y[idx] += (0.5 .* u[idxN]) .* (1/h)
+
+	return y
+end
+
+function BxSx_tran_test(u, Nx, Ny, h)  ## Not successful BxSx_tran_test != BxSx_tran
+	N = Nx*Ny
+	y = zeros(N)
+
+	for idx1 = 1:Ny
+		y[idx1] += (1.5 * u[idx1]) * (1/h)
+		for idx = Ny+1:2*Ny
+			y[idx] += (-2 * u[idx1]) * (1/h)
+		end
+
+		for idx  = 2*Ny+1:3*Ny
+			y[idx] += (0.5 * u[idx1]) * (1/h)
+		end
+	end
+	for idxN = N-Ny+1:N
+		y[idxN] += (1.5 * u[idxN]) * (1/h)
+		for idx = N-2*Ny+1:N-Ny
+			y[idx] += (-2 * u[idxN]) * (1/h)
+		end
+		for idx = N-3*Ny+1:N-2*Ny
+			y[idx] += (0.5 * u[idxN]) * (1/h)
+		end
+	end
 
 	return y
 end
