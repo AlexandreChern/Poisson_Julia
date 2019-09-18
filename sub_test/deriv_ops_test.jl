@@ -58,9 +58,27 @@
 # 	y
 # end
 
-function D2x(u, Nx, Ny, h)
+# function D2x(u, Nx, Ny, h)
+# 	N = Nx*Ny
+# 	y = zeros(N)
+# 	for idx = 1:Ny
+# 		y[idx] = (u[idx] - 2 * u[Ny + idx] + u[2*Ny + idx]) / h^2
+# 	end
+#
+# 	for idx1 = Ny+1:N-Ny
+# 		y[idx1] = (u[idx1 - Ny] - 2 * u[idx1] + u[idx1 + Ny]) / h^2
+# 	end
+#
+# 	for idx2 = N-Ny+1:N
+# 		y[idx2] = (u[idx2 - 2*Ny] -2 * u[idx2 - Ny] + u[idx2]) / h^2
+# 	end
+# 	return y
+# end
+
+function D2x(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
 	N = Nx*Ny
-	y = zeros(N)
+	#y = similar(u)
+	#y = similar(u)
 	for idx = 1:Ny
 		y[idx] = (u[idx] - 2 * u[Ny + idx] + u[2*Ny + idx]) / h^2
 	end
@@ -94,9 +112,30 @@ end
 #
 # end
 
-function D2y(u, Nx, Ny, h)
+# function D2y(u, Nx, Ny, h)
+# 	N = Nx*Ny
+# 	y = zeros(N)
+# 	for idx = 1:Ny:N-Ny+1
+# 		y[idx] = (u[idx] - 2 * u[idx + 1] + u[idx + 2]) / h^2
+# 	end
+#
+# 	for idx1 = Ny:Ny:N
+# 		y[idx1] = (u[idx1 - 2] - 2 * u[idx1 .- 1] + u[idx1]) / h^2
+# 	end
+#
+# 	for j = 1:Nx
+# 		for idx = 2+(j-1)*Ny:j*Ny-1
+# 			y[idx] = (u[idx - 1] - 2 * u[idx] + u[idx + 1]) / h^2
+# 		end
+# 	end
+#
+# 	return y
+#
+# end
+
+function D2y(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
 	N = Nx*Ny
-	y = zeros(N)
+	y = similar(u)
 	for idx = 1:Ny:N-Ny+1
 		y[idx] = (u[idx] - 2 * u[idx + 1] + u[idx + 2]) / h^2
 	end
@@ -132,6 +171,46 @@ function Dx(u, Nx, Ny, h)
 	return y
 end
 
+
+function Dx_test(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
+	N = Nx*Ny
+	y = similar(u)
+
+	for idx = 1:Ny
+		y[idx] = (u[idx + Ny] - u[idx]) / h
+	end
+
+	for idx1 = Ny+1:N-Ny
+		y[idx1] = (u[idx1 + Ny]-u[idx1 - Ny]) / (2*h)
+	end
+
+	for idx2 = N-Ny+1:N
+		y[idx2] = (u[idx2]-u[idx2 .- Ny]) ./ h
+	end
+	return y
+end
+
+
+
+function Dx_test!(y::Array{Float64,1},u::Array{Float64,1}, N::Int64,Nx::Int64, Ny::Int64, h::Float64)
+	#N = Nx*Ny
+	#y = similar(u)
+
+	for idx = 1:Ny
+		y[idx] = (u[idx + Ny] - u[idx]) / h
+	end
+
+	for idx1 = Ny+1:N-Ny
+		y[idx1] = (u[idx1 + Ny]-u[idx1 - Ny]) / (2*h)
+	end
+
+	for idx2 = N-Ny+1:N
+		y[idx2] = (u[idx2]-u[idx2 .- Ny]) ./ h
+	end
+	return y
+end
+
+
 function Dy(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
@@ -150,6 +229,28 @@ function Dy(u, Nx, Ny, h)
 	return y
 end
 
+function Dy_test(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = similar(u)
+
+	for idx = 1:Ny:N-Ny+1
+		y[idx] = (u[idx + 1] - u[idx]) / h
+	end
+
+	for idx = Ny:Ny:N
+		y[idx] = (u[idx] - u[idx - 1]) /h
+	end
+
+	for j = 1:Nx
+		for idx = 2+(j-1)*Ny:j*Ny-1
+			y[idx] = (u[idx + 1] - u[idx - 1]) / (2*h)
+		end
+	end
+
+	return y
+end
+
+
 function Hxinv(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
@@ -166,6 +267,25 @@ function Hxinv(u, Nx, Ny, h)
 	return y
 end
 
+function Hxinv_test(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = similar(u)
+
+	for idx = 1:Ny
+		y[idx] = (2*u[idx]) * (1/h)
+	end
+
+	for idx = Ny+1:N-Ny
+		y[idx] = (1*u[idx]) * (1/h)
+	end
+
+	for idx = N-Ny+1:N
+		y[idx] = (2*u[idx]) * (1/h)
+	end
+
+	return y
+end
+
 function Hyinv(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
@@ -177,8 +297,30 @@ function Hyinv(u, Nx, Ny, h)
 	y[idx] = (2*u[idx]) .* (1/h)
 
 	for i = 1:Nx
-		idx = 2+(i-1).*Ny:i*Ny-1
+		idx = 2+(i-1)*Ny:i*Ny-1
 		y[idx] = u[idx] .* (1/h)
+	end
+
+	return y
+
+end
+
+function Hyinv_test(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = similar(u)
+
+	for idx = 1:Ny:N-Ny+1
+		y[idx] = (2*u[idx]) * (1/h)
+	end
+
+	for idx = Ny:Ny:N
+		y[idx] = (2*u[idx]) * (1/h)
+	end
+
+	for i = 1:Nx
+		for idx = 2+(i-1)*Ny:i*Ny-1
+			y[idx] = u[idx] * (1/h)
+		end
 	end
 
 	return y
@@ -199,8 +341,25 @@ function Hx(u, Nx, Ny, h)
 	y[idx] = h .* (1/2)*u[idx]
 
         return y
+end
 
+function Hx_test(u, Nx, Ny, h)
+	N = Nx*Ny
+    y = similar(u)
 
+    for idx = 1:Ny
+		y[idx] = h * (1/2)*u[idx]
+	end
+
+    for idx = Ny+1:N-Ny
+        y[idx] = h * 1*u[idx]
+	end
+
+    for idx = N-Ny+1:N
+		y[idx] = h * (1/2)*u[idx]
+	end
+
+    return y
 end
 
 function Hy(u, Nx, Ny, h)
@@ -222,9 +381,52 @@ function Hy(u, Nx, Ny, h)
 
 end
 
+function Hy_test(u, Nx, Ny, h)
+	N = Nx*Ny
+    y = similar(u)
+
+    for idx = 1:Ny:N-Ny+1
+		y[idx] = h * (1/2)*u[idx]
+	end
+
+    for idx = Ny:Ny:N
+		y[idx] = h * (1/2)*u[idx]
+	end
+
+    for i = 1:Nx
+        for idx = 2+(i-1)*Ny:i*Ny-1
+            y[idx] = h * u[idx]
+        end
+	end
+
+        return y
+
+end
+
 function FACEtoVOL(u_face, face, Nx, Ny)
 	N = Nx*Ny
 	y = zeros(N)
+
+	if face == 1
+		idx = 1:Ny:N-Ny+1
+	elseif face == 2
+		idx = Ny:Ny:N
+	elseif face == 3
+		idx = 1:Ny
+	elseif face == 4
+		idx = N-Ny+1:N
+	else
+	end
+
+	y[idx] = u_face
+
+	return y
+
+end
+
+function FACEtoVOL_test(u_face, face, Nx, Ny)
+	N = Nx*Ny
+	y = similar(u)
 
 	if face == 1
 		idx = 1:Ny:N-Ny+1
@@ -262,6 +464,25 @@ function VOLtoFACE(u, face, Nx, Ny)
         return y
 end
 
+function VOLtoFACE_test(u, face, Nx, Ny)
+	N = Nx*Ny
+    y = similar(u)
+
+    if face == 1
+        idx = 1:Ny:N-Ny+1
+    elseif face == 2
+        idx = Ny:Ny:N
+    elseif face == 3
+        idx = 1:Ny
+    elseif face == 4
+        idx = N-Ny+1:N
+    else
+    end
+
+	y[idx] = u[idx]
+    return y
+end
+
 function Bx(Nx,Ny)
 	N = Nx*Ny
 	y = zeros(N)
@@ -271,6 +492,20 @@ function Bx(Nx,Ny)
 
 	idx = N-Ny+1:N
 	y[idx] = 1 .* ones(Ny)
+	return y
+end
+
+function Bx_test(Nx,Ny)
+	N = Nx*Ny
+	y = similar(u)
+
+	for idx = 1:Ny
+		y[idx] = -1 * ones(Ny)
+	end
+
+	for idx = N-Ny+1:N
+		y[idx] = 1 * ones(Ny)
+	end
 	return y
 end
 

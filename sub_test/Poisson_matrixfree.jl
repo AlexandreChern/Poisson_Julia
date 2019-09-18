@@ -213,6 +213,52 @@ N_y = Integer(n_list[j])
 (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
 
 
+## Construct A and b with sparse matrix function
+
+# Penalty Parameters
+tau_E = -13/h_x
+tau_W = -13/h_x
+tau_N = -1
+tau_S = -1
+
+beta = 1
+
+# Forming SAT terms
+
+## Formulation 1
+SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W
+SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
+SAT_S = tau_S*HI_y*E_S*BS_y
+SAT_N = tau_N*HI_y*E_N*BS_y
+
+SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W
+SAT_E_r = tau_E*HI_x*E_E*e_E + beta*HI_x*BS_x'*E_E*e_E
+SAT_S_r = tau_S*HI_y*E_S*e_S
+SAT_N_r = tau_N*HI_y*E_N*e_N
+
+
+
+
+g_W = sin.(π*y)
+g_E = -sin.(π*y)
+g_S = -π*cos.(π*x)
+g_N = π*cos.(π*x .+ π)
+
+
+
+
+
+
+# Solving with CPU
+A = D2 + SAT_W + SAT_E + SAT_S + SAT_N
+# b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
+
+
+A = H_tilde*A;
+b = H_tilde*b;
+
+
+
 # @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 
 N = Nx*Ny

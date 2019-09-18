@@ -107,8 +107,8 @@ iter_errs = []
 #for k = 1:4
 k = 2
 i = j  = k
-hx = h_list_x[i]
-hy = h_list_y[j]
+h_x = h_list_x[i]
+h_y = h_list_y[j]
 
 x = range(0,step=hx,1)
 y = range(0,step=hy,1)
