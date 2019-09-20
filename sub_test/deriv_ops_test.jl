@@ -253,9 +253,9 @@ end
 
 z = zeros(N)
 
-function Dy_test_1(u, z, Nx, Ny, h)
+function Dy_test_1(u, y, Nx, Ny, h)
 	N = Nx*Ny
-	y = copy(z)
+	#y = copy(z)
 	for idx = 1:Ny:N-Ny+1
 		y[idx] = (u[idx + 1] - u[idx]) / h
 	end
@@ -272,6 +272,25 @@ function Dy_test_1(u, z, Nx, Ny, h)
 	return y
 end
 
+
+function Dy_test_2(u, y, Nx, Ny, h)
+	N = Nx*Ny
+	#y = copy(z)
+	for idx = 1:Ny:N-Ny+1
+		@inbounds y[idx] = (u[idx + 1] - u[idx]) / h
+	end
+
+	for idx = Ny:Ny:N
+		@inbounds y[idx] = (u[idx] - u[idx - 1]) /h
+	end
+
+	for j = 1:Nx
+		for idx = 2+(j-1)*Ny:j*Ny-1
+			@inbounds y[idx] = (u[idx + 1] - u[idx - 1]) / (2*h)
+		end
+	end
+	return y
+end
 
 
 function Hxinv(u, Nx, Ny, h)
