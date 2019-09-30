@@ -130,10 +130,10 @@ end
 # 	return y
 # end
 
-function D2x_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64,y1::Array{Float64,1})
-	N = Nx*Ny
-	hx = Float64(1/(Nx-1))
-	hy = Float64(1/(Ny-1))
+function D2x_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N, hx, hy, y1::Array{Float64,1})
+	#N = Nx*Ny
+	#hx = Float64(1/(Nx-1))
+	#hy = Float64(1/(Ny-1))
 	#y = similar(u)
 	#y = similar(u)
 	@inbounds  for idx = 1:Ny
@@ -253,10 +253,10 @@ function D2y_test(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
 
 end
 
-function D2y_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, y2::Array{Float64,1})
-	N = Nx*Ny
-	hx = Float64(1/(Nx-1))
-	hy = Float64(1/(Ny-1))
+function D2y_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N, hx, hy, y2::Array{Float64,1})
+	#N = Nx*Ny
+	#hx = Float64(1/(Nx-1))
+	#hy = Float64(1/(Ny-1))
 	@inbounds for idx = 1:Ny:N-Ny+1
 		y2[idx] = (u[idx] - 2 * u[idx + 1] + u[idx + 2]) / hy^2
 	end
@@ -754,7 +754,7 @@ end
 
 yv2f1 = zeros(Nx*Ny)
 
-function VOLtoFACE_beta(u,face,Nx,Ny,N,yv2f) ## Has some issue
+function VOLtoFACE_beta(u,face,Nx,Ny,N,yv2fs) ## Has some issue
 	if face == 1
 			idx = 1:Ny:N-Ny+1
 	elseif face == 2
@@ -765,7 +765,7 @@ function VOLtoFACE_beta(u,face,Nx,Ny,N,yv2f) ## Has some issue
 			idx = N-Ny+1:N
 	else
 	end
-
+    yv2f = yv2fs[face]
 	yv2f[idx] = u[idx]
 
 	return yv2f
