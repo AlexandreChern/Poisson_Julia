@@ -24,7 +24,7 @@ using Parameters
 
 
 @with_kw struct variables
-    h = 0.05
+    h = 0.0625
     dx = h
     dy = h
     x = 0:dx:1
@@ -40,16 +40,26 @@ end
 
 var_test = variables()
 
+function test(var_test)
+    @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+    return r
+end
 
+test(var_test)
+
+N = Nx*Ny
 # Array Containers
 y1 = Array{Float64,1}(undef,Nx*Ny) # container for D2x
 y2 = Array{Float64,1}(undef,Nx*Ny) # container for D2y
 y_BySy = zeros(Nx*Ny)
 y_Hyinv = zeros(Nx*Ny)
+y_Hxinv = zeros(Nx*Ny)
+
 yv2f1 = zeros(Nx*Ny)
 yv2f2 = zeros(Nx*Ny)
 yv2f3 = zeros(Nx*Ny)
 yv2f4 = zeros(Nx*Ny)
+
 
 yv2fs=[yv2f1,yv2f2,yv2f3,yv2f4]
 
