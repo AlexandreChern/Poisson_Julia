@@ -15,7 +15,7 @@
 #to make system PD, multiply by -(H kron H):
 
 
-include("deriv_ops.jl")
+include("deriv_ops_test.jl")
 using SparseArrays
 using LinearMaps
 using IterativeSolvers
@@ -40,9 +40,10 @@ end
 
 var_test = variables()
 
+@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 #function myMAT!(du::AbstractVector, u::AbstractVector,var_test::variables)
 	#Chunk below should be passed as input, but for now needs to match chunk below
-function myMAT!(du::AbstractVector, u::AbstractVector)
+function myMAT!(du::AbstractVector, u::AbstractVector,var_test)
 # 	h = 0.05
 # 	dx = h
 # 	dy = h
@@ -58,35 +59,35 @@ function myMAT!(du::AbstractVector, u::AbstractVector)
     @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 	########################################
 
-        du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
+        du_ops = D2x_test(u,Nx,Ny,dx) + D2y_test(u,Nx,Ny,dy) #compute action of D2x + D2y
 
-        du1 = BySy(u,Nx,Ny,dy)
+        du1 = BySy_test(u,Nx,Ny,dy)
         du2 = VOLtoFACE(du1,1,Nx,Ny)
-        du3 = alpha1*Hyinv(du2,Nx,Ny,dy)  #compute action of P1
+        du3 = alpha1*Hyinv_test(du2,Nx,Ny,dy)  #compute action of P1
 
-        du4 = BySy(u,Nx,Ny,dy)
+        du4 = BySy_test(u,Nx,Ny,dy)
         du5 = VOLtoFACE(du4,2,Nx,Ny)
-        du6 = alpha2*Hyinv(du5,Nx,Ny,dy) #compute action of P2
+        du6 = alpha2*Hyinv_test(du5,Nx,Ny,dy) #compute action of P2
 
         du7 = VOLtoFACE(u,3,Nx,Ny)
-        du8 = BxSx_tran(du7,Nx,Ny,dx)
-        du9 = beta*Hxinv(du8,Nx,Ny,dx)
+        du8 = BxSx_tran_test(du7,Nx,Ny,dx)
+        du9 = beta*Hxinv_test(du8,Nx,Ny,dx)
         du10 = VOLtoFACE(u,3,Nx,Ny)
-        du11 = alpha3*Hxinv(du10,Nx,Ny,dx) #compute action of P3
+        du11 = alpha3*Hxinv_test(du10,Nx,Ny,dx) #compute action of P3
 
         du12 = VOLtoFACE(u,4,Nx,Ny)
-        du13 = BxSx_tran(du12,Nx,Ny,dx)
-        du14 = beta*Hxinv(du13,Nx,Ny,dx)
+        du13 = BxSx_tran_test(du12,Nx,Ny,dx)
+        du14 = beta*Hxinv_test(du13,Nx,Ny,dx)
         du15 = VOLtoFACE(u,4,Nx,Ny)
-        du16 = alpha4*Hxinv(du15,Nx,Ny,dx) #compute action of P4
+        du16 = alpha4*Hxinv_test(du15,Nx,Ny,dx) #compute action of P4
 
 
         du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
 
         #compute action of -Hx kron Hy:
 
-        du17 = Hy(du0, Nx, Ny, dy)
-	du[:] = -Hx(du17,Nx,Ny,dx)
+        du17 = Hy_test(du0, Nx, Ny, dy)
+	du[:] = -Hx_test(du17,Nx,Ny,dx)
 end
 
 

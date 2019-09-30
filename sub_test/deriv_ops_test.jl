@@ -43,6 +43,23 @@ function D2x(u, Nx, Ny, h) # Original implementation
 	return y
 end
 
+
+function D2x_alpha(u, Nx, Ny, h) # Original implementation
+	N = Nx*Ny
+	y = zeros(N)
+	idx = 1:Ny
+	y[idx] .= (u[idx] - 2 .* u[Ny .+ idx] + u[2*Ny .+ idx]) ./ h^2
+
+	idx1 = Ny+1:N-Ny
+	y[idx1] .= (u[idx1 .- Ny] - 2 .* u[idx1] + u[idx1 .+ Ny]) ./ h^2
+
+	idx2 = N-Ny+1:N
+	y[idx2] .= (u[idx2 .- 2*Ny] -2 .* u[idx2 .- Ny] + u[idx2]) ./ h^2
+
+	return y
+end
+
+
 # function D2x_new(u, Nx, Ny, h)
 # 	N = Nx*Ny;
 # 	y = zeros(N)
@@ -75,23 +92,84 @@ end
 # 	return y
 # end
 
-# function D2x_test(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
+function D2x_test(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
+	N = Nx*Ny
+	#y = similar(u)
+	y = similar(u)
+	for idx = 1:Ny
+		y[idx] = (u[idx] - 2*u[Ny + idx] + u[2*Ny + idx]) / h^2
+	end
+
+	for idx1 = Ny+1:N-Ny
+		y[idx1] = (u[idx1 - Ny] - 2 * u[idx1] + u[idx1 + Ny]) / h^2
+	end
+
+	for idx2 = N-Ny+1:N
+		y[idx2] = (u[idx2 - 2*Ny] -2 * u[idx2 - Ny] + u[idx2]) / h^2
+	end
+	return y
+end
+
+# function D2x_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64)
 # 	N = Nx*Ny
+# 	hx = Float64(1/(Nx-1))
+# 	hy = Float64(1/(Ny-1))
 # 	#y = similar(u)
-# 	y = similar(u)
+# 	y = Array{Float64,1}(undef,N)
 # 	for idx = 1:Ny
-# 		y[idx] = (u[idx] - 2*u[Ny + idx] + u[2*Ny + idx]) / h^2
+# 		y[idx] = (u[idx] - 2*u[Ny + idx] + u[2*Ny + idx]) / hx^2
 # 	end
 #
 # 	for idx1 = Ny+1:N-Ny
-# 		y[idx1] = (u[idx1 - Ny] - 2 * u[idx1] + u[idx1 + Ny]) / h^2
+# 		y[idx1] = (u[idx1 - Ny] - 2 * u[idx1] + u[idx1 + Ny]) / hx^2
 # 	end
 #
 # 	for idx2 = N-Ny+1:N
-# 		y[idx2] = (u[idx2 - 2*Ny] -2 * u[idx2 - Ny] + u[idx2]) / h^2
+# 		y[idx2] = (u[idx2 - 2*Ny] -2 * u[idx2 - Ny] + u[idx2]) / hx^2
 # 	end
 # 	return y
 # end
+
+function D2x_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64,y1::Array{Float64,1})
+	N = Nx*Ny
+	hx = Float64(1/(Nx-1))
+	hy = Float64(1/(Ny-1))
+	#y = similar(u)
+	#y = similar(u)
+	@inbounds @simd for idx = 1:Ny
+		y1[idx] = (u[idx] - 2*u[Ny + idx] + u[2*Ny + idx]) / hx^2
+	end
+
+	@inbounds @simd for idx1 = Ny+1:N-Ny
+		y1[idx1] = (u[idx1 - Ny] - 2 * u[idx1] + u[idx1 + Ny]) / hx^2
+	end
+
+	@inbounds @simd for idx2 = N-Ny+1:N
+		y1[idx2] = (u[idx2 - 2*Ny] -2 * u[idx2 - Ny] + u[idx2]) / hx^2
+	end
+	return y1
+end
+
+function D2x_beta_3(u::Array{Float64,1}, Nx::Int64, Ny::Int64,y::Array{Float64,1})
+	N = Nx*Ny
+	hx = Float64(1/(Nx-1))
+	hy = Float64(1/(Ny-1))
+	#y = similar(u)
+	#y = similar(u)
+	@inbounds @simd for idx = 1:Ny
+		y[idx] = (u[idx] - 2*u[Ny + idx] + u[2*Ny + idx]) / hx^2
+	end
+
+	@inbounds @simd for idx1 = Ny+1:N-Ny
+		y[idx1] = (u[idx1 - Ny] - 2 * u[idx1] + u[idx1 + Ny]) / hx^2
+	end
+
+	@inbounds @simd for idx2 = N-Ny+1:N
+		y[idx2] = (u[idx2 - 2*Ny] -2 * u[idx2 - Ny] + u[idx2]) / hx^2
+	end
+	return y
+end
+
 
 
 function D2y(u, Nx, Ny, h)
@@ -133,27 +211,96 @@ end
 #
 # end
 
-# function D2y_test(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
-# 	N = Nx*Ny
-# 	y = similar(u)
-# 	for idx = 1:Ny:N-Ny+1
-# 		y[idx] = (u[idx] - 2 * u[idx + 1] + u[idx + 2]) / h^2
-# 	end
-#
-# 	for idx1 = Ny:Ny:N
-# 		y[idx1] = (u[idx1 - 2] - 2 * u[idx1 .- 1] + u[idx1]) / h^2
-# 	end
-#
-# 	for j = 1:Nx
-# 		for idx = 2+(j-1)*Ny:j*Ny-1
-# 			y[idx] = (u[idx - 1] - 2 * u[idx] + u[idx + 1]) / h^2
-# 		end
-# 	end
-#
-# 	return y
-#
-# end
+function D2y_test(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
+	N = Nx*Ny
+	y = similar(u)
 
+	for idx = 1:Ny:N-Ny+1
+		y[idx] = (u[idx] - 2 * u[idx + 1] + u[idx + 2]) / h^2
+	end
+
+	for idx1 = Ny:Ny:N
+		y[idx1] = (u[idx1 - 2] - 2 * u[idx1 .- 1] + u[idx1]) / h^2
+	end
+
+	for j = 1:Nx
+		for idx = 2+(j-1)*Ny:j*Ny-1
+			y[idx] = (u[idx - 1] - 2 * u[idx] + u[idx + 1]) / h^2
+		end
+	end
+
+	return y
+
+end
+
+function D2y_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, y2::Array{Float64,1})
+	N = Nx*Ny
+	hx = Float64(1/(Nx-1))
+	hy = Float64(1/(Ny-1))
+	@inbounds for idx = 1:Ny:N-Ny+1
+		y2[idx] = (u[idx] - 2 * u[idx + 1] + u[idx + 2]) / hy^2
+	end
+
+	@inbounds for idx1 = Ny:Ny:N
+		y2[idx1] = (u[idx1 - 2] - 2 * u[idx1 .- 1] + u[idx1]) / hy^2
+	end
+
+	@inbounds for j = 1:Nx
+		for idx = 2+(j-1)*Ny:j*Ny-1
+			y2[idx] = (u[idx - 1] - 2 * u[idx] + u[idx + 1]) / hy^2
+		end
+	end
+
+	return y2
+
+end
+
+
+function D2_test(u::Array{Float64,1},Nx::Int64,Ny::Int64,h::Float64)
+	N = Nx*Ny
+	y = similar(u)
+	z = similar(u)
+	for idx = 1:Ny
+		y[idx] = (u[idx] - 2*u[Ny + idx] + u[2*Ny + idx]) / h^2
+	end
+
+	for idx1 = Ny+1:N-Ny
+		y[idx1] = (u[idx1 - Ny] - 2 * u[idx1] + u[idx1 + Ny]) / h^2
+	end
+
+	for idx2 = N-Ny+1:N
+		y[idx2] = (u[idx2 - 2*Ny] -2 * u[idx2 - Ny] + u[idx2]) / h^2
+	end
+
+	for idx = 1:Ny:N-Ny+1
+		z[idx] = (u[idx] - 2 * u[idx + 1] + u[idx + 2]) / h^2
+	end
+
+	for idx1 = Ny:Ny:N
+		z[idx1] = (u[idx1 - 2] - 2 * u[idx1 .- 1] + u[idx1]) / h^2
+	end
+
+	for j = 1:Nx
+		for idx = 2+(j-1)*Ny:j*Ny-1
+			z[idx] = (u[idx - 1] - 2 * u[idx] + u[idx + 1]) / h^2
+		end
+	end
+	return y+z
+end
+
+
+function D2_beta(u::Array{Float64,1},Nx::Int64,Ny::Int64,y::Array{Float64,1})
+	#y1 = Array{Float64,1}(undef,Nx*Ny)
+	y1 = copy(D2y_beta_2(u::Array{Float64,1}, Nx::Int64, Ny::Int64, y::Array{Float64,1}))
+	y2 = D2x_beta_2(u::Array{Float64,1}, Nx::Int64, Ny::Int64, y::Array{Float64,1})
+	return y1+y2
+end
+
+function D2_beta_2(u::Array{Float64,1},Nx::Int64,Ny::Int64,y1::Array{Float64,1},y2::Array{Float64,1})
+	#y1 = Array{Float64,1}(undef,Nx*Ny)
+
+	return D2x_beta(u,Nx,Ny,y1) + D2x_beta(u,Nx,Ny,y2)
+end
 
 function Dx(u, Nx, Ny, h)
 	N = Nx*Ny
@@ -169,7 +316,7 @@ function Dx(u, Nx, Ny, h)
 	y[idx2] = (u[idx2]-u[idx2 .- Ny]) ./ h
 
 	return y
-end
+en
 
 
 function Dx_test(u::Array{Float64,1}, Nx::Int64, Ny::Int64, h::Float64)
@@ -546,6 +693,18 @@ function BxSx(u, Nx, Ny, h)
 
 end
 
+function BxSx_test(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = zeros(N)
+
+	for idx = 1:Ny
+		y[idx] = (1/h) * (1.5 * u[idx] - 2 * u[idx + Ny] + 0.5 * u[idx + 2*Ny])
+		y[N-Ny + idx] = (1/h) * (0.5 * u[N-3*Ny + idx] - 2 * u[N-2*Ny + idx] + 1.5 * u[N-Ny + idx])
+	end
+	return y
+
+end
+
 function BySy(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
@@ -558,6 +717,22 @@ function BySy(u, Nx, Ny, h)
 
 	return y
 end
+
+function BySy_test(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = zeros(N)
+
+	for idx = 1:Ny:N-Ny+1
+		y[idx] = (1/h) * (1.5 * u[idx] - 2 * u[idx .+ 1] + 0.5 * u[idx .+ 2])
+	end
+
+	for idx = Ny:Ny:N
+		y[idx] = (1/h) * (0.5 * u[idx - 2] - 2 * u[idx - 1] + 1.5 * u[idx])
+	end
+
+	return y
+end
+
 
 function BxSx_tran(u, Nx, Ny, h)
 	N = Nx*Ny
@@ -580,6 +755,39 @@ function BxSx_tran(u, Nx, Ny, h)
 	return y
 end
 
+function BxSx_tran_test(u, Nx, Ny, h) # Be Careful about double foor loops
+	N = Nx*Ny
+	y = zeros(N)
+
+	for idx1 = 1:Ny
+		y[idx1] += (1.5 * u[idx1]) * (1/h)
+
+		# for idx = Ny+1:2*Ny
+		y[idx1+Ny] += (-2 * u[idx1]) * (1/h)
+		# end
+
+
+		# for idx  = 2*Ny+1:3*Ny
+		y[idx1+2Ny] += (0.5 * u[idx1]) * (1/h)
+		# end
+	end
+
+	for idxN = N-Ny+1:N
+		y[idxN] += (1.5 * u[idxN]) * (1/h)
+
+		# for idx = N-2*Ny+1:N-Ny
+		y[idxN-Ny] += (-2 * u[idxN]) * (1/h)
+		# end
+
+		# for idx = N-3*Ny+1:N-2*Ny
+		y[idxN-2Ny] += (0.5 * u[idxN]) * (1/h)
+		# end
+	end
+
+	return y
+end
+
+
 
 function BySy_tran(u, Nx, Ny, h)
 	N = Nx*Ny
@@ -598,6 +806,39 @@ function BySy_tran(u, Nx, Ny, h)
 	y[idx] += (-2 .* u[idxN]) .* (1/h)
 	idx = Ny-2:Ny:N-2
 	y[idx] += (0.5 .* u[idxN]) .* (1/h)
+
+	return y
+end
+
+
+function BySy_tran_test(u, Nx, Ny, h) # Be Careful about double foor loops
+	N = Nx*Ny
+	y = zeros(N)
+
+	for idx1 = 1:Ny:N-Ny+1
+		y[idx1] += (1.5 * u[idx1]) * (1/h)
+
+		# for idx = Ny+1:2*Ny
+		y[idx1+1] += (-2 * u[idx1]) * (1/h)
+		# end
+
+
+		# for idx  = 2*Ny+1:3*Ny
+		y[idx1+2] += (0.5 * u[idx1]) * (1/h)
+		# end
+	end
+
+	for idxN = Ny:Ny:N
+		y[idxN] += (1.5 * u[idxN]) * (1/h)
+
+		# for idx = N-2*Ny+1:N-Ny
+		y[idxN-1] += (-2 * u[idxN]) * (1/h)
+		# end
+
+		# for idx = N-3*Ny+1:N-2*Ny
+		y[idxN-2] += (0.5 * u[idxN]) * (1/h)
+		# end
+	end
 
 	return y
 end
