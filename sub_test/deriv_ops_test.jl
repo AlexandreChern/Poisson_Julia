@@ -617,6 +617,40 @@ function Hx_test(u,Nx,Ny,h)
 	return y
 end
 
+y_Hx = zeros(N)
+
+# function Hx_beta_test(u,Nx,Ny,N,hx,hy,y_Hx)
+# 	for idx = 1:Ny
+# 		y_Hx[idx] = hx*u[idx]/2
+# 	end
+#
+# 	for idx1 = Ny+1:N-Ny
+# 		y_Hx[idx1] = hx*u[idx1]
+# 	end
+#
+# 	for idx2 = N-Ny+1:N
+# 		y_Hx[idx2] = hx*u[idx2]/2
+# 	end
+# 	return y_Hx
+# end
+
+function Hx_beta(u,Nx,Ny,N,hx,hy,y_Hx)
+	@inbounds for idx = 1:Ny
+		y_Hx[idx] = hx*u[idx]/2
+	end
+
+	@inbounds for idx1 = Ny+1:N-Ny
+		y_Hx[idx1] = hx*u[idx1]
+	end
+
+	@inbounds for idx2 = N-Ny+1:N
+		y_Hx[idx2] = hx*u[idx2]/2
+	end
+	return y_Hx
+end
+
+
+
 function Hy(u, Nx, Ny, h)
 	N = Nx*Ny
         y = zeros(N)
@@ -654,6 +688,28 @@ function Hy_test(u,Nx,Ny,h)
 		end
 	end
 	return y
+end
+
+y_Hy = zeros(Nx*Nx)
+
+function Hy_beta(u,Nx,Ny,N,hx,hy,y_Hy)
+	#N = Nx*Ny
+	#y = similar(u)
+
+	@inbounds for idx = 1:Ny:N-Ny+1
+		y_Hy[idx] = hy*u[idx]/2
+	end
+
+	@inbounds for idx1 = Ny:Ny:N
+		y_Hy[idx1] = hy*u[idx1]/2
+	end
+
+	@inbounds for i = 1:Nx
+		@inbounds for idx2 = 2 + (i-1)*Ny:i*Ny-1
+			y_Hy[idx2] = hy*u[idx2]
+		end
+	end
+	return y_Hy
 end
 
 function FACEtoVOL(u_face, face, Nx, Ny)

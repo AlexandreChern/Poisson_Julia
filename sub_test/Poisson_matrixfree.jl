@@ -51,6 +51,8 @@ yv2f2 = zeros(Nx*Ny)
 yv2f3 = zeros(Nx*Ny)
 yv2f4 = zeros(Nx*Ny)
 
+yv2fs=[yv2f1,yv2f2,yv2f3,yv2f4]
+
 y_BxSx_tran = zeros(Nx*Ny)
 y_Hxinv = zeros(Nx*Ny)
 
@@ -58,6 +60,8 @@ y_Hxinv = zeros(Nx*Ny)
 y_Bx = zeros(N)
 y_By = zeros(N)
 
+y_Hy = zeros(Nx*Nx)
+y_Hx = zeros(N)
 
 
 ### Passing variables
@@ -159,11 +163,12 @@ function myMAT!(du::AbstractVector, u::AbstractVector)
 
         #compute action of -Hx kron Hy:
 
-    du17 = Hy_test(du0, Nx, Ny, dy)
+    du17 = Hy_test(du0, Nx, Ny,h)
 	du[:] = -Hx_test(du17,Nx,Ny,dx)
 end
 
 
+du = similar(u)
 function myMAT_new!(du::AbstractVector, u::AbstractVector)
 # 	h = 0.05
 # 	dx = h
@@ -182,49 +187,50 @@ function myMAT_new!(du::AbstractVector, u::AbstractVector)
     # y1 = Array{Float64,1}(undef,Nx*Ny)
     # y2 = Array{Float64,1}(undef,Nx*Ny)
 
-        #du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
-        du_ops = D2x_beta(u,Nx,Ny,y1) + D2y_beta(u,Nx,Ny,y2)
-        #du_ops = D2_beta_2(u,Nx,Ny,y1,y2)
-        #du1 = BySy_test(u,Nx,Ny,dy)
-        du1 = BySy_beta(u,Nx,Ny,y_BySy)
-        du2 = VOLtoFACE(du1,1,Nx,Ny)
-        #du2 = VOLtoFACE_beta(du1,1,N,Ny,yv2f1)
-        #du3 = alpha1*Hyinv_test(du2,Nx,Ny,dy)  #compute action of P1
-        du3 = alpha1*Hyinv_beta(du2,Nx,Ny,N,y_Hyinv,hx,hy)
+    #du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
+    du_ops = D2x_beta(u,Nx,Ny,y1) + D2y_beta(u,Nx,Ny,y2)
+    #du_ops = D2_beta_2(u,Nx,Ny,y1,y2)
+    #du1 = BySy_test(u,Nx,Ny,dy)
+    du1 = BySy_beta(u,Nx,Ny,y_BySy)
+    #du2 = VOLtoFACE(du1,1,Nx,Ny)
+    du2 = VOLtoFACE_beta(du1,1,Nx,Ny,N,yv2fs)
+    #du3 = alpha1*Hyinv_test(du2,Nx,Ny,dy)  #compute action of P1
+    du3 = alpha1*Hyinv_beta(du2,Nx,Ny,N,y_Hyinv,hx,hy)
 
-        #du4 = BySy_test(u,Nx,Ny,dy)
-        #du4 = du1
-        du5 = VOLtoFACE(du1,2,Nx,Ny)
-        #du5 = VOLtoFACE_beta(du1,2,N,Ny,yv2f2)
-        #du6 = alpha2*Hyinv_test(du5,Nx,Ny,dy) #compute action of P2
-        du6 = alpha2*Hyinv_beta(du5,Nx,Ny,N,y_Hyinv,hx,hy)
+    #du4 = BySy_test(u,Nx,Ny,dy)
+    #du4 = du1
+    #du5 = VOLtoFACE(du1,2,Nx,Ny)
+    du5 = VOLtoFACE_beta(du1,2,Nx,Ny,N,yv2fs)
+    #du6 = alpha2*Hyinv_test(du5,Nx,Ny,dy) #compute action of P2
+    du6 = alpha2*Hyinv_beta(du5,Nx,Ny,N,y_Hyinv,hx,hy)
 
-        du7 = VOLtoFACE(u,3,Nx,Ny)
-        #du7 = VOLtoFACE_beta(u,3,N,Ny,yv2f3)
-        #du8 = BxSx_tran_test(du7,Nx,Ny,dx)
-        du8 = BxSx_tran_beta(du7,Nx,Ny,N,y_BxSx_tran,hx,hy)
-        #du9 = beta*Hxinv_test(du8,Nx,Ny,dx)
-        du9 = beta*Hxinv_beta(du8,Nx,Ny,N,y_Hxinv,hx,hy)
-        #du10 = VOLtoFACE(u,3,Nx,Ny)
-        #du10 = du7
-        du11 = alpha3*Hxinv_beta(du7,Nx,Ny,N,y_Hxinv,hx,hy) #compute action of P3
+    #du7 = VOLtoFACE(u,3,Nx,Ny)
+    du7 = VOLtoFACE_beta(u,3,Nx,Ny,N,yv2fs)
+    #du8 = BxSx_tran_test(du7,Nx,Ny,dx)
+    du8 = BxSx_tran_beta(du7,Nx,Ny,N,y_BxSx_tran,hx,hy)
+    #du9 = beta*Hxinv_test(du8,Nx,Ny,dx)
+    du9 = beta*Hxinv_beta(du8,Nx,Ny,N,y_Hxinv,hx,hy)
+    #du10 = VOLtoFACE(u,3,Nx,Ny)
+    #du10 = du7
+    du11 = alpha3*Hxinv_beta(du7,Nx,Ny,N,y_Hxinv,hx,hy) #compute action of P3
 
-        du12 = VOLtoFACE(u,4,Nx,Ny)
-        #du12 = VOLtoFACE_beta(u,4,Nx,Ny,yv2f4)
-        du13 = BxSx_tran_beta(du12,Nx,Ny,N,y_Hxinv,hx,hy)
-        #du14 = beta*Hxinv_test(du13,Nx,Ny,dx)
-        du14 = beta*Hxinv_beta(du13,Nx,Ny,N,y_Hxinv,hx,hy)
-        #du15 = VOLtoFACE(u,4,Nx,Ny)
-        #du16 = alpha4*Hxinv_test(du15,Nx,Ny,dx) #compute action of P4
-        du16 = alpha4*Hxinv_beta(du12,Nx,Ny,N,y_Hxinv,hx,hy)
+    #du12 = VOLtoFACE(u,4,Nx,Ny)
+    du12 = VOLtoFACE_beta(u,4,Nx,Ny,N,yv2fs)
+    du13 = BxSx_tran_beta(du12,Nx,Ny,N,y_Hxinv,hx,hy)
+    #du14 = beta*Hxinv_test(du13,Nx,Ny,dx)
+    du14 = beta*Hxinv_beta(du13,Nx,Ny,N,y_Hxinv,hx,hy)
+    #du15 = VOLtoFACE(u,4,Nx,Ny)
+    #du16 = alpha4*Hxinv_test(du15,Nx,Ny,dx) #compute action of P4
+    du16 = alpha4*Hxinv_beta(du12,Nx,Ny,N,y_Hxinv,hx,hy)
 
 
-        du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
+    du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
 
         #compute action of -Hx kron Hy:
 
-        du17 = Hy_test(du0, Nx, Ny, dy)
-	du[:] = -Hx_test(du17,Nx,Ny,dx)
+    #du17 = Hy_test(du0, Nx, Ny, dy)
+    du17 = Hy_beta(du0,Nx,Ny,N,hx,hy,y_Hy)
+	du[:] = - Hx_beta(du17,Nx,Ny,N,hx,hy,y_Hx)
 end
 
 
