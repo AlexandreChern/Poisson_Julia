@@ -38,11 +38,25 @@ using Parameters
     beta = 1
 end
 
+h = 0.0625
+dx = h
+dy = h
+x = 0:dx:1
+y = 0:dy:1
+Nx = length(x)
+Ny = length(y)
+alpha1 = -1
+alpha2 = -1
+alpha3 = -13/dy
+alpha4 = -13/dy
+beta = 1
+hx = Float64(1/(Nx-1))
+hy = Float64(1/(Ny-1))
+
 var_test = variables()
 
 function test(var_test)
     @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
-    return r
 end
 
 test(var_test)
@@ -198,7 +212,7 @@ function myMAT_new!(du::AbstractVector, u::AbstractVector)
     # y2 = Array{Float64,1}(undef,Nx*Ny)
 
     #du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
-    du_ops = D2x_beta(u,Nx,Ny,y1) + D2y_beta(u,Nx,Ny,y2)
+    du_ops = D2x_beta(u,Nx,Ny,N,hx,hy,y1) + D2y_beta(u,Nx,Ny,y2)
     #du_ops = D2_beta_2(u,Nx,Ny,y1,y2)
     #du1 = BySy_test(u,Nx,Ny,dy)
     du1 = BySy_beta(u,Nx,Ny,y_BySy)
