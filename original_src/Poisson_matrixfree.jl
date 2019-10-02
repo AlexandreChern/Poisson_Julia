@@ -24,9 +24,9 @@ using Parameters
 
 
 @with_kw struct variables
-    h = 0.05
+    h = 0.025
     dx = h
-    dy = h
+    dy = .0125
     x = 0:dx:1
     y = 0:dy:1
     Nx = length(x)
@@ -91,21 +91,21 @@ end
 
 
 
-# @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 
 N = Nx*Ny
-g1 = -pi .* cos.(pi .* x)
-g2 = pi .* cos.(pi .* x .+ pi)
-g3 = sin.(pi .* y)
-g4 = sin.(pi .+ pi .* y)
+g1 = -2 .* pi .* cos.(pi .* x)
+g2 = 2 .* pi .* cos.(pi .* x .+ 2 .* pi)
+g3 = sin.(2 .* pi .* y)
+g4 = sin.(pi .+ 2 .* pi .* y)
 
-f = spzeros(Nx,Ny)
-exactU = spzeros(Nx,Ny)
+f = spzeros(Ny,Nx)
+exactU = spzeros(Ny,Nx)
 
 for i = 1:Nx
 	for j = 1:Ny
-		f[j,i] = -pi^2 .* sin.(pi .* x[i] + pi .* y[j]) - pi^2 .* sin.(pi .* x[i] + pi .* y[j])
-		exactU[j,i] = sin.(pi .* x[i] + pi .* y[j])
+		f[j,i] = -pi^2 .* sin.(pi .* x[i] + 2 .* pi .* y[j]) - 4 .* pi^2 .* sin.(pi .* x[i] + 2 .* pi .* y[j])
+		exactU[j,i] = sin.(pi .* x[i] + 2 .* pi .* y[j])
 	end
 end
 
