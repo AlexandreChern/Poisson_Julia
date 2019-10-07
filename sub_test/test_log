@@ -1,0 +1,1163 @@
+Last login: Sun Oct  6 16:32:08 on ttys000
+(base) ychern (master *+) ~ $ ls
+Applications			OneDrive
+Applications (Parallels)	OneDrive - University Of Oregon
+CMakeCache.txt			Parallels
+CMakeFiles			Pictures
+Calibre Library			Public
+Desktop				PycharmProjects
+Documents			anaconda3
+Downloads			git-completion.bash
+Dropbox				git-prompt.sh
+GitHub				iCloud Drive (Archive)
+Google Drive			iCloud Drive (Archive) - 1
+Jupyter				meminfo.py
+Library				tensorflow-mnist-tutorial
+Movies				version-control
+Music
+(base) ychern (master *+) ~ $ cd version-control/
+(base) ychern (master *) version-control $ ls
+CIS561				Remote_UDacity
+Chern-s-Homepage		SCycle
+Docker				UO_classes
+FD_CG_example			cpp
+Intro_to_Compilers		diagonal_sbp.jl
+Julia				petsc
+PETSc2.jl			pytorch_udacity
+Poisson_Julia			reflex-transform-example
+RE-flex				sbp-sat-julia
+RandWireNN			vim
+(base) ychern (master *) version-control $ git clone https://github.com/jkozdon/FD_CG_example.git
+fatal: destination path 'FD_CG_example' already exists and is not an empty directory.
+(base) ychern (master *) version-control $ ls
+CIS561				Remote_UDacity
+Chern-s-Homepage		SCycle
+Docker				UO_classes
+FD_CG_example			cpp
+Intro_to_Compilers		diagonal_sbp.jl
+Julia				petsc
+PETSc2.jl			pytorch_udacity
+Poisson_Julia			reflex-transform-example
+RE-flex				sbp-sat-julia
+RandWireNN			vim
+(base) ychern (master *) version-control $ cd FD_CG_example/
+(base) ychern (master) FD_CG_example $ ls
+FD_example.jl	Manifest.toml	README.md
+LICENSE.md	Project.toml	env
+(base) ychern (master) FD_CG_example $ julia FD_example.jl 
+┌ Info: mesh size (2, 4, 6)
+│   error              = 1.435616e-03
+│   elapsed time       = 1.728535e-04 s
+└   time per iteration = 1.080334e-05 s
+┌ Info: mesh size (4, 8, 12)
+│   error              = 4.419732e-04
+│   rate               = 1.699639e+00
+│   elapsed time       = 8.518696e-04 s
+└   time per iteration = 1.893044e-05 s
+┌ Info: mesh size (8, 16, 24)
+│   error              = 1.156024e-04
+│   rate               = 1.934787e+00
+│   elapsed time       = 4.051924e-03 s
+└   time per iteration = 4.265183e-05 s
+┌ Info: mesh size (16, 32, 48)
+│   error              = 2.920482e-05
+│   rate               = 1.984893e+00
+│   elapsed time       = 4.223490e-02 s
+└   time per iteration = 2.165892e-04 s
+┌ Info: mesh size (32, 64, 96)
+│   error              = 7.319815e-06
+│   rate               = 1.996328e+00
+│   elapsed time       = 8.070760e-01 s
+└   time per iteration = 2.058867e-03 s
+┌ Info: mesh size (64, 128, 192)
+│   error              = 1.831109e-06
+│   rate               = 1.999089e+00
+│   elapsed time       = 1.254790e+01 s
+└   time per iteration = 1.568488e-02 s
+┌ Info: mesh size (128, 256, 384)
+│   error              = 4.578494e-07
+│   rate               = 1.999773e+00
+│   elapsed time       = 2.318284e+02 s
+└   time per iteration = 1.418778e-01 s
+
+^C
+signal (2): Interrupt: 2
+in expression starting at /Users/ychern/version-control/FD_CG_example/FD_example.jl:164
+_broadcast_getindex at ./float.jl:395 [inlined]
+getindex at ./broadcast.jl:558 [inlined]
+macro expansion at ./broadcast.jl:888 [inlined]
+macro expansion at ./simdloop.jl:77 [inlined]
+copyto! at ./broadcast.jl:887 [inlined]
+copyto! at ./broadcast.jl:842 [inlined]
+materialize! at ./broadcast.jl:801 [inlined]
+cg_iteration! at /Users/ychern/version-control/FD_CG_example/FD_example.jl:30
+cg! at /Users/ychern/version-control/FD_CG_example/FD_example.jl:62
+unknown function (ip: 0x1184514d1)
+cg! at /Users/ychern/version-control/FD_CG_example/FD_example.jl:40
+unknown function (ip: 0x11845052b)
+do_call at /Users/sabae/buildbot/worker/package_macos64/build/src/interpreter.c:323
+eval_stmt_value at /Users/sabae/buildbot/worker/package_macos64/build/src/interpreter.c:362 [inlined]
+eval_body at /Users/sabae/buildbot/worker/package_macos64/build/src/interpreter.c:758
+jl_interpret_toplevel_thunk_callback at /Users/sabae/buildbot/worker/package_macos64/build/src/interpreter.c:884
+unknown function (ip: 0xfffffffffffffffe)
+unknown function (ip: 0x113916f0f)
+unknown function (ip: 0x91)
+jl_interpret_toplevel_thunk at /Users/sabae/buildbot/worker/package_macos64/build/src/interpreter.c:893
+jl_toplevel_eval_flex at /Users/sabae/buildbot/worker/package_macos64/build/src/toplevel.c:815
+jl_parse_eval_all at /Users/sabae/buildbot/worker/package_macos64/build/src/ast.c:873
+jl_load at /Users/sabae/buildbot/worker/package_macos64/build/src/toplevel.c:879 [inlined]
+jl_load_ at /Users/sabae/buildbot/worker/package_macos64/build/src/toplevel.c:886
+include at ./boot.jl:328 [inlined]
+include_relative at ./loading.jl:1094
+include at ./Base.jl:31
+exec_options at ./client.jl:295
+_start at ./client.jl:464
+true_main at /Applications/Julia-1.2.app/Contents/Resources/julia/bin/julia (unknown line)
+main at /Applications/Julia-1.2.app/Contents/Resources/julia/bin/julia (unknown line)
+unknown function (ip: 0xffffffffffffffff)
+Allocations: 17371698 (Pool: 17367509; Big: 4189); GC: 55
+(base) ychern (master) FD_CG_example $ ls
+FD_example.jl	Manifest.toml	README.md
+LICENSE.md	Project.toml	env
+(base) ychern (master) FD_CG_example $ julia
+               _
+   _       _ _(_)_     |  Documentation: https://docs.julialang.org
+  (_)     | (_) (_)    |
+   _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Version 1.2.0 (2019-08-20)
+ _/ |\__'_|_|_|\__'_|  |  Official https://julialang.org/ release
+|__/                   |
+
+julia> using Parameters
+ERROR: ArgumentError: Package Parameters not found in current path:
+- Run `import Pkg; Pkg.add("Parameters")` to install the Parameters package.
+
+Stacktrace:
+ [1] require(::Module, ::Symbol) at ./loading.jl:876
+
+(v1.2) pkg> add Parameters
+  Updating registry at `~/.julia/registries/General`
+  Updating git-repo `https://github.com/JuliaRegistries/General.git`
+┌ Warning: Some registries failed to update:
+│     — /Users/ychern/.julia/registries/General — failed to fetch from repo
+└ @ Pkg.Types /Users/sabae/buildbot/worker/package_macos64/build/usr/share/julia/stdlib/v1.2/Pkg/src/Types.jl:1171
+ Resolving package versions...
+  Updating `~/.julia/environments/v1.2/Project.toml`
+  [d96e819e] + Parameters v0.12.0
+  Updating `~/.julia/environments/v1.2/Manifest.toml`
+  [d96e819e] + Parameters v0.12.0
+
+julia> using Parameters
+[ Info: Precompiling Parameters [d96e819e-fc66-5662-9728-84c9c7592b0a]
+
+julia> @with_kw struct containers
+           Nx = 21
+           Ny = 21
+           N = Nx*Ny
+           y1 = Array{Float64,1}(undef,N)
+           y2 = Array{Float64,1}(undef,N)
+           y_BySy = zeros(N);
+           y_BxSx = zeros(N);
+           end
+containers
+
+julia> container = containers()
+containers
+  Nx: Int64 21
+  Ny: Int64 21
+  N: Int64 441
+  y1: Array{Float64}((441,)) [0.0, 6.92661866734466e-310, 6.92671860977944e-310, 2.121995791e-314, 0.0, 6.9266186608697e-310, 6.92672116752013e-310, 6.9267211675217e-310, 9.5489810594e-313, 0.0  …  6.9267190156777e-310, 6.9267211676636e-310, 6.9267211676897e-310, 6.92671940428877e-310, 0.0, 6.9267190156777e-310, 6.92672116762804e-310, 6.92672113934614e-310, 6.9267186142944e-310, 6.92661866086884e-310]
+  y2: Array{Float64}((441,)) [1.05e-321, 0.0, 6.365987373e-314, 0.0, 1.0e-323, 8.55e-322, 0.0, 7.26e-322, 0.0, 6.365987373e-314  …  2.838758965385629e277, 0.0, 0.0, 6.9266186608695e-310, 6.92672105332654e-310, 0.0, NaN, 6.9267210533313e-310, 6.9267210533313e-310, 6.92672105333326e-310]
+  y_BySy: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  y_BxSx: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+julia> @pack! containers
+ERROR: LoadError: type Symbol has no field head
+Stacktrace:
+ [1] getproperty(::Any, ::Symbol) at ./Base.jl:20
+ [2] _pack_bang(::Symbol) at /Users/ychern/.julia/packages/Parameters/l76EM/src/Parameters.jl:792
+ [3] @pack!(::LineNumberNode, ::Module, ::Any) at /Users/ychern/.julia/packages/Parameters/l76EM/src/Parameters.jl:788
+in expression starting at REPL[6]:1
+
+julia> @pack! container
+ERROR: LoadError: type Symbol has no field head
+Stacktrace:
+ [1] getproperty(::Any, ::Symbol) at ./Base.jl:20
+ [2] _pack_bang(::Symbol) at /Users/ychern/.julia/packages/Parameters/l76EM/src/Parameters.jl:792
+ [3] @pack!(::LineNumberNode, ::Module, ::Any) at /Users/ychern/.julia/packages/Parameters/l76EM/src/Parameters.jl:788
+in expression starting at REPL[7]:1
+
+julia> @unpack container
+ERROR: LoadError: type Symbol has no field head
+Stacktrace:
+ [1] getproperty(::Any, ::Symbol) at ./Base.jl:20
+ [2] @unpack(::LineNumberNode, ::Module, ::Any) at /Users/ychern/.julia/packages/Parameters/l76EM/src/Parameters.jl:743
+in expression starting at REPL[8]:1
+
+julia> @unpack
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+21
+BenchmarkTools.Trial: 
+  memory estimate:  416 bytes
+  allocs estimate:  16
+  --------------
+  minimum time:     15.282 μs (0.00% GC)
+  median time:      17.487 μs (0.00% GC)
+  mean time:        23.150 μs (0.00% GC)
+  maximum time:     578.713 μs (0.00% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+
+julia> function f(container)
+           @unpack Nx,Ny = container
+           #println(Nx)
+           #println(Ny)
+           end
+f (generic function with 1 method)
+
+julia> container
+containers
+  Nx: Int64 21
+  Ny: Int64 21
+  N: Int64 441
+  y1: Array{Float64}((441,)) [0.0, 6.92661866734466e-310, 6.92671860977944e-310, 2.121995791e-314, 0.0, 6.9266186608697e-310, 6.92672116752013e-310, 6.9267211675217e-310, 9.5489810594e-313, 0.0  …  6.9267190156777e-310, 6.9267211676636e-310, 6.9267211676897e-310, 6.92671940428877e-310, 0.0, 6.9267190156777e-310, 6.92672116762804e-310, 6.92672113934614e-310, 6.9267186142944e-310, 6.92661866086884e-310]
+  y2: Array{Float64}((441,)) [1.05e-321, 0.0, 6.365987373e-314, 0.0, 1.0e-323, 8.55e-322, 0.0, 7.26e-322, 0.0, 6.365987373e-314  …  2.838758965385629e277, 0.0, 0.0, 6.9266186608695e-310, 6.92672105332654e-310, 0.0, NaN, 6.9267210533313e-310, 6.9267210533313e-310, 6.92672105333326e-310]
+  y_BySy: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  y_BxSx: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+julia> function f(container)
+           @unpack y1,y2 = container
+           y3 .= y1 + y2
+           end
+f (generic function with 1 method)
+
+julia> function f(container)
+           @unpack y1,y2 = container
+           y3 .= y1 + y2
+           return
+           end
+f (generic function with 1 method)
+
+julia> function f(container)
+           @unpack y1,y2 = container
+           y3 .= y1 + y2
+           return y3
+           end
+f (generic function with 1 method)
+
+julia> f(container)
+ERROR: UndefVarError: y3 not defined
+Stacktrace:
+ [1] f(::containers) at ./REPL[27]:3
+ [2] top-level scope at REPL[28]:1
+
+julia> f(container,y3)
+ERROR: UndefVarError: y3 not defined
+Stacktrace:
+ [1] top-level scope at REPL[29]:1
+
+julia> function f(container)
+           @unpack y1,y2 = container
+           y3 .= y1 + y2
+           return
+           end
+f (generic function with 1 method)
+
+julia> function f(container)
+           @unpack y1,y2 = container
+           y3 = similar(y1)
+           y3 .= y1 + y2
+           return y3
+           end
+           
+f (generic function with 1 method)
+
+julia> f(container)
+441-element Array{Float64,1}:
+   1.05e-321             
+   6.92661866734466e-310 
+   6.92735520851673e-310 
+   2.121995791e-314      
+   1.0e-323              
+   6.92661866087823e-310 
+   6.92672116752013e-310 
+   6.92672116752898e-310 
+   9.5489810594e-313     
+   6.365987373e-314      
+   ⋮                     
+   6.9267211676636e-310  
+   6.9267211676897e-310  
+   1.385333806515826e-309
+   6.92672105332654e-310 
+   6.9267190156777e-310  
+ NaN                     
+   1.38534421926774e-309 
+   1.38534396676257e-309 
+   1.38533397142021e-309 
+
+julia> @benchmark f(container)
+BenchmarkTools.Trial: 
+  memory estimate:  7.28 KiB
+  allocs estimate:  4
+  --------------
+  minimum time:     1.193 μs (0.00% GC)
+  median time:      1.860 μs (0.00% GC)
+  mean time:        3.545 μs (46.76% GC)
+  maximum time:     5.735 ms (99.94% GC)
+  --------------
+  samples:          10000
+  evals/sample:     10
+
+julia> y1
+ERROR: UndefVarError: y1 not defined
+
+julia> y3 = randn(21);
+
+julia> function f_new(container,y3)
+           @unpack y1,y2 = container
+           #y3 = similar(y1)
+           y3 .= y1 + y2
+           return y3
+           end
+f_new (generic function with 1 method)
+
+julia> @benchmark f(container)
+BenchmarkTools.Trial: 
+  memory estimate:  7.28 KiB
+  allocs estimate:  4
+  --------------
+  minimum time:     1.321 μs (0.00% GC)
+  median time:      1.895 μs (0.00% GC)
+  mean time:        3.572 μs (46.60% GC)
+  maximum time:     5.775 ms (99.93% GC)
+  --------------
+  samples:          10000
+  evals/sample:     10
+
+julia> @benchmark f_new(container,y3)
+ERROR: DimensionMismatch("array could not be broadcast to match destination")
+Stacktrace:
+ [1] check_broadcast_shape at ./broadcast.jl:503 [inlined]
+ [2] check_broadcast_axes at ./broadcast.jl:506 [inlined]
+ [3] instantiate at ./broadcast.jl:259 [inlined]
+ [4] materialize!(::Array{Float64,1}, ::Base.Broadcast.Broadcasted{Base.Broadcast.DefaultArrayStyle{1},Nothing,typeof(identity),Tuple{Array{Float64,1}}}) at ./broadcast.jl:801
+ [5] f_new(::containers, ::Array{Float64,1}) at ./REPL[36]:4
+ [6] ##core#397() at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:297
+ [7] ##sample#398(::BenchmarkTools.Parameters) at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:303
+ [8] #_run#13(::Bool, ::String, ::Base.Iterators.Pairs{Symbol,Integer,NTuple{4,Symbol},NamedTuple{(:samples, :evals, :gctrial, :gcsample),Tuple{Int64,Int64,Bool,Bool}}}, ::typeof(BenchmarkTools._run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#396")}, ::BenchmarkTools.Parameters) at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:331
+ [9] (::getfield(Base, Symbol("#inner#2")){Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}},typeof(BenchmarkTools._run),Tuple{BenchmarkTools.Benchmark{Symbol("##benchmark#396")},BenchmarkTools.Parameters}})() at ./none:0
+ [10] #invokelatest#1 at ./essentials.jl:794 [inlined]
+ [11] #invokelatest at ./none:0 [inlined]
+ [12] #run_result#37 at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:32 [inlined]
+ [13] #run_result at ./none:0 [inlined]
+ [14] #run#39(::Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}}, ::typeof(run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#396")}, ::BenchmarkTools.Parameters) at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:46
+ [15] #run at ./none:0 [inlined] (repeats 2 times)
+ [16] #warmup#42 at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:79 [inlined]
+ [17] warmup(::BenchmarkTools.Benchmark{Symbol("##benchmark#396")}) at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:79
+ [18] top-level scope at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:213
+
+julia> y3
+21-element Array{Float64,1}:
+  1.1875003169259082  
+  1.5014288482898595  
+ -0.6398473777005603  
+  2.3713350498628865  
+  0.8669947937867167  
+  0.8689129179632834  
+ -0.16359061517461904 
+  0.6626563328819487  
+ -0.8592870784492079  
+  1.7605914894026602  
+  ⋮                   
+  1.4515558860752387  
+ -1.6715852172347412  
+ -0.7826818346830751  
+  0.9876360808130734  
+  0.5999615139302582  
+ -0.13907654862131305 
+ -0.11598520530482587 
+ -0.012689189880153837
+ -0.3405721554834772  
+
+julia> y1
+ERROR: UndefVarError: y1 not defined
+
+julia> @unpack y1 = container
+containers
+  Nx: Int64 21
+  Ny: Int64 21
+  N: Int64 441
+  y1: Array{Float64}((441,)) [0.0, 6.92661866734466e-310, 6.92671860977944e-310, 2.121995791e-314, 0.0, 6.9266186608697e-310, 6.92672116752013e-310, 6.9267211675217e-310, 9.5489810594e-313, 0.0  …  6.9267190156777e-310, 6.9267211676636e-310, 6.9267211676897e-310, 6.92671940428877e-310, 0.0, 6.9267190156777e-310, 6.92672116762804e-310, 6.92672113934614e-310, 6.9267186142944e-310, 6.92661866086884e-310]
+  y2: Array{Float64}((441,)) [1.05e-321, 0.0, 6.365987373e-314, 0.0, 1.0e-323, 8.55e-322, 0.0, 7.26e-322, 0.0, 6.365987373e-314  …  2.838758965385629e277, 0.0, 0.0, 6.9266186608695e-310, 6.92672105332654e-310, 0.0, NaN, 6.9267210533313e-310, 6.9267210533313e-310, 6.92672105333326e-310]
+  y_BySy: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  y_BxSx: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+julia> y1
+441-element Array{Float64,1}:
+ 0.0                  
+ 6.92661866734466e-310
+ 6.92671860977944e-310
+ 2.121995791e-314     
+ 0.0                  
+ 6.9266186608697e-310 
+ 6.92672116752013e-310
+ 6.9267211675217e-310 
+ 9.5489810594e-313    
+ 0.0                  
+ ⋮                    
+ 6.9267211676636e-310 
+ 6.9267211676897e-310 
+ 6.92671940428877e-310
+ 0.0                  
+ 6.9267190156777e-310 
+ 6.92672116762804e-310
+ 6.92672113934614e-310
+ 6.9267186142944e-310 
+ 6.92661866086884e-310
+
+julia> y3 = randn(441)
+441-element Array{Float64,1}:
+  1.218356296761109  
+ -0.23921350816768475
+  0.5869092764139221 
+ -1.6778116929211315 
+ -0.5337188515874532 
+  0.9708668347144788 
+  0.8401825484083885 
+ -0.3383749500263733 
+  0.9630192303807199 
+  0.5469929627214609 
+  ⋮                  
+  1.67211364875096   
+  0.8393455773123335 
+  0.6993479253847876 
+  2.000221874529972  
+ -1.027103617757435  
+  1.041331706275381  
+ -2.3206254750400572 
+  0.8851840161778756 
+ -0.4278016390872918 
+
+julia> @benchmark f_new(container,y3)
+BenchmarkTools.Trial: 
+  memory estimate:  3.66 KiB
+  allocs estimate:  3
+  --------------
+  minimum time:     874.574 ns (0.00% GC)
+  median time:      1.165 μs (0.00% GC)
+  mean time:        1.812 μs (34.01% GC)
+  maximum time:     945.990 μs (99.85% GC)
+  --------------
+  samples:          10000
+  evals/sample:     61
+
+julia> @benchmark f(container)
+BenchmarkTools.Trial: 
+  memory estimate:  7.28 KiB
+  allocs estimate:  4
+  --------------
+  minimum time:     1.239 μs (0.00% GC)
+  median time:      1.891 μs (0.00% GC)
+  mean time:        3.576 μs (46.85% GC)
+  maximum time:     5.849 ms (99.94% GC)
+  --------------
+  samples:          10000
+  evals/sample:     10
+
+julia> function f_new(container,y3)
+           @unpack y1,y2 = container
+           #y3 = similar(y1)
+           y3 = y1 + y2
+           return y3
+           end
+f_new (generic function with 1 method)
+
+julia> function f_beta(y1,y2,y3)
+           y3 = y1 + y2
+           return y3
+           end
+f_beta (generic function with 1 method)
+
+julia> @unpack y1,y2 = container
+containers
+  Nx: Int64 21
+  Ny: Int64 21
+  N: Int64 441
+  y1: Array{Float64}((441,)) [0.0, 6.92661866734466e-310, 6.92671860977944e-310, 2.121995791e-314, 0.0, 6.9266186608697e-310, 6.92672116752013e-310, 6.9267211675217e-310, 9.5489810594e-313, 0.0  …  6.9267190156777e-310, 6.9267211676636e-310, 6.9267211676897e-310, 6.92671940428877e-310, 0.0, 6.9267190156777e-310, 6.92672116762804e-310, 6.92672113934614e-310, 6.9267186142944e-310, 6.92661866086884e-310]
+  y2: Array{Float64}((441,)) [1.05e-321, 0.0, 6.365987373e-314, 0.0, 1.0e-323, 8.55e-322, 0.0, 7.26e-322, 0.0, 6.365987373e-314  …  2.838758965385629e277, 0.0, 0.0, 6.9266186608695e-310, 6.92672105332654e-310, 0.0, NaN, 6.9267210533313e-310, 6.9267210533313e-310, 6.92672105333326e-310]
+  y_BySy: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  y_BxSx: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+julia> @benchmark f_beta(y1,y2,y3)
+BenchmarkTools.Trial: 
+  memory estimate:  3.63 KiB
+  allocs estimate:  1
+  --------------
+  minimum time:     508.299 ns (0.00% GC)
+  median time:      795.728 ns (0.00% GC)
+  mean time:        1.329 μs (40.15% GC)
+  maximum time:     294.692 μs (99.73% GC)
+  --------------
+  samples:          10000
+  evals/sample:     197
+
+julia> @benchmark f_new(container,y3)
+BenchmarkTools.Trial: 
+  memory estimate:  3.63 KiB
+  allocs estimate:  1
+  --------------
+  minimum time:     520.647 ns (0.00% GC)
+  median time:      819.976 ns (0.00% GC)
+  mean time:        1.339 μs (39.04% GC)
+  maximum time:     315.520 μs (99.78% GC)
+  --------------
+  samples:          10000
+  evals/sample:     187
+
+julia> @benchmark f(container)
+BenchmarkTools.Trial: 
+  memory estimate:  7.28 KiB
+  allocs estimate:  4
+  --------------
+  minimum time:     1.196 μs (0.00% GC)
+  median time:      1.883 μs (0.00% GC)
+  mean time:        3.595 μs (47.32% GC)
+  maximum time:     5.989 ms (99.94% GC)
+  --------------
+  samples:          10000
+  evals/sample:     10
+
+julia> function f_new(container,y3)
+           @unpack y1,y2 = container
+           #y3 = similar(y1)
+           y3 = y1 + y2
+           return y3
+           end
+f_new (generic function with 1 method)
+
+julia> container_new = containers()
+containers
+  Nx: Int64 21
+  Ny: Int64 21
+  N: Int64 441
+  y1: Array{Float64}((441,)) [1.05e-321, 6.92661866734466e-310, 6.92735520851673e-310, 2.121995791e-314, 1.0e-323, 6.92661866087823e-310, 6.92672116752013e-310, 6.92672116752898e-310, 9.5489810594e-313, 6.365987373e-314  …  2.838758965385629e277, 6.9267211676636e-310, 6.9267211676897e-310, 1.385333806515826e-309, 6.92672105332654e-310, 6.9267190156777e-310, NaN, 1.38534421926774e-309, 1.38534396676257e-309, 1.38533397142021e-309]
+  y2: Array{Float64}((441,)) [1.05e-321, 6.92661866734466e-310, 6.92735520851673e-310, 2.121995791e-314, 1.0e-323, 6.92661866087823e-310, 6.92672116752013e-310, 6.92672116752898e-310, 9.5489810594e-313, 6.365987373e-314  …  2.838758965385629e277, 6.9267211676636e-310, 6.9267211676897e-310, 1.385333806515826e-309, 6.92672105332654e-310, 6.9267190156777e-310, NaN, 1.38534421926774e-309, 1.38534396676257e-309, 1.38533397142021e-309]
+  y_BySy: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  y_BxSx: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+julia> y1
+441-element Array{Float64,1}:
+ 0.0                  
+ 6.92661866734466e-310
+ 6.92671860977944e-310
+ 2.121995791e-314     
+ 0.0                  
+ 6.9266186608697e-310 
+ 6.92672116752013e-310
+ 6.9267211675217e-310 
+ 9.5489810594e-313    
+ 0.0                  
+ 5.0e-323             
+ 6.92661866086884e-310
+ 0.0                  
+ 6.9266186608697e-310 
+ ⋮                    
+ 6.92672113932835e-310
+ 6.9267194049678e-310 
+ 0.0                  
+ 6.9267190156777e-310 
+ 6.9267211676636e-310 
+ 6.9267211676897e-310 
+ 6.92671940428877e-310
+ 0.0                  
+ 6.9267190156777e-310 
+ 6.92672116762804e-310
+ 6.92672113934614e-310
+ 6.9267186142944e-310 
+ 6.92661866086884e-310
+
+julia> y2
+441-element Array{Float64,1}:
+   1.05e-321            
+   0.0                  
+   6.365987373e-314     
+   0.0                  
+   1.0e-323             
+   8.55e-322            
+   0.0                  
+   7.26e-322            
+   0.0                  
+   6.365987373e-314     
+   0.0                  
+   1.0e-323             
+   7.56e-322            
+   0.0                  
+   ⋮                    
+   0.0                  
+   5.0e-324             
+   1.0000937e-314       
+   2.838758965385629e277
+   0.0                  
+   0.0                  
+   6.9266186608695e-310 
+   6.92672105332654e-310
+   0.0                  
+ NaN                    
+   6.9267210533313e-310 
+   6.9267210533313e-310 
+   6.92672105333326e-310
+
+julia> @benchmark f(container_new)
+BenchmarkTools.Trial: 
+  memory estimate:  7.28 KiB
+  allocs estimate:  4
+  --------------
+  minimum time:     1.305 μs (0.00% GC)
+  median time:      1.847 μs (0.00% GC)
+  mean time:        3.436 μs (45.74% GC)
+  maximum time:     5.724 ms (99.94% GC)
+  --------------
+  samples:          10000
+  evals/sample:     10
+
+julia> @benchmark f_new(container_new,y3)
+BenchmarkTools.Trial: 
+  memory estimate:  3.63 KiB
+  allocs estimate:  1
+  --------------
+  minimum time:     541.204 ns (0.00% GC)
+  median time:      790.804 ns (0.00% GC)
+  mean time:        1.262 μs (37.08% GC)
+  maximum time:     297.607 μs (99.76% GC)
+  --------------
+  samples:          10000
+  evals/sample:     196
+
+julia> f_new(container_new) == f(container_new)
+ERROR: MethodError: no method matching f_new(::containers)
+Closest candidates are:
+  f_new(::Any, ::Any) at REPL[52]:2
+Stacktrace:
+ [1] top-level scope at REPL[58]:1
+
+julia> f_new(container_new,y3) == f(container_new)
+false
+
+julia> function f(container)
+           @unpack y1,y2 = container
+           y3 = similar(y1)
+           y3 .= y1 + y2
+           return y3
+           end
+f (generic function with 1 method)
+
+julia> f(container_new)
+441-element Array{Float64,1}:
+   2.105e-321            
+   1.38532373346893e-309 
+   1.385471041703345e-309
+   4.243991582e-314      
+   2.0e-323              
+   1.385323732175646e-309
+   1.385344233504026e-309
+   1.385344233505795e-309
+   1.90979621188e-312    
+   1.2731974746e-313     
+   1.0e-322              
+   1.38532373217379e-309 
+   1.51e-321             
+   1.385323732173936e-309
+   ⋮                     
+   1.38534422786567e-309 
+   1.385343880993573e-309
+   2.0001874e-314        
+   5.677517930771258e277 
+   1.38534423353272e-309 
+   1.38534423353794e-309 
+   2.77066761303165e-309 
+   1.38534421066531e-309 
+   1.385343803135537e-309
+ NaN                     
+   2.770688438535484e-309
+   2.77068793352514e-309 
+   2.77066794284042e-309 
+
+julia> f_new(container_new,y3)
+441-element Array{Float64,1}:
+   2.105e-321            
+   1.38532373346893e-309 
+   1.385471041703345e-309
+   4.243991582e-314      
+   2.0e-323              
+   1.385323732175646e-309
+   1.385344233504026e-309
+   1.385344233505795e-309
+   1.90979621188e-312    
+   1.2731974746e-313     
+   1.0e-322              
+   1.38532373217379e-309 
+   1.51e-321             
+   1.385323732173936e-309
+   ⋮                     
+   1.38534422786567e-309 
+   1.385343880993573e-309
+   2.0001874e-314        
+   5.677517930771258e277 
+   1.38534423353272e-309 
+   1.38534423353794e-309 
+   2.77066761303165e-309 
+   1.38534421066531e-309 
+   1.385343803135537e-309
+ NaN                     
+   2.770688438535484e-309
+   2.77068793352514e-309 
+   2.77066794284042e-309 
+
+julia> f_new(container_new,y3) == f(container_new)
+false
+
+julia> f_new(container_new,y3) - f(container_new)
+441-element Array{Float64,1}:
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   ⋮  
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+ NaN  
+   0.0
+   0.0
+   0.0
+
+julia> function g(container)
+           @unpack y1,y2 = container
+           y3 = similar(y1)
+           return f_beta(y1,y2,y3)
+           end
+g (generic function with 1 method)
+
+julia> f_beta(y1,y2,y3)
+441-element Array{Float64,1}:
+   1.05e-321             
+   6.92661866734466e-310 
+   6.92735520851673e-310 
+   2.121995791e-314      
+   1.0e-323              
+   6.92661866087823e-310 
+   6.92672116752013e-310 
+   6.92672116752898e-310 
+   9.5489810594e-313     
+   6.365987373e-314      
+   5.0e-323              
+   6.92661866086894e-310 
+   7.56e-322             
+   6.9266186608697e-310  
+   ⋮                     
+   6.92672113932835e-310 
+   6.92671940496787e-310 
+   1.0000937e-314        
+   2.838758965385629e277 
+   6.9267211676636e-310  
+   6.9267211676897e-310  
+   1.385333806515826e-309
+   6.92672105332654e-310 
+   6.9267190156777e-310  
+ NaN                     
+   1.38534421926774e-309 
+   1.38534396676257e-309 
+   1.38533397142021e-309 
+
+julia> g(container)
+441-element Array{Float64,1}:
+   1.05e-321             
+   6.92661866734466e-310 
+   6.92735520851673e-310 
+   2.121995791e-314      
+   1.0e-323              
+   6.92661866087823e-310 
+   6.92672116752013e-310 
+   6.92672116752898e-310 
+   9.5489810594e-313     
+   6.365987373e-314      
+   5.0e-323              
+   6.92661866086894e-310 
+   7.56e-322             
+   6.9266186608697e-310  
+   ⋮                     
+   6.92672113932835e-310 
+   6.92671940496787e-310 
+   1.0000937e-314        
+   2.838758965385629e277 
+   6.9267211676636e-310  
+   6.9267211676897e-310  
+   1.385333806515826e-309
+   6.92672105332654e-310 
+   6.9267190156777e-310  
+ NaN                     
+   1.38534421926774e-309 
+   1.38534396676257e-309 
+   1.38533397142021e-309 
+
+julia> @benchmark g(container)
+BenchmarkTools.Trial: 
+  memory estimate:  7.25 KiB
+  allocs estimate:  2
+  --------------
+  minimum time:     673.281 ns (0.00% GC)
+  median time:      1.179 μs (0.00% GC)
+  mean time:        2.078 μs (47.34% GC)
+  maximum time:     414.837 μs (99.74% GC)
+  --------------
+  samples:          10000
+  evals/sample:     139
+
+julia> @benchmark f_beta(y1,y2,y3)
+BenchmarkTools.Trial: 
+  memory estimate:  3.63 KiB
+  allocs estimate:  1
+  --------------
+  minimum time:     496.603 ns (0.00% GC)
+  median time:      799.593 ns (0.00% GC)
+  mean time:        1.272 μs (38.18% GC)
+  maximum time:     305.714 μs (99.75% GC)
+  --------------
+  samples:          10000
+  evals/sample:     194
+
+julia> @benchmark f_new(container,y3)
+BenchmarkTools.Trial: 
+  memory estimate:  3.63 KiB
+  allocs estimate:  1
+  --------------
+  minimum time:     525.898 ns (0.00% GC)
+  median time:      807.969 ns (0.00% GC)
+  mean time:        1.313 μs (38.36% GC)
+  maximum time:     302.584 μs (99.77% GC)
+  --------------
+  samples:          10000
+  evals/sample:     196
+
+julia> @benchmark @unpack y1,y2 = container
+BenchmarkTools.Trial: 
+  memory estimate:  0 bytes
+  allocs estimate:  0
+  --------------
+  minimum time:     36.051 ns (0.00% GC)
+  median time:      36.106 ns (0.00% GC)
+  mean time:        36.358 ns (0.00% GC)
+  maximum time:     87.922 ns (0.00% GC)
+  --------------
+  samples:          10000
+  evals/sample:     992
+
+julia> edit(f_new)
+ERROR: could not find source file for function
+Stacktrace:
+ [1] error(::String) at ./error.jl:33
+ [2] edit(::Nothing, ::Int32) at /Users/sabae/buildbot/worker/package_macos64/build/usr/share/julia/stdlib/v1.2/InteractiveUtils/src/editless.jl:101
+ [3] edit(::Function) at /Users/sabae/buildbot/worker/package_macos64/build/usr/share/julia/stdlib/v1.2/InteractiveUtils/src/editless.jl:99
+ [4] top-level scope at REPL[72]:1
+
+julia> edit(g)
+ERROR: could not find source file for function
+Stacktrace:
+ [1] error(::String) at ./error.jl:33
+ [2] edit(::Nothing, ::Int32) at /Users/sabae/buildbot/worker/package_macos64/build/usr/share/julia/stdlib/v1.2/InteractiveUtils/src/editless.jl:101
+ [3] edit(::Function) at /Users/sabae/buildbot/worker/package_macos64/build/usr/share/julia/stdlib/v1.2/InteractiveUtils/src/editless.jl:99
+ [4] top-level scope at REPL[73]:1
+
+julia> function g_beta(container,y3)
+           @unpack y1,y2 = container
+           #y3 = similar(y1)
+           return f_beta(y1,y2,y3)
+           end
+g_beta (generic function with 1 method)
+
+julia> @benchmark g(container)
+BenchmarkTools.Trial: 
+  memory estimate:  7.25 KiB
+  allocs estimate:  2
+  --------------
+  minimum time:     666.820 ns (0.00% GC)
+  median time:      1.182 μs (0.00% GC)
+  mean time:        2.055 μs (46.83% GC)
+  maximum time:     357.737 μs (99.64% GC)
+  --------------
+  samples:          10000
+  evals/sample:     167
+
+julia> @benchmark g_beta(container,y3)
+BenchmarkTools.Trial: 
+  memory estimate:  3.63 KiB
+  allocs estimate:  1
+  --------------
+  minimum time:     500.037 ns (0.00% GC)
+  median time:      790.762 ns (0.00% GC)
+  mean time:        1.288 μs (38.69% GC)
+  maximum time:     304.851 μs (99.74% GC)
+  --------------
+  samples:          10000
+  evals/sample:     189
+
+julia> y1 = Nothing
+Nothing
+
+julia> y2 = Nothing
+Nothing
+
+julia> @benchmark g_beta(container,y3)
+BenchmarkTools.Trial: 
+  memory estimate:  3.63 KiB
+  allocs estimate:  1
+  --------------
+  minimum time:     513.808 ns (0.00% GC)
+  median time:      790.850 ns (0.00% GC)
+  mean time:        1.258 μs (36.94% GC)
+  maximum time:     22.589 μs (96.15% GC)
+  --------------
+  samples:          10000
+  evals/sample:     193
+
+julia> @benchmark f_beta(y1,y2,y3)
+ERROR: MethodError: no method matching +(::Type{Nothing}, ::Type{Nothing})
+Closest candidates are:
+  +(::Any, ::Any, ::Any, ::Any...) at operators.jl:529
+Stacktrace:
+ [1] f_beta(::Type, ::Type, ::Array{Float64,1}) at ./REPL[47]:2
+ [2] ##core#465() at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:297
+ [3] ##sample#466(::BenchmarkTools.Parameters) at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:303
+ [4] #_run#28(::Bool, ::String, ::Base.Iterators.Pairs{Symbol,Integer,NTuple{4,Symbol},NamedTuple{(:samples, :evals, :gctrial, :gcsample),Tuple{Int64,Int64,Bool,Bool}}}, ::typeof(BenchmarkTools._run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#464")}, ::BenchmarkTools.Parameters) at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:331
+ [5] (::getfield(Base, Symbol("#inner#2")){Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}},typeof(BenchmarkTools._run),Tuple{BenchmarkTools.Benchmark{Symbol("##benchmark#464")},BenchmarkTools.Parameters}})() at ./none:0
+ [6] #invokelatest#1 at ./essentials.jl:794 [inlined]
+ [7] #invokelatest at ./none:0 [inlined]
+ [8] #run_result#37 at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:32 [inlined]
+ [9] #run_result at ./none:0 [inlined]
+ [10] #run#39(::Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}}, ::typeof(run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#464")}, ::BenchmarkTools.Parameters) at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:46
+ [11] #run at ./none:0 [inlined] (repeats 2 times)
+ [12] #warmup#42 at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:79 [inlined]
+ [13] warmup(::BenchmarkTools.Benchmark{Symbol("##benchmark#464")}) at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:79
+ [14] top-level scope at /Users/ychern/.julia/packages/BenchmarkTools/7aqwe/src/execution.jl:213
+
+julia> @unpack y1,y2 = container
+containers
+  Nx: Int64 21
+  Ny: Int64 21
+  N: Int64 441
+  y1: Array{Float64}((441,)) [0.0, 6.92661866734466e-310, 6.92671860977944e-310, 2.121995791e-314, 0.0, 6.9266186608697e-310, 6.92672116752013e-310, 6.9267211675217e-310, 9.5489810594e-313, 0.0  …  6.9267190156777e-310, 6.9267211676636e-310, 6.9267211676897e-310, 6.92671940428877e-310, 0.0, 6.9267190156777e-310, 6.92672116762804e-310, 6.92672113934614e-310, 6.9267186142944e-310, 6.92661866086884e-310]
+  y2: Array{Float64}((441,)) [1.05e-321, 0.0, 6.365987373e-314, 0.0, 1.0e-323, 8.55e-322, 0.0, 7.26e-322, 0.0, 6.365987373e-314  …  2.838758965385629e277, 0.0, 0.0, 6.9266186608695e-310, 6.92672105332654e-310, 0.0, NaN, 6.9267210533313e-310, 6.9267210533313e-310, 6.92672105333326e-310]
+  y_BySy: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  y_BxSx: Array{Float64}((441,)) [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0  …  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+julia> @benchmark f_beta(y1,y2,y3)
+BenchmarkTools.Trial: 
+  memory estimate:  3.63 KiB
+  allocs estimate:  1
+  --------------
+  minimum time:     511.856 ns (0.00% GC)
+  median time:      802.092 ns (0.00% GC)
+  mean time:        1.295 μs (38.15% GC)
+  maximum time:     303.037 μs (99.75% GC)
+  --------------
+  samples:          10000
+  evals/sample:     195
+
+julia> 
+
