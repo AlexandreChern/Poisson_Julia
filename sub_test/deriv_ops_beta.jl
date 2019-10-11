@@ -279,61 +279,7 @@ function BySy_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N::Int64, hx::Floa
 	return y_BySy
 end
 
-function BxSx_tran(u, Nx, Ny, h)
-	N = Nx*Ny
-	y = zeros(N)
 
-	idx1 = 1:Ny
-	y[idx1] += (1.5 .* u[idx1]) .* (1/h)
-	idx = Ny+1:2*Ny
-	y[idx] += (-2 .* u[idx1]) .* (1/h)
-	idx  = 2*Ny+1:3*Ny
-	y[idx] += (0.5 .* u[idx1]) .* (1/h)
-
-	idxN = N-Ny+1:N
-	y[idxN] += (1.5 .* u[idxN]) .* (1/h)
-	idx = N-2*Ny+1:N-Ny
-	y[idx] += (-2 .* u[idxN]) .* (1/h)
-	idx = N-3*Ny+1:N-2*Ny
-	y[idx] += (0.5 .* u[idxN]) .* (1/h)
-
-	return y
-end
-
-function BxSx_tran_test(u, Nx, Ny, h) # Be Careful about double foor loops
-	N = Nx*Ny
-	y = zeros(N)
-
-	for idx1 = 1:Ny
-		y[idx1] += (1.5 * u[idx1]) * (1/h)
-
-		# for idx = Ny+1:2*Ny
-		y[idx1+Ny] += (-2 * u[idx1]) * (1/h)
-		# end
-
-
-		# for idx  = 2*Ny+1:3*Ny
-		y[idx1+2Ny] += (0.5 * u[idx1]) * (1/h)
-		# end
-	end
-
-	for idxN = N-Ny+1:N
-		y[idxN] += (1.5 * u[idxN]) * (1/h)
-
-		# for idx = N-2*Ny+1:N-Ny
-		y[idxN-Ny] += (-2 * u[idxN]) * (1/h)
-		# end
-
-		# for idx = N-3*Ny+1:N-2*Ny
-		y[idxN-2Ny] += (0.5 * u[idxN]) * (1/h)
-		# end
-	end
-
-	return y
-end
-
-
-y_BxSx_tran = zeros(Nx*Ny)
 
 function BxSx_tran_beta(u::Array{Float64,1},Nx::Int64,Ny::Int64,N::Int64,hx::Float64,hy::Float64,y_BxSx_tran::Array{Float64,1}) # be careful with += expression
 	#hx = Float64(1/(Nx-1))
@@ -366,52 +312,31 @@ function BxSx_tran_beta(u::Array{Float64,1},Nx::Int64,Ny::Int64,N::Int64,hx::Flo
 end
 
 
-function BySy_tran(u, Nx, Ny, h)
-	N = Nx*Ny
-	y = zeros(N)
-
-	idx1 = 1:Ny:N-Ny+1
-	y[idx1] += (1.5 .* u[idx1]) .* (1/h)
-	idx = 2:Ny:N-Ny+2
-	y[idx] += (-2 .* u[idx1]) .* (1/h)
-	idx = 3:Ny:N-Ny+3
-	y[idx] += (0.5 .* u[idx1]) .* (1/h)
-
-	idxN = Ny:Ny:N
-	y[idxN] += (1.5 .* u[idxN]) .* (1/h)
-	idx = Ny-1:Ny:N-1
-	y[idx] += (-2 .* u[idxN]) .* (1/h)
-	idx = Ny-2:Ny:N-2
-	y[idx] += (0.5 .* u[idxN]) .* (1/h)
-
-	return y
-end
 
 
 function BySy_tran_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N::Int64, hx::Float64, hy::Float64, y_BySy::Array{Float64,1}) # Be Careful about double foor loops
-
-	for idx1 = 1:Ny:N-Ny+1
-		y_BySy[idx1] += (1.5 * u[idx1]) * (1/h)
+	@inbounds for idx1 = 1:Ny:N-Ny+1
+		y_BySy[idx1] = (1.5 * u[idx1]) * (1/hy)
 
 		# for idx = Ny+1:2*Ny
-		y_BySy[idx1+1] += (-2 * u[idx1]) * (1/h)
+		y_BySy[idx1+1] = (-2 * u[idx1]) * (1/hy)
 		# end
 
 
 		# for idx  = 2*Ny+1:3*Ny
-		y_BySy[idx1+2] += (0.5 * u[idx1]) * (1/h)
+		y_BySy[idx1+2] = (0.5 * u[idx1]) * (1/hy)
 		# end
 	end
 
-	for idxN = Ny:Ny:N
-		y_BySy[idxN] += (1.5 * u[idxN]) * (1/h)
+	@inbounds for idxN = Ny:Ny:N
+		y_BySy[idxN] = (1.5 * u[idxN]) * (1/hy)
 
 		# for idx = N-2*Ny+1:N-Ny
-		y_BySy[idxN-1] += (-2 * u[idxN]) * (1/h)
+		y_BySy[idxN-1] = (-2 * u[idxN]) * (1/hy)
 		# end
 
 		# for idx = N-3*Ny+1:N-2*Ny
-		y_BySy[idxN-2] += (0.5 * u[idxN]) * (1/h)
+		y_BySy[idxN-2] = (0.5 * u[idxN]) * (1/hy)
 		# end
 	end
 

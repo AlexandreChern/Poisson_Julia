@@ -70,7 +70,7 @@ y_D2x = zeros(N)
 y_D2y = zeros(N)
 y_Dx = zeros(N)
 y_Dy = zeros(N)
-y_BySy = zeros(N)
+
 
 y_Hxinv = zeros(N)
 y_Hyinv = zeros(N)
@@ -106,6 +106,7 @@ y_BySy_tran = zeros(N)
 y_Hy = zeros(N)
 y_Hx = zeros(N)
 
+u = randn(N)
 
 ### Passing variables
 
@@ -113,105 +114,106 @@ y_Hx = zeros(N)
 #function myMAT!(du::AbstractVector, u::AbstractVector,var_test::variables)
 	#Chunk below should be passed as input, but for now needs to match chunk below
 
-function myMAT_original!(du::AbstractVector, u::AbstractVector)
-    # 	h = 0.05
-    # 	dx = h
-    # 	dy = h
-    # 	x = 0:dx:1
-    #         y = 0:dy:1
-    # 	Nx = length(x)
-    #         Ny = length(y)
-    # 	alpha1 = -1
-    #         alpha2 = -1
-    #         alpha3 = -13/dy
-    #         alpha4 = -13/dy
-    #         beta = 1
-    @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
-    	########################################
-
-        du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
-
-        du1 = BySy(u,Nx,Ny,dy)
-        du2 = VOLtoFACE(du1,1,Nx,Ny)
-        du3 = alpha1*Hyinv(du2,Nx,Ny,dy)  #compute action of P1
-
-        du4 = BySy(u,Nx,Ny,dy)
-        du5 = VOLtoFACE(du4,2,Nx,Ny)
-        du6 = alpha2*Hyinv(du5,Nx,Ny,dy) #compute action of P2
-
-        du7 = VOLtoFACE(u,3,Nx,Ny)
-        du8 = BxSx_tran(du7,Nx,Ny,dx)
-        du9 = beta*Hxinv(du8,Nx,Ny,dx)
-        du10 = VOLtoFACE(u,3,Nx,Ny)
-        du11 = alpha3*Hxinv(du10,Nx,Ny,dx) #compute action of P3
-
-        du12 = VOLtoFACE(u,4,Nx,Ny)
-        du13 = BxSx_tran(du12,Nx,Ny,dx)
-        du14 = beta*Hxinv(du13,Nx,Ny,dx)
-        du15 = VOLtoFACE(u,4,Nx,Ny)
-        du16 = alpha4*Hxinv(du15,Nx,Ny,dx) #compute action of P4
-
-
-        du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
-
-            #compute action of -Hx kron Hy:
-
-        du17 = Hy(du0, Nx, Ny, dy)
-	du[:] = -Hx(du17,Nx,Ny,dx)
-end
-
-
-function myMAT!(du::AbstractVector, u::AbstractVector)
-# 	h = 0.05
-# 	dx = h
-# 	dy = h
-# 	x = 0:dx:1
-#         y = 0:dy:1
-# 	Nx = length(x)
-#         Ny = length(y)
-# 	alpha1 = -1
-#         alpha2 = -1
-#         alpha3 = -13/dy
-#         alpha4 = -13/dy
-#         beta = 1
-#    #@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
-#	########################################
-#    # y1 = Array{Float64,1}(undef,Nx*Ny)
-#    # y2 = Array{Float64,1}(undef,Nx*Ny)
-
-    du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
-    #du_ops = D2x_beta(u,Nx,Ny,y1) + D2y_beta(u,Nx,Ny,y2)
-    du1 = BySy_test(u,Nx,Ny,dy)
-    du2 = VOLtoFACE(du1,1,Nx,Ny)
-    du3 = alpha1*Hyinv_test(du2,Nx,Ny,dy)  #compute action of P1
-
-    du4 = BySy_test(u,Nx,Ny,dy)
-    du5 = VOLtoFACE(du4,2,Nx,Ny)
-    du6 = alpha2*Hyinv_test(du5,Nx,Ny,dy) #compute action of P2
-
-    du7 = VOLtoFACE(u,3,Nx,Ny)
-    du8 = BxSx_tran_test(du7,Nx,Ny,dx)
-    du9 = beta*Hxinv_test(du8,Nx,Ny,dx)
-    du10 = VOLtoFACE(u,3,Nx,Ny)
-    du11 = alpha3*Hxinv_test(du10,Nx,Ny,dx) #compute action of P3
-
-    du12 = VOLtoFACE(u,4,Nx,Ny)
-    du13 = BxSx_tran_test(du12,Nx,Ny,dx)
-    du14 = beta*Hxinv_test(du13,Nx,Ny,dx)
-    du15 = VOLtoFACE(u,4,Nx,Ny)
-    du16 = alpha4*Hxinv_test(du15,Nx,Ny,dx) #compute action of P4
+# function myMAT_original!(du::AbstractVector, u::AbstractVector)
+#     # 	h = 0.05
+#     # 	dx = h
+#     # 	dy = h
+#     # 	x = 0:dx:1
+#     #         y = 0:dy:1
+#     # 	Nx = length(x)
+#     #         Ny = length(y)
+#     # 	alpha1 = -1
+#     #         alpha2 = -1
+#     #         alpha3 = -13/dy
+#     #         alpha4 = -13/dy
+#     #         beta = 1
+#     @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+#     	########################################
+#
+#         du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
+#
+#         du1 = BySy(u,Nx,Ny,dy)
+#         du2 = VOLtoFACE(du1,1,Nx,Ny)
+#         du3 = alpha1*Hyinv(du2,Nx,Ny,dy)  #compute action of P1
+#
+#         du4 = BySy(u,Nx,Ny,dy)
+#         du5 = VOLtoFACE(du4,2,Nx,Ny)
+#         du6 = alpha2*Hyinv(du5,Nx,Ny,dy) #compute action of P2
+#
+#         du7 = VOLtoFACE(u,3,Nx,Ny)
+#         du8 = BxSx_tran(du7,Nx,Ny,dx)
+#         du9 = beta*Hxinv(du8,Nx,Ny,dx)
+#         du10 = VOLtoFACE(u,3,Nx,Ny)
+#         du11 = alpha3*Hxinv(du10,Nx,Ny,dx) #compute action of P3
+#
+#         du12 = VOLtoFACE(u,4,Nx,Ny)
+#         du13 = BxSx_tran(du12,Nx,Ny,dx)
+#         du14 = beta*Hxinv(du13,Nx,Ny,dx)
+#         du15 = VOLtoFACE(u,4,Nx,Ny)
+#         du16 = alpha4*Hxinv(du15,Nx,Ny,dx) #compute action of P4
+#
+#
+#         du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
+#
+#             #compute action of -Hx kron Hy:
+#
+#         du17 = Hy(du0, Nx, Ny, dy)
+# 	du[:] = -Hx(du17,Nx,Ny,dx)
+# end
 
 
-    du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
-
-        #compute action of -Hx kron Hy:
-
-    du17 = Hy_test(du0, Nx, Ny,h)
-	du[:] = -Hx_test(du17,Nx,Ny,dx)
-end
+# function myMAT!(du::AbstractVector, u::AbstractVector)
+# # 	h = 0.05
+# # 	dx = h
+# # 	dy = h
+# # 	x = 0:dx:1
+# #         y = 0:dy:1
+# # 	Nx = length(x)
+# #         Ny = length(y)
+# # 	alpha1 = -1
+# #         alpha2 = -1
+# #         alpha3 = -13/dy
+# #         alpha4 = -13/dy
+# #         beta = 1
+# #    #@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+# #	########################################
+# #    # y1 = Array{Float64,1}(undef,Nx*Ny)
+# #    # y2 = Array{Float64,1}(undef,Nx*Ny)
+#
+#     du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
+#     #du_ops = D2x_beta(u,Nx,Ny,y1) + D2y_beta(u,Nx,Ny,y2)
+#     du1 = BySy_test(u,Nx,Ny,dy)
+#     du2 = VOLtoFACE(du1,1,Nx,Ny)
+#     du3 = alpha1*Hyinv_test(du2,Nx,Ny,dy)  #compute action of P1
+#
+#     du4 = BySy_test(u,Nx,Ny,dy)
+#     du5 = VOLtoFACE(du4,2,Nx,Ny)
+#     du6 = alpha2*Hyinv_test(du5,Nx,Ny,dy) #compute action of P2
+#
+#     du7 = VOLtoFACE(u,3,Nx,Ny)
+#     du8 = BxSx_tran_test(du7,Nx,Ny,dx)
+#     du9 = beta*Hxinv_test(du8,Nx,Ny,dx)
+#     du10 = VOLtoFACE(u,3,Nx,Ny)
+#     du11 = alpha3*Hxinv_test(du10,Nx,Ny,dx) #compute action of P3
+#
+#     du12 = VOLtoFACE(u,4,Nx,Ny)
+#     du13 = BxSx_tran_test(du12,Nx,Ny,dx)
+#     du14 = beta*Hxinv_test(du13,Nx,Ny,dx)
+#     du15 = VOLtoFACE(u,4,Nx,Ny)
+#     du16 = alpha4*Hxinv_test(du15,Nx,Ny,dx) #compute action of P4
+#
+#
+#     du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
+#
+#         #compute action of -Hx kron Hy:
+#
+#     du17 = Hy_test(du0, Nx, Ny,h)
+# 	du[:] = -Hx_test(du17,Nx,Ny,dx)
+# end
 
 
 du = similar(u)
+
 function myMAT_new!(du::AbstractVector, u::AbstractVector)
 # 	h = 0.05
 # 	dx = h
@@ -231,10 +233,10 @@ function myMAT_new!(du::AbstractVector, u::AbstractVector)
     # y2 = Array{Float64,1}(undef,Nx*Ny)
 
     #du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
-    du_ops = D2x_beta(u,Nx,Ny,N,hx,hy,y1) + D2y_beta(u,Nx,Ny,y2)
+    du_ops = D2x_beta(u,Nx,Ny,N,hx,hy,y_D2x) + D2y_beta(u,Nx,Ny,N,hx,hy,y_D2y)
     #du_ops = D2_beta_2(u,Nx,Ny,y1,y2)
     #du1 = BySy_test(u,Nx,Ny,dy)
-    du1 = BySy_beta(u,Nx,Ny,y_BySy)
+    du1 = BySy_beta(u,Nx,Ny,N,hx,hy,y_BySy)
     #du2 = VOLtoFACE(du1,1,Nx,Ny)
     du2 = VOLtoFACE_beta(du1,1,Nx,Ny,N,yv2fs)
     #du3 = alpha1*Hyinv_test(du2,Nx,Ny,dy)  #compute action of P1
