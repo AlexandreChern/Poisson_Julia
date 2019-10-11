@@ -45,6 +45,7 @@ x = 0:dx:1
 y = 0:dy:1
 Nx = length(x)
 Ny = length(y)
+N = Nx*Ny
 alpha1 = -1
 alpha2 = -1
 alpha3 = -13/dy
@@ -61,30 +62,36 @@ end
 
 test(var_test)
 
-N = Nx*Ny
-# Array Containers
-y1 = Array{Float64,1}(undef,Nx*Ny) # container for D2x
-y2 = Array{Float64,1}(undef,Nx*Ny) # container for D2y
-y_BySy = zeros(Nx*Ny)
-y_Hyinv = zeros(Nx*Ny)
-y_Hxinv = zeros(Nx*Ny)
 
-yv2f1 = zeros(Nx*Ny)
-yv2f2 = zeros(Nx*Ny)
-yv2f3 = zeros(Nx*Ny)
-yv2f4 = zeros(Nx*Ny)
+# Array Containers
+# y_D2x = Array{Float64,1}(undef,Nx*Ny) # container for D2x
+# y_D2y = Array{Float64,1}(undef,Nx*Ny) # container for D2y
+y_D2x = zeros(N)
+y_D2y = zeros(N)
+y_Dx = zeros(N)
+y_Dy = zeros(N)
+y_BySy = zeros(N)
+
+y_Hxinv = zeros(N)
+y_Hyinv = zeros(N)
+
+
+yv2f1 = zeros(N)
+yv2f2 = zeros(N)
+yv2f3 = zeros(N)
+yv2f4 = zeros(N)
 
 
 yv2fs=[yv2f1,yv2f2,yv2f3,yv2f4]
 
-y_BxSx_tran = zeros(Nx*Ny)
-y_Hxinv = zeros(Nx*Ny)
+y_BxSx_tran = zeros(N)
+
 
 
 y_Bx = zeros(N)
 y_By = zeros(N)
 
-y_Hy = zeros(Nx*Nx)
+y_Hy = zeros(N)
 y_Hx = zeros(N)
 
 
