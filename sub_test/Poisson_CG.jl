@@ -27,19 +27,20 @@ using BenchmarkTools
 
 
 @with_kw struct variables
-    h = 0.0625
-    dx = h
-    dy = h
-    x = 0:dx:1
-    y = 0:dy:1
-    Nx = length(x)
-    Ny = length(y)
+    Nx = Int64(11)
+    Ny = Int64(11)
+    N = Int64(Nx*Ny)
+    hx = Float64(1/Nx)
+    hy = Float64(1/Ny)
+    x = 0:hx:1
+    y = 0:hy:1
     alpha1 = -1
     alpha2 = -1
-    alpha3 = -13/dy
-    alpha4 = -13/dy
+    alpha3 = -13/hx
+    alpha4 = -13/hy
     beta = 1
 end
+
 
 h = 0.0625
 dx = h
@@ -65,7 +66,7 @@ end
 
 test(var_test)
 
-@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+@unpack Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta = var_test
 N = Nx*Ny
 # Array Containers
 # y_D2x = Array{Float64,1}(undef,Nx*Ny) # container for D2x
@@ -113,6 +114,8 @@ y_Hx = zeros(N)
 u = randn(N)
 
 @with_kw struct containers
+    Nx = Int64(11)
+    Ny = Int64(11)
     N = Nx*Ny
     # Array Containers
     # y_D2x = Array{Float64,1}(undef,Nx*Ny) # container for D2x
@@ -158,12 +161,15 @@ u = randn(N)
     y_Hy = zeros(N)
 end
 ### Passing variables
+container = containers()
 
 
 #function myMAT!(du::AbstractVector, u::AbstractVector,var_test::variables)
 	#Chunk below should be passed as input, but for now needs to match chunk below
 
 @with_kw struct intermediates
+    Nx = Int64(11)
+    Ny = Int64(11)
     N = Nx*Ny
     du_ops = zeros(N)
     du1 = zeros(N)
@@ -308,7 +314,8 @@ function myMAT_new!(du::AbstractVector, u::AbstractVector,container,var_test,int
     # y1 = Array{Float64,1}(undef,Nx*Ny)
     # y2 = Array{Float64,1}(undef,Nx*Ny)
     @unpack N, y_D2x, y_D2y, y_Dx, y_Dy, y_Hxinv, y_Hyinv, yv2f1, yv2f2, yv2f3, yv2f4, yv2fs, yf2v1, yf2v2, yf2v3, yf2v4, yf2vs, y_Bx, y_By, y_BxSx, y_BySy, y_BxSx_tran, y_BySy_tran, y_Hx, y_Hy = container
-    @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+    # @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+    @unpack Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta = var_test
     @unpack du_ops,du1,du2,du3,du4,du5,du6,du7,du8,du9,du10,du11,du12,du13,du14,du15,du16,du17,du0 = intermediate
 
     #du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
