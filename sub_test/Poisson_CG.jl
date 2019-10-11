@@ -85,12 +85,23 @@ yv2f4 = zeros(N)
 
 yv2fs=[yv2f1,yv2f2,yv2f3,yv2f4]
 
-y_BxSx_tran = zeros(N)
 
+yf2v1 = zeros(N)
+yf2v2 = zeros(N)
+yf2v3 = zeros(N)
+yf2v4 = zeros(N)
+
+yf2vs = [yf2v1,yf2v2,yf2v3,yf2v4]
 
 
 y_Bx = zeros(N)
 y_By = zeros(N)
+
+y_BxSx = zeros(N)
+y_BySy = zeros(N)
+
+y_BxSx_tran = zeros(N)
+y_BySy_tran = zeros(N)
 
 y_Hy = zeros(N)
 y_Hx = zeros(N)
