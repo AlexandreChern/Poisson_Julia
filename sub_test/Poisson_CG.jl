@@ -16,10 +16,13 @@
 
 
 include("deriv_ops_beta.jl")
+include("deriv_ops.jl")
+
 using SparseArrays
 using LinearMaps
 using IterativeSolvers
 using Parameters
+using BenchmarkTools
 
 
 
@@ -62,6 +65,7 @@ end
 
 test(var_test)
 
+@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
 N = Nx*Ny
 # Array Containers
 # y_D2x = Array{Float64,1}(undef,Nx*Ny) # container for D2x
@@ -108,58 +112,128 @@ y_Hx = zeros(N)
 
 u = randn(N)
 
+@with_kw struct containers
+    N = Nx*Ny
+    # Array Containers
+    # y_D2x = Array{Float64,1}(undef,Nx*Ny) # container for D2x
+    # y_D2y = Array{Float64,1}(undef,Nx*Ny) # container for D2y
+    y_D2x = zeros(N)
+    y_D2y = zeros(N)
+    y_Dx = zeros(N)
+    y_Dy = zeros(N)
+
+
+    y_Hxinv = zeros(N)
+    y_Hyinv = zeros(N)
+
+
+    # VOLtoFACE containers
+    yv2f1 = zeros(N)
+    yv2f2 = zeros(N)
+    yv2f3 = zeros(N)
+    yv2f4 = zeros(N)
+
+
+    yv2fs=[yv2f1,yv2f2,yv2f3,yv2f4]
+
+
+    yf2v1 = zeros(N)
+    yf2v2 = zeros(N)
+    yf2v3 = zeros(N)
+    yf2v4 = zeros(N)
+
+    yf2vs = [yf2v1,yf2v2,yf2v3,yf2v4]
+
+
+    y_Bx = zeros(N)
+    y_By = zeros(N)
+
+    y_BxSx = zeros(N)
+    y_BySy = zeros(N)
+
+    y_BxSx_tran = zeros(N)
+    y_BySy_tran = zeros(N)
+
+    y_Hx = zeros(N)
+    y_Hy = zeros(N)
+end
 ### Passing variables
 
-@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+
 #function myMAT!(du::AbstractVector, u::AbstractVector,var_test::variables)
 	#Chunk below should be passed as input, but for now needs to match chunk below
 
-# function myMAT_original!(du::AbstractVector, u::AbstractVector)
-#     # 	h = 0.05
-#     # 	dx = h
-#     # 	dy = h
-#     # 	x = 0:dx:1
-#     #         y = 0:dy:1
-#     # 	Nx = length(x)
-#     #         Ny = length(y)
-#     # 	alpha1 = -1
-#     #         alpha2 = -1
-#     #         alpha3 = -13/dy
-#     #         alpha4 = -13/dy
-#     #         beta = 1
-#     @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
-#     	########################################
-#
-#         du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
-#
-#         du1 = BySy(u,Nx,Ny,dy)
-#         du2 = VOLtoFACE(du1,1,Nx,Ny)
-#         du3 = alpha1*Hyinv(du2,Nx,Ny,dy)  #compute action of P1
-#
-#         du4 = BySy(u,Nx,Ny,dy)
-#         du5 = VOLtoFACE(du4,2,Nx,Ny)
-#         du6 = alpha2*Hyinv(du5,Nx,Ny,dy) #compute action of P2
-#
-#         du7 = VOLtoFACE(u,3,Nx,Ny)
-#         du8 = BxSx_tran(du7,Nx,Ny,dx)
-#         du9 = beta*Hxinv(du8,Nx,Ny,dx)
-#         du10 = VOLtoFACE(u,3,Nx,Ny)
-#         du11 = alpha3*Hxinv(du10,Nx,Ny,dx) #compute action of P3
-#
-#         du12 = VOLtoFACE(u,4,Nx,Ny)
-#         du13 = BxSx_tran(du12,Nx,Ny,dx)
-#         du14 = beta*Hxinv(du13,Nx,Ny,dx)
-#         du15 = VOLtoFACE(u,4,Nx,Ny)
-#         du16 = alpha4*Hxinv(du15,Nx,Ny,dx) #compute action of P4
-#
-#
-#         du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
-#
-#             #compute action of -Hx kron Hy:
-#
-#         du17 = Hy(du0, Nx, Ny, dy)
-# 	du[:] = -Hx(du17,Nx,Ny,dx)
-# end
+@with_kw struct intermediates
+    N = Nx*Ny
+    du_ops = zeros(N)
+    du1 = zeros(N)
+    du2 = zeros(N)
+    du3 = zeros(N)
+    du4 = zeros(N)
+    du5 = zeros(N)
+    du6 = zeros(N)
+    du7 = zeros(N)
+    du8 = zeros(N)
+    du9 = zeros(N)
+    du10 = zeros(N)
+    du11 = zeros(N)
+    du12 = zeros(N)
+    du13 = zeros(N)
+    du14 = zeros(N)
+    du15 = zeros(N)
+    du16 = zeros(N)
+    du17 = zeros(N)
+    du0 = zeros(N)
+end
+
+intermediate = intermediates()
+
+function myMAT_original!(du::AbstractVector, u::AbstractVector)
+    # 	h = 0.05
+    # 	dx = h
+    # 	dy = h
+    # 	x = 0:dx:1
+    #         y = 0:dy:1
+    # 	Nx = length(x)
+    #         Ny = length(y)
+    # 	alpha1 = -1
+    #         alpha2 = -1
+    #         alpha3 = -13/dy
+    #         alpha4 = -13/dy
+    #         beta = 1
+    @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+    	########################################
+
+        du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
+
+        du1 = BySy(u,Nx,Ny,dy)
+        du2 = VOLtoFACE(du1,1,Nx,Ny)
+        du3 = alpha1*Hyinv(du2,Nx,Ny,dy)  #compute action of P1
+
+        du4 = BySy(u,Nx,Ny,dy)
+        du5 = VOLtoFACE(du4,2,Nx,Ny)
+        du6 = alpha2*Hyinv(du5,Nx,Ny,dy) #compute action of P2
+
+        du7 = VOLtoFACE(u,3,Nx,Ny)
+        du8 = BxSx_tran(du7,Nx,Ny,dx)
+        du9 = beta*Hxinv(du8,Nx,Ny,dx)
+        du10 = VOLtoFACE(u,3,Nx,Ny)
+        du11 = alpha3*Hxinv(du10,Nx,Ny,dx) #compute action of P3
+
+        du12 = VOLtoFACE(u,4,Nx,Ny)
+        du13 = BxSx_tran(du12,Nx,Ny,dx)
+        du14 = beta*Hxinv(du13,Nx,Ny,dx)
+        du15 = VOLtoFACE(u,4,Nx,Ny)
+        du16 = alpha4*Hxinv(du15,Nx,Ny,dx) #compute action of P4
+
+
+        du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
+
+            #compute action of -Hx kron Hy:
+
+        du17 = Hy(du0, Nx, Ny, dy)
+	du[:] = -Hx(du17,Nx,Ny,dx)
+end
 
 
 # function myMAT!(du::AbstractVector, u::AbstractVector)
@@ -214,7 +288,9 @@ u = randn(N)
 
 du = similar(u)
 
-function myMAT_new!(du::AbstractVector, u::AbstractVector)
+container = containers()
+
+function myMAT_new!(du::AbstractVector, u::AbstractVector,container,var_test,intermediate)
 # 	h = 0.05
 # 	dx = h
 # 	dy = h
@@ -231,6 +307,9 @@ function myMAT_new!(du::AbstractVector, u::AbstractVector)
 	########################################
     # y1 = Array{Float64,1}(undef,Nx*Ny)
     # y2 = Array{Float64,1}(undef,Nx*Ny)
+    @unpack N, y_D2x, y_D2y, y_Dx, y_Dy, y_Hxinv, y_Hyinv, yv2f1, yv2f2, yv2f3, yv2f4, yv2fs, yf2v1, yf2v2, yf2v3, yf2v4, yf2vs, y_Bx, y_By, y_BxSx, y_BySy, y_BxSx_tran, y_BySy_tran, y_Hx, y_Hy = container
+    @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+    @unpack du_ops,du1,du2,du3,du4,du5,du6,du7,du8,du9,du10,du11,du12,du13,du14,du15,du16,du17,du0 = intermediate
 
     #du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
     du_ops = D2x_beta(u,Nx,Ny,N,hx,hy,y_D2x) + D2y_beta(u,Nx,Ny,N,hx,hy,y_D2y)
@@ -240,33 +319,33 @@ function myMAT_new!(du::AbstractVector, u::AbstractVector)
     #du2 = VOLtoFACE(du1,1,Nx,Ny)
     du2 = VOLtoFACE_beta(du1,1,Nx,Ny,N,yv2fs)
     #du3 = alpha1*Hyinv_test(du2,Nx,Ny,dy)  #compute action of P1
-    du3 = alpha1*Hyinv_beta(du2,Nx,Ny,N,y_Hyinv,hx,hy)
+    du3 = alpha1*Hyinv_beta(du2,Nx,Ny,N,hx,hy,y_Hyinv)
 
     #du4 = BySy_test(u,Nx,Ny,dy)
     #du4 = du1
     #du5 = VOLtoFACE(du1,2,Nx,Ny)
     du5 = VOLtoFACE_beta(du1,2,Nx,Ny,N,yv2fs)
     #du6 = alpha2*Hyinv_test(du5,Nx,Ny,dy) #compute action of P2
-    du6 = alpha2*Hyinv_beta(du5,Nx,Ny,N,y_Hyinv,hx,hy)
+    du6 = alpha2*Hyinv_beta(du5,Nx,Ny,N,hx,hy,y_Hyinv)
 
     #du7 = VOLtoFACE(u,3,Nx,Ny)
     du7 = VOLtoFACE_beta(u,3,Nx,Ny,N,yv2fs)
     #du8 = BxSx_tran_test(du7,Nx,Ny,dx)
-    du8 = BxSx_tran_beta(du7,Nx,Ny,N,y_BxSx_tran,hx,hy)
+    du8 = BxSx_tran_beta(du7,Nx,Ny,N,hx,hy,y_BxSx_tran)
     #du9 = beta*Hxinv_test(du8,Nx,Ny,dx)
-    du9 = beta*Hxinv_beta(du8,Nx,Ny,N,y_Hxinv,hx,hy)
+    du9 = beta*Hxinv_beta(du8,Nx,Ny,N,hx,hy,y_Hxinv)
     #du10 = VOLtoFACE(u,3,Nx,Ny)
     #du10 = du7
-    du11 = alpha3*Hxinv_beta(du7,Nx,Ny,N,y_Hxinv,hx,hy) #compute action of P3
+    du11 = alpha3*Hxinv_beta(du7,Nx,Ny,N,hx,hy,y_Hxinv) #compute action of P3
 
     #du12 = VOLtoFACE(u,4,Nx,Ny)
     du12 = VOLtoFACE_beta(u,4,Nx,Ny,N,yv2fs)
-    du13 = BxSx_tran_beta(du12,Nx,Ny,N,y_Hxinv,hx,hy)
+    du13 = BxSx_tran_beta(du12,Nx,Ny,N,hx,hy,y_Hxinv)
     #du14 = beta*Hxinv_test(du13,Nx,Ny,dx)
-    du14 = beta*Hxinv_beta(du13,Nx,Ny,N,y_Hxinv,hx,hy)
+    du14 = beta*Hxinv_beta(du13,Nx,Ny,N,hx,hy,y_Hxinv)
     #du15 = VOLtoFACE(u,4,Nx,Ny)
     #du16 = alpha4*Hxinv_test(du15,Nx,Ny,dx) #compute action of P4
-    du16 = alpha4*Hxinv_beta(du12,Nx,Ny,N,y_Hxinv,hx,hy)
+    du16 = alpha4*Hxinv_beta(du12,Nx,Ny,N,hx,hy,y_Hxinv)
 
 
     du0 = du_ops + du3 + du6 + du9 + du11 + du14 + du16 #Collect together
