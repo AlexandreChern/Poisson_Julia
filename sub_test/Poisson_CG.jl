@@ -15,7 +15,7 @@
 #to make system PD, multiply by -(H kron H):
 
 
-include("deriv_ops_test.jl")
+include("deriv_ops_beta.jl")
 using SparseArrays
 using LinearMaps
 using IterativeSolvers
@@ -62,7 +62,7 @@ end
 
 test(var_test)
 
-
+N = Nx*Ny
 # Array Containers
 # y_D2x = Array{Float64,1}(undef,Nx*Ny) # container for D2x
 # y_D2y = Array{Float64,1}(undef,Nx*Ny) # container for D2y
@@ -76,6 +76,7 @@ y_Hxinv = zeros(N)
 y_Hyinv = zeros(N)
 
 
+# VOLtoFACE containers
 yv2f1 = zeros(N)
 yv2f2 = zeros(N)
 yv2f3 = zeros(N)

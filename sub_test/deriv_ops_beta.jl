@@ -76,7 +76,7 @@ end
 
 
 
-function Dx_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N::Int64, hx::Float64, hy::Float64 y_Dx::Array{Float64,1})
+function Dx_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N::Int64, hx::Float64, hy::Float64, y_Dx::Array{Float64,1})
 
 	@inbounds for idx = 1:Ny
 		y_Dx[idx] = (u[idx + Ny] - u[idx]) / hx
@@ -133,48 +133,9 @@ function Hxinv_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N::Int64, hx::Flo
 	return y_Hxinv
 end
 
-function Hyinv(u, Nx, Ny, h)
-	N = Nx*Ny
-	y = zeros(N)
 
-	idx = 1:Ny:N-Ny+1
-	y[idx] = (2*u[idx]) .* (1/h)
 
-	idx = Ny:Ny:N
-	y[idx] = (2*u[idx]) .* (1/h)
-
-	for i = 1:Nx
-		idx = 2+(i-1).*Ny:i*Ny-1
-		y[idx] = u[idx] .* (1/h)
-	end
-
-	return y
-end
-
-function Hyinv_test(u,Nx,Ny,h)
-	N = Nx*Ny
-	y = similar(u)
-
-	for idx = 1:Ny:N-Ny+1
-		y[idx] = (2*u[idx]) * (1/h)
-	end
-
-	for idx1 = Ny:Ny:N
-		y[idx1] = (2*u[idx1]) * (1/h)
-	end
-
-	for i = 1:Nx
-		for idx2 = 2+(i-1)*Ny:i*Ny-1
-			y[idx2] = (u[idx2]) * (1/h)
-		end
-	end
-
-	return y
-end
-
-#y_Hyinv = Array{Float64,1}(undef,Nx*Ny)
-
-function Hyinv_beta(u,Nx,Ny,N,y_Hyinv,hx,hy)
+function Hyinv_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N::Int64, hx::Float64, hy::Float64, y_Hyinv::Array{Float64})
 	#N = Nx*Ny
 	#y = similar(u)
 	#hx = Float64(1/(Nx-1))
@@ -192,66 +153,12 @@ function Hyinv_beta(u,Nx,Ny,N,y_Hyinv,hx,hy)
 			y_Hyinv[idx2] = (u[idx2]) * (1/hy)
 		end
 	end
-
 	return y_Hyinv
 end
 
 
 
-function Hx(u, Nx, Ny, h)
-	N = Nx*Ny
-        y = zeros(N)
-
-        idx = 1:Ny
-	y[idx] = h .* (1/2)*u[idx]
-
-        idx = Ny+1:N-Ny
-        y[idx] = h .* 1*u[idx]
-
-        idx = N-Ny+1:N
-	y[idx] = h .* (1/2)*u[idx]
-
-        return y
-
-
-end
-
-function Hx_test(u,Nx,Ny,h)
-	N = Nx*Ny
-	y = similar(u)
-
-	for idx = 1:Ny
-		y[idx] = h*u[idx]/2
-	end
-
-	for idx1 = Ny+1:N-Ny
-		y[idx1] = h*u[idx1]
-	end
-
-	for idx2 = N-Ny+1:N
-		y[idx2] = h*u[idx2]/2
-	end
-	return y
-end
-
-y_Hx = zeros(N)
-
-# function Hx_beta_test(u,Nx,Ny,N,hx,hy,y_Hx)
-# 	for idx = 1:Ny
-# 		y_Hx[idx] = hx*u[idx]/2
-# 	end
-#
-# 	for idx1 = Ny+1:N-Ny
-# 		y_Hx[idx1] = hx*u[idx1]
-# 	end
-#
-# 	for idx2 = N-Ny+1:N
-# 		y_Hx[idx2] = hx*u[idx2]/2
-# 	end
-# 	return y_Hx
-# end
-
-function Hx_beta(u,Nx,Ny,N,hx,hy,y_Hx)
+function Hx_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N::Int64, hx::Float64, hy::Float64, y_Hx::Array{Float64})
 	@inbounds for idx = 1:Ny
 		y_Hx[idx] = hx*u[idx]/2
 	end
@@ -268,48 +175,7 @@ end
 
 
 
-function Hy(u, Nx, Ny, h)
-	N = Nx*Ny
-        y = zeros(N)
-
-        idx = 1:Ny:N-Ny+1
-	y[idx] = h .* (1/2)*u[idx]
-
-        idx = Ny:Ny:N
-	y[idx] = h .* (1/2)*u[idx]
-
-        for i = 1:Nx
-                idx = 2+(i-1).*Ny:i*Ny-1
-                y[idx] = h .* u[idx]
-        end
-
-        return y
-
-end
-
-function Hy_test(u,Nx,Ny,h)
-	N = Nx*Ny
-	y = similar(u)
-
-	for idx = 1:Ny:N-Ny+1
-		y[idx] = h*u[idx]/2
-	end
-
-	for idx1 = Ny:Ny:N
-		y[idx1] = h*u[idx1]/2
-	end
-
-	for i = 1:Nx
-		for idx2 = 2 + (i-1)*Ny:i*Ny-1
-			y[idx2] = h*u[idx2]
-		end
-	end
-	return y
-end
-
-y_Hy = zeros(Nx*Nx)
-
-function Hy_beta(u,Nx,Ny,N,hx,hy,y_Hy)
+function Hy_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N::Int64, hx::Float64, hy::Float64, y_Hy::Array{Float64})
 	#N = Nx*Ny
 	#y = similar(u)
 
@@ -329,26 +195,26 @@ function Hy_beta(u,Nx,Ny,N,hx,hy,y_Hy)
 	return y_Hy
 end
 
-function FACEtoVOL(u_face, face, Nx, Ny)
-	N = Nx*Ny
-	y = zeros(N)
-
-	if face == 1
-		idx = 1:Ny:N-Ny+1
-	elseif face == 2
-		idx = Ny:Ny:N
-	elseif face == 3
-		idx = 1:Ny
-	elseif face == 4
-		idx = N-Ny+1:N
-	else
-	end
-
-	y[idx] = u_face
-
-	return y
-
-end
+# function FACEtoVOL(u_face, face, Nx, Ny)
+# 	N = Nx*Ny
+# 	y = zeros(N)
+#
+# 	if face == 1
+# 		idx = 1:Ny:N-Ny+1
+# 	elseif face == 2
+# 		idx = Ny:Ny:N
+# 	elseif face == 3
+# 		idx = 1:Ny
+# 	elseif face == 4
+# 		idx = N-Ny+1:N
+# 	else
+# 	end
+#
+# 	y[idx] = u_face
+#
+# 	return y
+#
+# end
 
 function VOLtoFACE(u, face, Nx, Ny)  ## This cause bugs for using Different Nx and Ny
 	N = Nx*Ny
@@ -371,7 +237,7 @@ end
 
 yv2f1 = zeros(Nx*Ny)
 
-function VOLtoFACE_beta(u,face,Nx,Ny,N,yv2fs) ## Has some issue
+function VOLtoFACE_beta(u::Array{Float64},face::Int64,Nx::Int64, Ny::Int64, N::Int64, yv2fs) ## Has some issue
 	if face == 1
 			idx = 1:Ny:N-Ny+1
 	elseif face == 2
