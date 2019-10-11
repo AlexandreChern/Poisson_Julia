@@ -1,0 +1,58 @@
+N = 11*11
+
+
+julia> @benchmark myMAT_original!(du,u)
+BenchmarkTools.Trial:
+  memory estimate:  77.30 KiB
+  allocs estimate:  270
+  --------------
+  minimum time:     28.548 μs (0.00% GC)
+  median time:      31.666 μs (0.00% GC)
+  mean time:        43.278 μs (25.39% GC)
+  maximum time:     61.698 ms (99.80% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+
+julia> @benchmark myMAT_new!(du,u,container,var_test,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  11.16 KiB
+  allocs estimate:  41
+  --------------
+  minimum time:     13.200 μs (0.00% GC)
+  median time:      14.147 μs (0.00% GC)
+  mean time:        22.567 μs (36.10% GC)
+  maximum time:     61.599 ms (99.82% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+
+
+
+
+N = 101*101
+julia> @benchmark myMAT_original!(du,u)
+BenchmarkTools.Trial:
+  memory estimate:  3.96 MiB
+  allocs estimate:  853
+  --------------
+  minimum time:     1.493 ms (0.00% GC)
+  median time:      1.953 ms (0.00% GC)
+  mean time:        2.523 ms (23.18% GC)
+  maximum time:     67.182 ms (97.72% GC)
+  --------------
+  samples:          1977
+  evals/sample:     1
+
+julia> @benchmark myMAT_new!(du,u,container,var_test,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  722.86 KiB
+  allocs estimate:  50
+  --------------
+  minimum time:     206.567 μs (0.00% GC)
+  median time:      464.293 μs (0.00% GC)
+  mean time:        563.525 μs (19.11% GC)
+  maximum time:     68.568 ms (99.27% GC)
+  --------------
+  samples:          8835
+  evals/sample:     1

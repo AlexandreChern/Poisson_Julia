@@ -27,11 +27,11 @@ using BenchmarkTools
 
 
 @with_kw struct variables
-    Nx = Int64(11)
-    Ny = Int64(11)
+    Nx = Int64(101)
+    Ny = Int64(101)
     N = Int64(Nx*Ny)
-    hx = Float64(1/Nx)
-    hy = Float64(1/Ny)
+    hx = Float64(1/(Nx-1))
+    hy = Float64(1/(Ny-1))
     x = 0:hx:1
     y = 0:hy:1
     alpha1 = -1
@@ -114,8 +114,8 @@ y_Hx = zeros(N)
 u = randn(N)
 
 @with_kw struct containers
-    Nx = Int64(11)
-    Ny = Int64(11)
+    Nx = Int64(101)
+    Ny = Int64(101)
     N = Nx*Ny
     # Array Containers
     # y_D2x = Array{Float64,1}(undef,Nx*Ny) # container for D2x
@@ -168,8 +168,8 @@ container = containers()
 	#Chunk below should be passed as input, but for now needs to match chunk below
 
 @with_kw struct intermediates
-    Nx = Int64(11)
-    Ny = Int64(11)
+    Nx = Int64(101)
+    Ny = Int64(101)
     N = Nx*Ny
     du_ops = zeros(N)
     du1 = zeros(N)
@@ -195,19 +195,19 @@ end
 intermediate = intermediates()
 
 function myMAT_original!(du::AbstractVector, u::AbstractVector)
-    # 	h = 0.05
-    # 	dx = h
-    # 	dy = h
-    # 	x = 0:dx:1
-    #         y = 0:dy:1
-    # 	Nx = length(x)
-    #         Ny = length(y)
-    # 	alpha1 = -1
-    #         alpha2 = -1
-    #         alpha3 = -13/dy
-    #         alpha4 = -13/dy
-    #         beta = 1
-    @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+    h = 0.01
+    dx = h
+    dy = h
+    x = 0:dx:1
+    y = 0:dy:1
+    Nx = length(x)
+    Ny = length(y)
+    alpha1 = -1
+    alpha2 = -1
+    alpha3 = -13/dy
+    alpha4 = -13/dy
+    beta = 1
+    # @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
     	########################################
 
         du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
@@ -291,7 +291,9 @@ end
 # 	du[:] = -Hx_test(du17,Nx,Ny,dx)
 # end
 
-
+Nx = 101
+Ny = 101
+u = randn(Nx*Ny)
 du = similar(u)
 
 container = containers()
@@ -361,7 +363,8 @@ function myMAT_new!(du::AbstractVector, u::AbstractVector,container,var_test,int
 
     #du17 = Hy_test(du0, Nx, Ny, dy)
     du17 = Hy_beta(du0,Nx,Ny,N,hx,hy,y_Hy)
-	du[:] = - Hx_beta(du17,Nx,Ny,N,hx,hy,y_Hx)
+	du = - Hx_beta(du17,Nx,Ny,N,hx,hy,y_Hx)
+    return du
 end
 
 
