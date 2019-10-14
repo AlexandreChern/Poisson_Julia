@@ -41,30 +41,27 @@ using BenchmarkTools
     beta = 1
 end
 
+#
+# h = 0.0625
+# dx = h
+# dy = h
+# x = 0:dx:1
+# y = 0:dy:1
+# Nx = length(x)
+# Ny = length(y)
+# N = Nx*Ny
+# alpha1 = -1
+# alpha2 = -1
+# alpha3 = -13/dy
+# alpha4 = -13/dy
+# beta = 1
+# hx = Float64(1/(Nx-1))
+# hy = Float64(1/(Ny-1))
 
-h = 0.0625
-dx = h
-dy = h
-x = 0:dx:1
-y = 0:dy:1
-Nx = length(x)
-Ny = length(y)
-N = Nx*Ny
-alpha1 = -1
-alpha2 = -1
-alpha3 = -13/dy
-alpha4 = -13/dy
-beta = 1
-hx = Float64(1/(Nx-1))
-hy = Float64(1/(Ny-1))
+var_test = variables(
+)
 
-var_test = variables()
 
-function test(var_test)
-    @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
-end
-
-test(var_test)
 
 @unpack Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta = var_test
 N = Nx*Ny
@@ -367,6 +364,75 @@ function myMAT_new!(du::AbstractVector, u::AbstractVector,container,var_test,int
     return du
 end
 
+
+function myMAT_beta!(du::AbstractVector, u::AbstractVector,container,var_test,intermediate)
+# 	h = 0.05
+# 	dx = h
+# 	dy = h
+# 	x = 0:dx:1
+#         y = 0:dy:1
+# 	Nx = length(x)
+#         Ny = length(y)
+# 	alpha1 = -1
+#         alpha2 = -1
+#         alpha3 = -13/dy
+#         alpha4 = -13/dy
+#         beta = 1
+    #@unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+	########################################
+    # y1 = Array{Float64,1}(undef,Nx*Ny)
+    # y2 = Array{Float64,1}(undef,Nx*Ny)
+    @unpack N, y_D2x, y_D2y, y_Dx, y_Dy, y_Hxinv, y_Hyinv, yv2f1, yv2f2, yv2f3, yv2f4, yv2fs, yf2v1, yf2v2, yf2v3, yf2v4, yf2vs, y_Bx, y_By, y_BxSx, y_BySy, y_BxSx_tran, y_BySy_tran, y_Hx, y_Hy = container
+    # @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
+    @unpack Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta = var_test
+    @unpack du_ops,du1,du2,du3,du4,du5,du6,du7,du8,du9,du10,du11,du12,du13,du14,du15,du16,du17,du0 = intermediate
+
+    #du_ops = D2x(u,Nx,Ny,dx) + D2y(u,Nx,Ny,dy) #compute action of D2x + D2y
+    du_ops .= D2x_beta(u,Nx,Ny,N,hx,hy,y_D2x) .+ D2y_beta(u,Nx,Ny,N,hx,hy,y_D2y)
+    #du_ops = D2_beta_2(u,Nx,Ny,y1,y2)
+    #du1 = BySy_test(u,Nx,Ny,dy)
+    du1 = BySy_beta(u,Nx,Ny,N,hx,hy,y_BySy)
+    #du2 = VOLtoFACE(du1,1,Nx,Ny)
+    du2 = VOLtoFACE_beta(du1,1,Nx,Ny,N,yv2fs)
+    #du3 = alpha1*Hyinv_test(du2,Nx,Ny,dy)  #compute action of P1
+    du3 .= alpha1 .*Hyinv_beta(du2,Nx,Ny,N,hx,hy,y_Hyinv)
+
+    #du4 = BySy_test(u,Nx,Ny,dy)
+    #du4 = du1
+    #du5 = VOLtoFACE(du1,2,Nx,Ny)
+    du5 = VOLtoFACE_beta(du1,2,Nx,Ny,N,yv2fs)
+    #du6 = alpha2*Hyinv_test(du5,Nx,Ny,dy) #compute action of P2
+    du6 .= alpha2 .* Hyinv_beta(du5,Nx,Ny,N,hx,hy,y_Hyinv)   # this slows down    should always use .= for assignment
+
+    #du7 = VOLtoFACE(u,3,Nx,Ny)
+    du7 = VOLtoFACE_beta(u,3,Nx,Ny,N,yv2fs)
+    #du8 = BxSx_tran_test(du7,Nx,Ny,dx)
+    du8 = BxSx_tran_beta(du7,Nx,Ny,N,hx,hy,y_BxSx_tran)
+    #du9 = beta*Hxinv_test(du8,Nx,Ny,dx)
+    du9 .= beta .* Hxinv_beta(du8,Nx,Ny,N,hx,hy,y_Hxinv)
+    #du10 = VOLtoFACE(u,3,Nx,Ny)
+    #du10 = du7
+    du11 .= alpha3 .* Hxinv_beta(du7,Nx,Ny,N,hx,hy,y_Hxinv) #compute action of P3
+
+    #du12 = VOLtoFACE(u,4,Nx,Ny)
+    du12 = VOLtoFACE_beta(u,4,Nx,Ny,N,yv2fs)
+    du13 = BxSx_tran_beta(du12,Nx,Ny,N,hx,hy,y_Hxinv)
+    #du14 = beta*Hxinv_test(du13,Nx,Ny,dx)
+    du14 .= beta .* Hxinv_beta(du13,Nx,Ny,N,hx,hy,y_Hxinv)
+    #du15 = VOLtoFACE(u,4,Nx,Ny)
+    #du16 = alpha4*Hxinv_test(du15,Nx,Ny,dx) #compute action of P4
+    du16 .= alpha4 .* Hxinv_beta(du12,Nx,Ny,N,hx,hy,y_Hxinv)
+
+
+    du0 .= du_ops .+ du3 .+ du6 .+ du9 .+ du11 .+ du14 .+ du16 #Collect together
+
+        #compute action of -Hx kron Hy:
+
+    #du17 = Hy_test(du0, Nx, Ny, dy)
+    du17 = Hy_beta(du0,Nx,Ny,N,hx,hy,y_Hy)
+	du .= -1.0 .* Hx_beta(du17,Nx,Ny,N,hx,hy,y_Hx)
+    return du
+end
 
 
 # @unpack h,dx,dy,x,y,Nx,Ny,alpha1,alpha2,alpha3,alpha4,beta = var_test
