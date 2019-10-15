@@ -206,9 +206,40 @@ end
 
 var_cg = var_cgs()
 
-@unpack u, du, N = var_cg
+#@unpack u, du, N = var_cg
+du = zeros(N);
+u = zeros(N);
 
-function cg!(du, u, b, myMAT_beta! , tol=1e-6)
+
+function conjugate(myMAT_beta!,b,u,container,var,intermediate)
+    @unpack N, y_D2x, y_D2y, y_Dx, y_Dy, y_Hxinv, y_Hyinv, yv2f1, yv2f2, yv2f3, yv2f4, yv2fs, yf2v1, yf2v2, yf2v3, yf2v4, yf2vs, y_Bx, y_By, y_BxSx, y_BySy, y_BxSx_tran, y_BySy_tran, y_Hx, y_Hy = container
+    @unpack Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta = var
+    @unpack du_ops,du1,du2,du3,du4,du5,du6,du7,du8,du9,du10,du11,du12,du13,du14,du15,du16,du17,du0 = intermediate
+
+    tol = 1e-16
+    r = b - myMAT_beta!(du,u,container,var,intermediate)
+    p = r
+    rsold = r'*r
+
+    counts = 0
+    for i = 1:N
+        Ap = myMAT_beta!(du,p,container,var,intermediate)   # can't simply translate MATLAB code, p = r create a link from p to r, once p modified, r will be modified
+        alpha = rsold / (p'*Ap)
+        u = u + alpha * p
+        r = r - alpha * Ap
+        rsnew = r'*r
+        if sqrt(rsnew) < tol
+            break
+        end
+        p = r + (rsnew/rsold) * p
+        rsold = rsnew;
+        counts += 1
+        #return rsold;
+    end
+    return u, counts
+end
+
+function cg!(du, u, b, myMAT_beta! , tol=1e-16)
 
     g = similar(u)
     g .= 0
@@ -238,7 +269,7 @@ function cg!(du, u, b, myMAT_beta! , tol=1e-6)
 end
 
 
-# function cg_iteration!(u,du, g, w, myMAT_beta!, gTg)
+# function cg_iteration!(u,du, g, w, myMAT_beta!, gTg) version 1
 #     myMAT_beta!(du, u, container,var,intermediate)
 #     dTw = dot(du, w)
 #     alpha = gTg / dTw
@@ -251,7 +282,7 @@ end
 #     return g1Tg1
 # end
 
-function cg_iteration!(x, g, du, u, myMAT_beta!, gTg)
+function cg_iteration!(x, g, du, u, myMAT_beta!, gTg) #version 2
     #@unpack u, du, N = var_cg
     myMAT_beta!(du, u, container, var, intermediate)
     dTw = dot(u, du)
