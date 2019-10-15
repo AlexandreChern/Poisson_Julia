@@ -459,3 +459,24 @@ function Hy(u, Nx, Ny, h)
         return y
 
 end
+
+function BxSx_tran(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = zeros(N)
+
+	idx1 = 1:Ny
+	y[idx1] += (1.5 .* u[idx1]) .* (1/h)
+	idx = Ny+1:2*Ny
+	y[idx] += (-2 .* u[idx1]) .* (1/h)
+	idx  = 2*Ny+1:3*Ny
+	y[idx] += (0.5 .* u[idx1]) .* (1/h)
+
+	idxN = N-Ny+1:N
+	y[idxN] += (1.5 .* u[idxN]) .* (1/h)
+	idx = N-2*Ny+1:N-Ny
+	y[idx] += (-2 .* u[idxN]) .* (1/h)
+	idx = N-3*Ny+1:N-2*Ny
+	y[idx] += (0.5 .* u[idxN]) .* (1/h)
+
+	return y
+end
