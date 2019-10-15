@@ -27,8 +27,8 @@ using BenchmarkTools
 
 
 @with_kw struct variables
-    Nx = Int64(101)
-    Ny = Int64(101)
+    Nx = Int64(1001)
+    Ny = Int64(1001)
     N = Int64(Nx*Ny)
     hx = Float64(1/(Nx-1))
     hy = Float64(1/(Ny-1))
@@ -111,8 +111,8 @@ y_Hx = zeros(N)
 u = randn(N)
 
 @with_kw struct containers
-    Nx = Int64(101)
-    Ny = Int64(101)
+    Nx = Int64(1001)
+    Ny = Int64(1001)
     N = Nx*Ny
     # Array Containers
     # y_D2x = Array{Float64,1}(undef,Nx*Ny) # container for D2x
@@ -165,8 +165,8 @@ container = containers()
 	#Chunk below should be passed as input, but for now needs to match chunk below
 
 @with_kw struct intermediates
-    Nx = Int64(101)
-    Ny = Int64(101)
+    Nx = Int64(1001)
+    Ny = Int64(1001)
     N = Nx*Ny
     du_ops = zeros(N)
     du1 = zeros(N)
@@ -192,7 +192,7 @@ end
 intermediate = intermediates()
 
 function myMAT_original!(du::AbstractVector, u::AbstractVector)
-    h = 0.01
+    h = 0.001
     dx = h
     dy = h
     x = 0:dx:1
@@ -288,8 +288,8 @@ end
 # 	du[:] = -Hx_test(du17,Nx,Ny,dx)
 # end
 
-Nx = 101
-Ny = 101
+Nx = 1001
+Ny = 1001
 u = randn(Nx*Ny)
 du = similar(u)
 

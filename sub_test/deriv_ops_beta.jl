@@ -342,3 +342,120 @@ function BySy_tran_beta(u::Array{Float64,1}, Nx::Int64, Ny::Int64, N::Int64, hx:
 
 	return y_BySy
 end
+
+
+
+
+# Previous function from deriv_ops.jl
+
+function FACEtoVOL(u_face, face, Nx, Ny)
+	N = Nx*Ny
+	y = zeros(N)
+
+	if face == 1
+		idx = 1:Ny:N-Ny+1
+	elseif face == 2
+		idx = Ny:Ny:N
+	elseif face == 3
+		idx = 1:Ny
+	elseif face == 4
+		idx = N-Ny+1:N
+	else
+	end
+
+	y[idx] = u_face
+
+	return y
+
+end
+
+function VOLtoFACE(u, face, Nx, Ny)
+	N = Nx*Ny
+        y = zeros(N)
+
+        if face == 1
+                idx = 1:Ny:N-Ny+1
+        elseif face == 2
+                idx = Ny:Ny:N
+        elseif face == 3
+                idx = 1:Ny
+        elseif face == 4
+                idx = N-Ny+1:N
+        else
+        end
+
+	y[idx] = u[idx]
+        return y
+end
+
+function Hxinv(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = zeros(N)
+
+	idx = 1:Ny
+	y[idx] = (2*u[idx]) .* (1/h)
+
+	idx = Ny+1:N-Ny
+	y[idx] = (1*u[idx]) .* (1/h)
+
+	idx = N-Ny+1:N
+	y[idx] = (2*u[idx]) .* (1/h)
+
+	return y
+end
+
+function Hyinv(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = zeros(N)
+
+	idx = 1:Ny:N-Ny+1
+	y[idx] = (2*u[idx]) .* (1/h)
+
+	idx = Ny:Ny:N
+	y[idx] = (2*u[idx]) .* (1/h)
+
+	for i = 1:Nx
+		idx = 2+(i-1).*Ny:i*Ny-1
+		y[idx] = u[idx] .* (1/h)
+	end
+
+	return y
+
+end
+
+function Hx(u, Nx, Ny, h)
+	N = Nx*Ny
+        y = zeros(N)
+
+        idx = 1:Ny
+	y[idx] = h .* (1/2)*u[idx]
+
+        idx = Ny+1:N-Ny
+        y[idx] = h .* 1*u[idx]
+
+        idx = N-Ny+1:N
+	y[idx] = h .* (1/2)*u[idx]
+
+        return y
+
+
+end
+
+function Hy(u, Nx, Ny, h)
+	N = Nx*Ny
+        y = zeros(N)
+
+        idx = 1:Ny:N-Ny+1
+	y[idx] = h .* (1/2)*u[idx]
+
+        idx = Ny:Ny:N
+	y[idx] = h .* (1/2)*u[idx]
+
+        for i = 1:Nx
+                idx = 2+(i-1).*Ny:i*Ny-1
+                y[idx] = h .* u[idx]
+        end
+
+        return y
+
+end
