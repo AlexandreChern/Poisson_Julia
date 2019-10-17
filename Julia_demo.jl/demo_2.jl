@@ -1,4 +1,4 @@
-n = 10
+n = 100
 a = ones(n)
 b = ones(n)
 c = ones(n)
@@ -19,20 +19,24 @@ function f3(a,b)
     return c
 end
 
+function f4(a,b)
+    c .= a .+ b
+    return c
+end
 
 a
 
 b
 
+@benchmark f1(a,b,c)
 
-@time f1(a,b,c)
+@benchmark f2(a,b,c)
 
-c
+@benchmark f3(a,b)
 
-@time f2(a,b,c)
 
 function for_1(a,b,c)
-    for i in 1:100
+    for i in 1:1000
         f1(a,b,c)
     end
 end
@@ -40,13 +44,13 @@ end
 for_1(a,b,c)
 
 function for_2(a,b,c)
-    for i in 1:100
+    for i in 1:1000
         f2(a,b,c)
     end
 end
 
-function for_3(a,b,c)
-    for i in 1:100
+function for_3(a,b)
+    for i in 1:1000
         f3(a,b)
     end
 end
