@@ -1,0 +1,1154 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Starting Julia...
+               _
+   _       _ _(_)_     |  Documentation: https://docs.julialang.org
+  (_)     | (_) (_)    |
+   _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
+  | | | | | | |/ _` |  |
+|__/                   |
+
+julia>
+julia>
+julia>
+
+
+julia> conjugate_beta(myMAT_beta!,b,container,var,intermediate)
+ERROR: UndefVarError: r not defined
+Stacktrace:
+ [1] conjugate_beta(::typeof(myMAT_beta!), ::Array{Float64,1}, ::containers, ::variables, ::intermediates) at C:\Users\cheny\OneDrive\Documents\version-control\Poisson_Julia\sub_test\Poisson_CG_beta.jl:253
+ [2] top-level scope at none:0
+
+julia>
+julia>
+
+julia> conjugate_beta(myMAT_beta!,b,container,var,intermediate)
+([2.321037786647729e-6, 0.031405620693705665, 0.06278306391360802, 0.09410665966103891, 0.12533394019758773, 0.15643465003339677, 0.1873806379088712, 0.2181417868328337, 0.2486878982681454, 0.27898816002903587  …  -0.2789881600290248, -0.24868789826815493, -0.21814178683282645, -0.18738063790888126, -0.15643465003338844, -0.12533394019759697, -0.09410665966103025, -0.06278306391361287, -0.031405620693703167, -2.321037787001501e-6], 100)
+
+julia> @benchmark conjugate_beta(myMAT_beta!,b,container,var,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  768.92 KiB
+  allocs estimate:  4645
+  --------------
+  minimum time:     21.416 ms (0.00% GC)
+  median time:      23.953 ms (0.00% GC)
+  mean time:        24.823 ms (1.48% GC)
+  maximum time:     84.163 ms (65.02% GC)
+  --------------
+  samples:          202
+  evals/sample:     1
+
+julia> u
+10201-element Array{Float64,1}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ ⋮
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+
+julia> @benchmark conjugate_beta(myMAT_beta!,b,container,var,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  768.92 KiB
+  allocs estimate:  4645
+  --------------
+  minimum time:     22.249 ms (0.00% GC)
+  median time:      24.061 ms (0.00% GC)
+  mean time:        24.947 ms (1.38% GC)
+  maximum time:     79.106 ms (63.92% GC)
+  --------------
+  samples:          201
+  evals/sample:     1
+
+julia>
+
+julia> @benchmark conjugate_beta(myMAT_beta!,b,container,var,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  768.97 KiB
+  allocs estimate:  4647
+  --------------
+  minimum time:     21.726 ms (0.00% GC)
+  median time:      23.958 ms (0.00% GC)
+  mean time:        24.959 ms (1.51% GC)
+  maximum time:     79.002 ms (68.97% GC)
+  --------------
+  samples:          201
+  evals/sample:     1
+ [1] ##core#406() at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:297
+ [2] ##sample#407(::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:303
+ [3] #_run#24(::Bool, ::String, ::Base.Iterators.Pairs{Symbol,Integer,NTuple{4,Symbol},NamedTuple{(:samples, :evals, :gctrial, :gcsample),Tuple{Int64,Int64,Bool,Bool}}}, ::typeof(BenchmarkTools._run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#405")}, ::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:331
+ [4] (::getfield(Base, Symbol("#inner#2")){Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}},typeof(BenchmarkTools._run),Tuple{BenchmarkTools.Benchmark{Symbol("##benchmark#405")},BenchmarkTools.Parameters}})() at .\none:0
+ [5] #invokelatest#1 at .\essentials.jl:794 [inlined]
+ [6] #invokelatest at .\none:0 [inlined]
+ [7] #run_result#37 at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:32 [inlined]
+ [8] #run_result at .\none:0 [inlined] [9] #run#39(::Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}}, ::typeof(run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#405")}, ::BenchmarkTools.Param [10] warmup(::BenchmarkTools.Benchmark{Symbol("##benchmark#405")}) at .\none:0 [11] top-level scope at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:213
+
+julia> @benchmark conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+ERROR: UndefVarError: r not defined
+Stacktrace:
+ [1] ##core#410() at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:297 [2] ##sample#411(::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:303
+ [3] #_run#25(::Bool, ::String, ::Base.Iterators.Pairs{Symbol,Integer,NTuple{4,Symbol},NamedTuple{(:samples, :evals, :gctrial, :gcsample),Tuple{Int64,Int64,Bool,Bool}}}, ::typeof(BenchmarkTools._run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#409")}, ::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:331 [4] (::getfield(Base, Symbol("#inner#2")){Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}},typeof(BenchmarkTools._run),Tuple{BenchmarkTools.Benchmark{Symbol("##benchmark#409")},BenchmarkTools.Parameters}})() at .\none:0 [5] #invokelatest#1 at .\essentials.jl:794 [inlined]
+ [6] #invokelatest at .\none:0 [inlined]
+ [7] #run_result#37 at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:32 [inlined]
+ [9] #run#39(::Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}}, ::typeof(run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#409")}, ::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:46 [10] warmup(::BenchmarkTools.Benchmark{Symbol("##benchmark#409")}) at .\none:0 [11] top-level scope at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:213
+
+julia>
+julia>
+
+julia> @benchmark conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  675.05 KiB
+  allocs estimate:  3943
+  --------------
+  minimum time:     21.552 ms (0.00% GC)
+  median time:      23.640 ms (0.00% GC)
+  mean time:        24.740 ms (1.43% GC)
+  maximum time:     77.556 ms (67.06% GC)
+  --------------
+  samples:          202
+  evals/sample:     1
+
+ julia>
+
+julia> @benchmark conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+ERROR: UndefVarError: Ap not defined
+Stacktrace:
+ [1] conjugate_beta(::typeof(myMAT_beta!), ::Array{Float64,1}, ::Array{Float64,1}, ::containers, ::variables, ::intermediates) at C:\Users\cheny\OneDrive\Documents\version-control\Poisson_Julia\sub_test\Poisson_CG_beta.jl:261
+ [2] ##core#421() at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:297
+ [3] ##sample#422(::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:303
+ [4] #_run#27(::Bool, ::String, ::Base.Iterators.Pairs{Symbol,Integer,NTuple{4,Symbol},NamedTuple{(:samples, :evals, :gctrial, :gcsample),Tuple{Int64,Int64,Bool,Bool}}}, ::typeof(BenchmarkTools._run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#420")}, ::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:331 [5] (::getfield(Base, Symbol("#inner#2")){Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}},typeof(BenchmarkTools._run),Tuple{BenchmarkTools.Benchmark{Symbol("##benchmark#420")},BenchmarkTools.Parameters}})() at .\none:0 [6] #invokelatest#1 at .\essentials.jl:794 [inlined]
+ [7] #invokelatest at .\none:0 [inlined]
+ [8] #run_result#37 at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:32 [inlined]
+ [10] #run#39(::Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}}, ::typeof(run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#420")}, ::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:46 [11] warmup(::BenchmarkTools.Benchmark{Symbol("##benchmark#420")}) at .\none:0 [12] top-level scope at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:213
+
+julia>
+julia>
+
+julia> @benchmark conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  758.00 KiB
+  allocs estimate:  4145
+  --------------
+  minimum time:     21.148 ms (0.00% GC)
+  median time:      23.923 ms (0.00% GC)
+  mean time:        24.684 ms (1.40% GC)
+  maximum time:     77.121 ms (66.02% GC)
+  --------------
+  samples:          203
+  evals/sample:     1
+
+julia>
+julia>
+
+julia> conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+([7.660899109430454e-7, 0.0031404582472194893, 0.006283102752713781, 0.009425342122857493, 0.012566368570459122, 0.015707416162897506, 0.018848476693148233, 0.021989411428163623, 0.02513010494443934, 0.028270560809052183  …  -0.028270560809038645, -0.025130104944408368, -0.02198941142816914, -0.01884847669312446, -0.01570741616290477, -0.012566368570451313, -0.009425342122867865, -0.006283102752703388, -0.0031404582472232133, -7.66089910932325e-7], 1000)
+
+julia>
+
+julia> conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+([7.660899109430454e-7, 0.0031404582472194893, 0.006283102752713781, 0.009425342122857493, 0.012566368570459122, 0.015707416162897506, 0.018848476693148233, 0.021989411428163623, 0.02513010494443934, 0.028270560809052183  …  -0.028270560809038645, -0.0251301  evals/sample:     1
+
+julia> @benchmark myMAT_beta!(du,p,container,var,intermediate)
+ERROR: UndefVarError: p not defined
+Stacktrace:
+ [1] ##core#452() at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:297
+ [2] ##sample#453(::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:303
+ [3] #_run#48(::Bool, ::String, ::Base.Iterators.Pairs{Symbol,Integer,NTuple{4,Symbol},NamedTuple{(:samples, :evals, :gctrial, :gcsample),Tuple{Int64,Int64,Bool,Bool}}}, ::typeof(BenchmarkTools._run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#451")}, ::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:331 [4] (::getfield(Base, Symbol("#inner#2")){Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}},typeof(BenchmarkTools._run),Tuple{BenchmarkTools.Benchmark{Symbol("##benchmark#451")},BenchmarkTools.Parameters}})() at .\none:0 [5] #invokelatest#1 at .\essentials.jl:794 [inlined]
+ [6] #invokelatest at .\none:0 [inlined]
+ [7] #run_result#37 at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:32 [inlined]
+ [8] #run_result at .\none:0 [inlined]
+ [9] #run#39(::Base.Iterators.Pairs{Symbol,Integer,NTuple{5,Symbol},NamedTuple{(:verbose, :samples, :evals, :gctrial, :gcsample),Tuple{Bool,Int64,Int64,Bool,Bool}}}, ::typeof(run), ::BenchmarkTools.Benchmark{Symbol("##benchmark#451")}, ::BenchmarkTools.Parameters) at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:46 [10] warmup(::BenchmarkTools.Benchmark{Symbol("##benchmark#451")}) at .\none:0
+ [11] top-level scope at C:\Users\cheny\.juliapro\JuliaPro_v1.2.0-1\packages\BenchmarkTools\7aqwe\src\execution.jl:213
+
+julia> @benchmark myMAT_beta!(du,u,container,var,intermediate)BenchmarkTools.Trial:
+  memory estimate:  32.73 KiB  allocs estimate:  34
+  --------------
+  minimum time:     18.085 ms (0.00% GC)
+  median time:      18.646 ms (0.00% GC)
+  mean time:        19.213 ms (0.00% GC)
+  maximum time:     29.471 ms (0.00% GC)  --------------
+  samples:          261
+  evals/sample:     1
+
+julia>
+julia>
+
+1002001-element Array{Float64,1}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ ⋮
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+
+julia>
+
+julia> conjugate
+conjugate (generic function with 1 method)
+
+julia> conjugate)beta(myMAT_beta!,r,b,container,var,intermediate)
+julia> u1 = copy(u)
+1002001-element Array{Float64,1}:
+ 0.0
+ 0.0 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ ⋮
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+
+julia> [u1,counts1] = conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+ERROR: syntax: invalid assignment location "[u1, counts1]"
+Stacktrace:
+ [1] top-level scope at none:0
+
+julia> (u1,counts1) = conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+([-0.0009056945314549103, 0.004448811811046931, 0.005838200018295827, 0.008842376875009036, 0.012729355313700542, 0.01603385288619451, 0.01888459160776048, 0.021833287838045036, 0.025059996493719268, 0.028208011230370436  …  -0.02820801123039646, -0.025059996493856023, -0.02183328783797087, -0.018884591608002342, -0.01603385288613017, -0.01272935531381198, -0.008842376874876602, -0.0058382000184107235, -0.004448811811034692, 0.0009056945314548107], 50)
+
+julia> u1
+1002001-element Array{Float64,1}:
+ -0.0009056945314549103
+  0.004448811811046931
+  0.005838200018295827
+  0.008842376875009036
+  0.012729355313700542
+  0.01603385288619451
+  0.01888459160776048
+  0.021833287838045036
+  0.025059996493719268
+  0.028208011230370436
+  0.030901051263542798
+  0.03307201670912004
+  0.03401164001082598
+  0.03316838177224551
+  0.03178485948327344
+  0.03711677803136076
+  0.05195823308364876
+  0.06572141034542736
+  ⋮
+ -0.06572141034547559
+ -0.051958233083607405
+ -0.03711677803154166
+ -0.0317848594833331
+ -0.033168381772353143
+ -0.034011640010802306
+ -0.033072016709284745
+ -0.030901051263652855
+ -0.02820801123039646
+ -0.025059996493856023
+ -0.02183328783797087
+ -0.018884591608002342
+ -0.01603385288613017
+ -0.01272935531381198
+ -0.0058382000184107235
+ -0.004448811811034692
+
+julia> exact
+1002001-element SparseVector{Float64,Int64} with 1002000 stored entries:
+  [2      ]  =  0.00314159
+  [3      ]  =  0.00628314
+  [4      ]  =  0.00942464
+  [5      ]  =  0.012566
+  [6      ]  =  0.0157073
+  [7      ]  =  0.0188484
+  [8      ]  =  0.0219894
+  [9      ]  =  0.0251301
+  [10     ]  =  0.0282706
+  [11     ]  =  0.0314108
+  [12     ]  =  0.0345506
+  [13     ]  =  0.0376902
+  [14     ]  =  0.0408294
+  [15     ]  =  0.0439681
+  [16     ]  =  0.0471065
+             ⋮
+  [1001986]  =  -0.0471065
+  [1001987]  =  -0.0439681
+  [1001988]  =  -0.0408294
+  [1001989]  =  -0.0376902
+  [1001990]  =  -0.0345506
+  [1001991]  =  -0.0314108
+  [1001992]  =  -0.0282706
+  [1001993]  =  -0.0251301
+  [1001994]  =  -0.0219894
+  [1001995]  =  -0.0188484
+  [1001996]  =  -0.0157073
+  [1001997]  =  -0.012566
+  [1001998]  =  -0.00942464
+  [1001999]  =  -0.00628314
+  [1002000]  =  -0.00314159
+  [1002001]  =  -2.44929e-16
+
+julia>
+julia>
+
+julia>
+julia>
+
+1002001-element Array{Float64,1}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ ⋮
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+
+julia>
+julia>
+
+julia> u1
+1002001-element Array{Float64,1}:
+ -0.0001230433206426082
+  0.006251663623383534
+  0.00932765617341036
+  0.012561846460240183
+  0.015736789656338724
+  0.01887068606501685
+  0.02199956505132388
+  0.02513266638499323
+  0.028267615559315926
+  0.031404032774909114
+  0.0345424705729679
+  0.03768492167934987
+  0.04083080975813069
+  0.043975041185350325
+  0.04711388380493224
+  0.05025058143304837
+  0.053390328638629414
+  ⋮
+ -0.05339032863828505
+ -0.05025058143323795
+ -0.04711388380461452
+ -0.04397504118550776
+ -0.040830809757905456
+ -0.0376849216795194
+ -0.03454247057276317
+ -0.03140403277502402
+ -0.02826761555907758
+ -0.025132666385130776
+ -0.021999565051174216
+ -0.018870686065118287
+ -0.015736789656111104
+ -0.012561846460479443
+ -0.009327656173312618
+ -0.006251663623447604
+ -0.003326860558057937
+  0.00012304332063828793
+
+julia> counts1
+50
+
+julia>
+julia>
+
+julia> u1
+1002001-element Array{Float64,1}:
+ -0.0001230433206426082
+  0.003326860558109661
+  0.006251663623383534
+  0.00932765617341036
+  0.012561846460240183
+  0.015736789656338724
+  0.01887068606501685
+  0.02199956505132388
+  0.02513266638499323
+  0.028267615559315926
+  0.031404032774909114
+  0.0345424705729679
+  0.03768492167934987
+  0.04083080975813069
+  0.043975041185350325
+  0.04711388380493224
+  0.05025058143304837
+  0.053390328638629414
+  ⋮
+ -0.05339032863828505
+ -0.05025058143323795
+ -0.04711388380461452
+ -0.04397504118550776
+ -0.040830809757905456
+ -0.0376849216795194
+ -0.03454247057276317
+ -0.03140403277502402
+ -0.02826761555907758
+ -0.025132666385130776
+ -0.021999565051174216
+ -0.018870686065118287
+ -0.015736789656111104
+ -0.012561846460479443
+ -0.009327656173312618
+ -0.006251663623447604
+ -0.003326860558057937
+  0.00012304332063828793
+
+julia> exact
+1002001-element SparseVector{Float64,Int64} with 1002000 stored entries:
+  [2      ]  =  0.00314159
+  [3      ]  =  0.00628314
+  [4      ]  =  0.00942464
+  [5      ]  =  0.012566
+  [6      ]  =  0.0157073
+  [7      ]  =  0.0188484
+  [8      ]  =  0.0219894
+  [9      ]  =  0.0251301
+  [10     ]  =  0.0282706
+  [11     ]  =  0.0314108
+  [12     ]  =  0.0345506
+  [13     ]  =  0.0376902
+  [14     ]  =  0.0408294
+  [15     ]  =  0.0439681
+  [16     ]  =  0.0471065
+             ⋮
+  [1001986]  =  -0.0471065
+  [1001987]  =  -0.0439681
+  [1001988]  =  -0.0408294
+  [1001989]  =  -0.0376902
+  [1001990]  =  -0.0345506
+  [1001991]  =  -0.0314108
+  [1001992]  =  -0.0282706
+  [1001993]  =  -0.0251301
+  [1001994]  =  -0.0219894
+  [1001995]  =  -0.0188484
+  [1001996]  =  -0.0157073
+  [1001997]  =  -0.012566
+  [1001998]  =  -0.00942464
+  [1001999]  =  -0.00628314
+  [1002000]  =  -0.00314159
+  [1002001]  =  -2.44929e-16
+
+julia> u1
+1002001-element Array{Float64,1}:
+ -0.0001230433206426082
+  0.003326860558109661
+  0.006251663623383534
+  0.00932765617341036
+  0.012561846460240183
+  0.015736789656338724
+  0.01887068606501685
+  0.02199956505132388
+  0.02513266638499323
+  0.028267615559315926
+  0.031404032774909114
+  0.0345424705729679
+  0.03768492167934987
+  0.04083080975813069
+  0.043975041185350325
+  0.04711388380493224
+  0.05025058143304837
+  0.053390328638629414
+  ⋮
+ -0.05339032863828505
+ -0.05025058143323795
+ -0.04711388380461452
+ -0.04397504118550776
+ -0.040830809757905456
+ -0.0376849216795194
+ -0.03454247057276317
+ -0.03140403277502402
+ -0.02826761555907758
+ -0.025132666385130776
+ -0.021999565051174216
+ -0.018870686065118287
+ -0.015736789656111104
+ -0.012561846460479443
+ -0.009327656173312618
+ -0.006251663623447604
+ -0.003326860558057937
+  0.00012304332063828793
+
+julia> u1 - exact
+1002001-element SparseVector{Float64,Int64} with 1002001 stored entries:
+  [1      ]  =  -0.000123043
+  [2      ]  =  0.000185273
+  [3      ]  =  -3.14803e-5
+  [4      ]  =  -9.69823e-5
+  [5      ]  =  -4.19342e-6
+  [6      ]  =  2.94723e-5
+  [7      ]  =  2.22463e-5
+  [8      ]  =  1.0189e-5
+  [9      ]  =  2.57094e-6
+  [10     ]  =  -2.95121e-6
+  [11     ]  =  -6.7263e-6
+  [12     ]  =  -8.1708e-6
+  [13     ]  =  -5.26099e-6
+  [14     ]  =  1.45778e-6
+  [15     ]  =  6.92287e-6
+             ⋮
+  [1001986]  =  -7.43309e-6
+  [1001987]  =  -6.92287e-6
+  [1001988]  =  -1.45778e-6
+  [1001989]  =  5.26099e-6
+  [1001990]  =  8.1708e-6
+  [1001991]  =  6.7263e-6
+  [1001992]  =  2.95121e-6
+  [1001993]  =  -2.57094e-6
+  [1001994]  =  -1.0189e-5
+  [1001995]  =  -2.22463e-5
+  [1001996]  =  -2.94723e-5
+  [1001997]  =  4.19342e-6
+  [1001998]  =  9.69823e-5
+  [1001999]  =  3.14803e-5
+  [1002000]  =  -0.000185273
+  [1002001]  =  0.000123043
+
+julia> norm(u1-exact)
+670.2721216922238
+
+julia> max(u1-exact)
+ERROR: MethodError: no method matching max(::SparseVector{Float64,Int64})
+Closest candidates are:
+  max(::Any, ::Missing) at missing.jl:104
+  max(::Any, ::Any) at operators.jl:408
+  max(::Any, ::Any, ::Any, ::Any...) at operators.jl:529
+  ...
+Stacktrace:
+ [1] top-level scope at none:0
+
+julia> maxItem
+ERROR: UndefVarError: maxItem not defined
+
+help?> max
+search: max maximum maximum! maxintfloat argmax eigmax typemax findmax findmax! Cintmax_t floatmax Cuintmax_t Matrix minmax BitMatrix macroexpand @macroexpand @macroexpand1 DenseMatrix SparseMatrixCSC StridedMatrix AbstractMatrix AbstractSparseMatrix
+
+  max(x, y, ...)
+
+  Return the maximum of the arguments. See also the maximum function to take the maximum element from a collection.
+
+  Examples
+  ≡≡≡≡≡≡≡≡≡≡
+
+  julia> max(2, 5, 1)
+  5
+
+julia> u2
+1002001-element Array{Float64,1}:
+ -0.0001230433206426082
+  0.003326860558109661
+  0.006251663623383534
+  0.00932765617341036
+  0.012561846460240183
+  0.015736789656338724
+  0.01887068606501685
+  0.02199956505132388
+  0.02513266638499323
+  0.028267615559315926
+  0.031404032774909114
+  0.0345424705729679
+  0.03768492167934987
+  0.04083080975813069
+  0.043975041185350325
+  0.04711388380493224
+  0.05025058143304837
+  0.053390328638629414
+  ⋮
+ -0.05339032863828505
+ -0.05025058143323795
+ -0.04711388380461452
+ -0.04397504118550776
+ -0.040830809757905456
+ -0.0376849216795194
+ -0.03454247057276317
+ -0.03140403277502402
+ -0.02826761555907758
+ -0.025132666385130776
+ -0.021999565051174216
+ -0.018870686065118287
+ -0.015736789656111104
+ -0.012561846460479443
+ -0.009327656173312618
+ -0.006251663623447604
+ -0.003326860558057937
+  0.00012304332063828793
+
+julia> u3
+1002001-element Array{Float64,1}:
+  1.2895751236270898e-5
+  0.003122281491546716
+  0.006285386530438361
+  0.00943563805451643
+  0.012567965742272811
+  0.01570512113094614
+  0.018846122850958793
+  0.02198766864440052
+  0.02512876619712057
+  0.02826981209218737
+  0.031410665653541905
+  0.03455111959241818
+  0.03769108004441247
+  0.040830450953979316
+  0.043969213940221005
+  0.04710735897741511
+  0.05024488772754779
+  0.05338186079459636
+  ⋮
+ -0.05338186079457302
+ -0.050244887727628584
+ -0.04710735897731477
+ -0.0439692139402832
+ -0.040830450953921
+ -0.03769108004447187
+ -0.03455111959234615
+ -0.031410665653479455
+ -0.028269812092137768
+ -0.025128766197043337
+ -0.021987668644424675
+ -0.01884612285072278
+ -0.01570512113101752
+ -0.01256796574213336
+ -0.009435638054552085
+ -0.00628538653037577
+ -0.0031222814914804694
+ -1.2895751242424176e-5
+
+julia> u4
+ERROR: UndefVarError: u4 not defined
+
+julia>
+
+julia> (u1-exact)'*(u1-exact)
+
+julia> u1 - exact
+1002001-element SparseVector{Float64,Int64} with 1002001 stored entries:
+  [1      ]  =  -0.000123043
+  [2      ]  =  0.000185273
+  [4      ]  =  -9.69823e-5
+  [5      ]  =  -4.19342e-6
+  [6      ]  =  2.94723e-5
+  [7      ]  =  2.22463e-5
+  [8      ]  =  1.0189e-5
+  [9      ]  =  2.57094e-6
+  [10     ]  =  -2.95121e-6
+  [11     ]  =  -6.7263e-6
+  [12     ]  =  -8.1708e-6
+  [13     ]  =  -5.26099e-6
+  [14     ]  =  1.45778e-6
+  [15     ]  =  6.92287e-6
+             ⋮
+  [1001986]  =  -7.43309e-6
+  [1001987]  =  -6.92287e-6
+  [1001988]  =  -1.45778e-6
+  [1001989]  =  5.26099e-6
+  [1001991]  =  6.7263e-6
+  [1001992]  =  2.95121e-6
+  [1001993]  =  -2.57094e-6
+  [1001994]  =  -1.0189e-5
+  [1001995]  =  -2.22463e-5
+  [1001996]  =  -2.94723e-5
+  [1001997]  =  4.19342e-6
+  [1001998]  =  9.69823e-5
+  [1001999]  =  3.14803e-5
+  [1002000]  =  -0.000185273
+  [1002001]  =  0.000123043
+
+julia> (u2-exact)'*(u2-exact)
+449264.71711759485
+
+julia>
+julia>
+
+julia> u1 == u2
+true
+
+julia>
+julia>
+
+julia> counts1
+100
+
+julia> count2
+ERROR: UndefVarError: count2 not defined
+
+julia> counts2
+100
+
+julia> counts3
+200
+
+julia> counts4
+ERROR: UndefVarError: counts4 not defined
+
+julia>
+julia> u1
+1002001-element Array{Float64,1}:
+ -0.0009056945314549103
+  0.004448811811046931
+  0.005838200018295827
+  0.008842376875009036
+  0.012729355313700542
+  0.01603385288619451
+  0.01888459160776048
+  0.021833287838045036
+  0.025059996493719268
+  0.028208011230370436
+  0.030901051263542798
+  0.03307201670912004
+  0.03401164001082598
+  0.03316838177224551
+  0.03178485948327344
+  0.03711677803136076
+  0.05195823308364876
+  0.06572141034542736
+  ⋮
+ -0.06572141034547559
+ -0.051958233083607405
+ -0.03711677803154166
+ -0.0317848594833331
+ -0.033168381772353143
+ -0.034011640010802306
+ -0.033072016709284745
+ -0.030901051263652855
+ -0.02820801123039646
+ -0.025059996493856023
+ -0.02183328783797087
+ -0.018884591608002342
+ -0.01603385288613017
+ -0.01272935531381198
+ -0.008842376874876602
+ -0.0058382000184107235
+ -0.004448811811034692
+  0.0009056945314548107
+
+julia> u2
+1002001-element Array{Float64,1}:
+ -0.0001230433206426082
+  0.003326860558109661
+  0.006251663623383534
+  0.00932765617341036
+  0.012561846460240183
+  0.015736789656338724
+  0.01887068606501685
+  0.02199956505132388
+  0.02513266638499323
+  0.028267615559315926
+  0.031404032774909114
+  0.0345424705729679
+  0.03768492167934987
+  0.04083080975813069
+  0.043975041185350325
+  0.04711388380493224
+  0.05025058143304837
+  0.053390328638629414
+  ⋮
+ -0.05339032863828505
+ -0.05025058143323795
+ -0.04711388380461452
+ -0.04397504118550776
+ -0.040830809757905456
+ -0.0376849216795194
+ -0.03454247057276317
+ -0.03140403277502402
+ -0.02826761555907758
+ -0.025132666385130776
+ -0.021999565051174216
+ -0.018870686065118287
+ -0.015736789656111104
+ -0.012561846460479443
+ -0.009327656173312618
+ -0.006251663623447604
+ -0.003326860558057937
+  0.00012304332063828793
+
+julia> u3
+1002001-element Array{Float64,1}:
+  1.2895751236270898e-5
+  0.003122281491546716
+  0.006285386530438361
+  0.00943563805451643
+  0.012567965742272811
+  0.01570512113094614
+  0.018846122850958793
+  0.02198766864440052
+  0.02512876619712057
+  0.02826981209218737
+  0.031410665653541905
+  0.03455111959241818
+  0.03769108004441247
+  0.040830450953979316
+  0.043969213940221005
+  0.04710735897741511
+  0.05024488772754779
+  0.05338186079459636
+  ⋮
+ -0.05338186079457302
+ -0.050244887727628584
+ -0.04710735897731477
+ -0.0439692139402832
+ -0.040830450953921
+ -0.03769108004447187
+ -0.03455111959234615
+ -0.031410665653479455
+ -0.028269812092137768
+ -0.025128766197043337
+ -0.021987668644424675
+ -0.01884612285072278
+ -0.01570512113101752
+ -0.01256796574213336
+ -0.009435638054552085
+ -0.00628538653037577
+ -0.0031222814914804694
+ -1.2895751242424176e-5
+
+julia> u4
+1002001-element Array{Float64,1}:
+ -1.186194695584048e-5
+  0.0031590451535047958
+  0.006283378068325691
+  0.009414071824310548
+  0.012561760186561638
+  0.01570673295044351
+  0.01884873002498665
+  0.02198967698223434
+  0.02513070849758951
+  0.028271319099048557
+  0.03141154566733953
+  0.03455135161826061
+  0.03769078263988552
+  0.04082980552436277
+  0.04396841458249444
+  0.047106575551867945
+  0.05024428769931871
+  0.05338151198704516
+  ⋮
+ -0.05338151198723186
+ -0.050244287699248526
+ -0.04710657555207072
+ -0.04396841458241338
+ -0.04082980552459647
+ -0.03769078263978807
+ -0.034551351618468264
+ -0.03141154566725565
+ -0.028271319099176254
+ -0.02513070849754926
+ -0.021989676982336018
+ -0.018848730024954248
+ -0.015706732950504673
+ -0.012561760186527327
+ -0.009414071824325687
+ -0.006283378068282883
+ -0.0031590451534848837
+  1.1861946953740674e-5
+
+julia> exact
+1002001-element SparseVector{Float64,Int64} with 1002000 stored entries:
+  [2      ]  =  0.00314159
+  [3      ]  =  0.00628314
+  [4      ]  =  0.00942464
+  [5      ]  =  0.012566
+  [6      ]  =  0.0157073
+  [7      ]  =  0.0188484
+  [8      ]  =  0.0219894
+  [9      ]  =  0.0251301
+  [10     ]  =  0.0282706
+  [11     ]  =  0.0314108
+  [12     ]  =  0.0345506
+  [13     ]  =  0.0376902
+  [14     ]  =  0.0408294
+  [15     ]  =  0.0439681
+  [16     ]  =  0.0471065
+             ⋮
+  [1001986]  =  -0.0471065
+  [1001987]  =  -0.0439681
+  [1001988]  =  -0.0408294
+  [1001989]  =  -0.0376902
+  [1001990]  =  -0.0345506
+  [1001991]  =  -0.0314108
+  [1001992]  =  -0.0282706
+  [1001993]  =  -0.0251301
+  [1001994]  =  -0.0219894
+  [1001995]  =  -0.0188484
+  [1001996]  =  -0.0157073
+  [1001997]  =  -0.012566
+  [1001998]  =  -0.00942464
+  [1001999]  =  -0.00628314
+  [1002000]  =  -0.00314159
+  [1002001]  =  -2.44929e-16
+
+julia> norm(u1-exact)
+690.0008460288041
+
+julia> norm(u2-exact)
+670.2721216922238
+
+julia> norm(u3-exact)
+618.5101698840267
+
+julia> norm(u4 - exact)
+472.9047928018942
+
+julia> Hxinv
+Hxinv (generic function with 1 method)
+
+julia>
+
+julia> max(u3)
+ERROR: MethodError: no method matching max(::Array{Float64,1})
+Closest candidates are:
+  max(::Any, ::Missing) at missing.jl:104
+  max(::Any, ::Any) at operators.jl:408
+  max(::Any, ::Any, ::Any, ::Any...) at operators.jl:529
+  ...
+Stacktrace:
+ [1] top-level scope at none:0
+
+julia> argmax(u3)
+501
+
+julia> idmax(u3)
+ERROR: UndefVarError: idmax not defined
+Stacktrace:
+ [1] top-level scope at none:0
+julia> indmax(u3)
+ERROR: UndefVarError: indmax not defined
+Stacktrace:
+ [1] top-level scope at none:0
+
+Use square brackets [] for indexing an Array.
+Stacktrace:
+ [1] top-level scope at none:0
+
+0.9999922622125507
+
+
+help?> max
+search: max maximum maximum! maxintfloat argmax eigmax typemax findmax findmax! Cintmax_t floatmax Cuintmax_t Matrix minmax BitMatrix macroexpand @macroexpand @macroexpand1 DenseMatrix SparseMatrixCSC StridedMatrix AbstractMatrix AbstractSparseMatrix
+
+  max(x, y, ...)
+
+  Return the maximum of the arguments. See also the maximum function to take the maximum element from a collection.
+
+  Examples
+  ≡≡≡≡≡≡≡≡≡≡
+
+  julia> max(2, 5, 1)
+  5
+
+maximum (generic function with 14 methods)
+
+julia> maximum(u3)
+0.9999922622125507
+julia> maximum(u3 - exact)
+0.9707528440217732
+
+julia>
+julia>
+
+julia> maximum(u4 - exact)
+0.879380687573315
+
+julia>
+julia>
+
+julia> maximum(u5 - exact)
+0.280869199149142
+
+ julia>
+
+julia>
+julia>
+
+  memory estimate:  32.21 MiB
+  allocs estimate:  2095
+  --------------
+  minimum time:     1.179 s (0.04% GC)
+  median time:      1.231 s (0.24% GC)
+  mean time:        1.233 s (0.22% GC)
+  maximum time:     1.276 s (0.28% GC)
+  --------------
+  samples:          5
+  evals/sample:     1
+
+julia>
+
+julia> maximum(u1 - exact)
+0.9979898481538687
+
+ julia>
+
+julia> @benchmark conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  33.82 MiB
+  allocs estimate:  4145
+  --------------
+  minimum time:     2.468 s (0.02% GC)
+  median time:      2.502 s (0.06% GC)
+  mean time:        2.502 s (0.06% GC)
+  maximum time:     2.535 s (0.11% GC)
+  --------------
+  samples:          2
+  evals/sample:     1
+
+ julia>
+
+julia> maximum(u2 - exact)
+0.9926108476837375
+
+ julia>
+
+julia> @benchmark conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  37.03 MiB
+  allocs estimate:  8245
+  --------------
+  minimum time:     4.906 s (0.01% GC)
+  median time:      5.004 s (0.03% GC)
+  mean time:        5.004 s (0.03% GC)
+  maximum time:     5.101 s (0.05% GC)
+  --------------
+  samples:          2
+  evals/sample:     1
+
+
+julia>
+julia>
+
+julia> @benchmark conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  43.44 MiB
+  allocs estimate:  16445
+  --------------
+  minimum time:     9.377 s (0.00% GC)
+  median time:      9.377 s (0.00% GC)
+  mean time:        9.377 s (0.00% GC)
+  maximum time:     9.377 s (0.00% GC)
+  --------------
+  samples:          1
+  evals/sample:     1
+
+ julia>
+
+julia> maximum(u4 - exact)
+0.879380687573315
+julia>
+julia>
+
+julia> @benchmark conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+BenchmarkTools.Trial:
+  memory estimate:  62.69 MiB
+  allocs estimate:  41046
+  --------------
+  minimum time:     23.669 s (0.01% GC)
+  median time:      23.669 s (0.01% GC)
+  mean time:        23.669 s (0.01% GC)
+  maximum time:     23.669 s (0.01% GC)
+  --------------
+  samples:          1
+  evals/sample:     1
+
+julia>
+julia>
+
+julia> maximum(u5 - exact)
+0.280869199149142
+
+julia> medium
+ERROR: UndefVarError: medium not defined
+
+julia> median
+ERROR: UndefVarError: median not defined
+
+julia> middle
+ERROR: UndefVarError: middle not defined
+
+julia> median!
+ERROR: UndefVarError: median! not defined
+
+julia>
+julia>
+
+julia> ^C
+
+julia>

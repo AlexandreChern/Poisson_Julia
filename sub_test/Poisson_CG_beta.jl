@@ -12,8 +12,8 @@ using LinearAlgebra
 
 ## Define variables for this problem
 @with_kw struct variables
-    Nx = Int64(101)
-    Ny = Int64(101)
+    Nx = Int64(1001)
+    Ny = Int64(1001)
     N = Int64(Nx*Ny)
     hx = Float64(1/(Nx-1))
     hy = Float64(1/(Ny-1))
@@ -34,8 +34,8 @@ var = variables()
 ## Define Data Containers
 
 @with_kw struct containers
-    Nx = Int64(101)
-    Ny = Int64(101)
+    Nx = Int64(1001)
+    Ny = Int64(1001)
     N = Nx*Ny
     # Array Containers
     # y_D2x = Array{Float64,1}(undef,Nx*Ny) # container for D2x
@@ -88,8 +88,8 @@ container = containers()
 
 ## intermediate results
 @with_kw struct intermediates
-    Nx = Int64(101)
-    Ny = Int64(101)
+    Nx = Int64(1001)
+    Ny = Int64(1001)
     N = Nx*Ny
     du_ops = zeros(N)
     du1 = zeros(N)
@@ -196,8 +196,8 @@ b,exact = Generate(var)
 
 
 @with_kw struct var_cgs
-    Nx = 101
-    Ny = 101
+    Nx = 1001
+    Ny = 1001
     N = Nx*Ny
     u = randn(N)
     du = similar(u)
@@ -242,7 +242,8 @@ function conjugate(myMAT_beta!,b,container,var,intermediate)
     return u, counts
 end
 
-function conjugate_beta(myMAT_beta!,b,container,var,intermediate)
+r = similar(u)
+function conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
     @unpack N, y_D2x, y_D2y, y_Dx, y_Dy, y_Hxinv, y_Hyinv, yv2f1, yv2f2, yv2f3, yv2f4, yv2fs, yf2v1, yf2v2, yf2v3, yf2v4, yf2vs, y_Bx, y_By, y_BxSx, y_BySy, y_BxSx_tran, y_BySy_tran, y_Hx, y_Hy = container
     @unpack Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta = var
     @unpack du_ops,du1,du2,du3,du4,du5,du6,du7,du8,du9,du10,du11,du12,du13,du14,du15,du16,du17,du0 = intermediate
@@ -250,12 +251,15 @@ function conjugate_beta(myMAT_beta!,b,container,var,intermediate)
     u = zeros(N);
     du = zeros(N);
     tol = 1e-16
+
     r .= b .- myMAT_beta!(du,u,container,var,intermediate)
     p = copy(r)
+    Ap = similar(u)
     rsold = r'*r
     counts = 0
-    for i = 1:N
-        Ap = myMAT_beta!(du,p,container,var,intermediate)   # can't simply translate MATLAB code, p = r create a link from p to r, once p modified, r will be modified
+    maxIteration = 1000
+    for i = 1:maxIteration
+        Ap .= myMAT_beta!(du,p,container,var,intermediate)   # can't simply translate MATLAB code, p = r create a link from p to r, once p modified, r will be modified
         alpha = rsold / (p'*Ap)
         #u = u + alpha * p
         axpy!(alpha,p,u) # BLAS function
@@ -275,6 +279,34 @@ function conjugate_beta(myMAT_beta!,b,container,var,intermediate)
     end
     return u, counts
 end
+
+(u1,counts1) = conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+u1 = copy(u1)
+(u2,counts2) = conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+u2 = copy(u2)
+(u3,counts3) = conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+u3 = copy(u3)
+(u4,counts4) = conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+u4 = copy(u4)
+(u5,counts5) = conjugate_beta(myMAT_beta!,r,b,container,var,intermediate)
+u5 = copy(u5)
+
+counts1
+counts2
+counts3
+counts4
+counts5
+
+err_1 = norm(u1 - exact)
+err_2 = norm(u2 - exact)
+err_3 = norm(u3 - exact)
+err_4 = norm(u4 - exact)
+err_5 = norm(u5 - exact)
+
+
+
+err_norm1 = norm(u1 - exact)
+err_norm2 = norm(u2 - exact)
 
 function cg!(du, u, b, myMAT_beta! , tol=1e-16)
 
@@ -304,6 +336,7 @@ function cg!(du, u, b, myMAT_beta! , tol=1e-16)
     total_time = end_time - start_time
     return u, gTg, maxiteration+1, total_time
 end
+
 
 
 # function cg_iteration!(u,du, g, w, myMAT_beta!, gTg) version 1
