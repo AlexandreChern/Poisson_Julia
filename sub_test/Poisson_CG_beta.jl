@@ -250,8 +250,8 @@ function conjugate_beta(myMAT_beta!,b,container,var,intermediate)
     u = zeros(N);
     du = zeros(N);
     tol = 1e-16
-    r = b - myMAT_beta!(du,u,container,var,intermediate)
-    p = r
+    r .= b .- myMAT_beta!(du,u,container,var,intermediate)
+    p = copy(r)
     rsold = r'*r
     counts = 0
     for i = 1:N
@@ -265,7 +265,9 @@ function conjugate_beta(myMAT_beta!,b,container,var,intermediate)
         if sqrt(rsnew) < tol
             break
         end
-        p = r + (rsnew/rsold) * p
+        #p = r + (rsnew/rsold) * p
+        #p .= r .+ (rsnew/rsold) .*p
+        p .= (rsnew/rsold) .* p .+ r
 
         rsold = rsnew;
         counts += 1
