@@ -73,6 +73,15 @@ A1_v = - σ₁*HI1*en*e0' - β*HI1*BS'*en*e0' + ϵ*HI1*en*e0'*D1  # Intersection
 
 A2_u = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*e0*en'*D1
 
+# Without D1
+
+# A_u = D2 + β*HI1*BS'*e0*e0' + σ₁*HI1*e0*e0' + σ₁*HI1*en*en' + β*HI1*BS'*en*en' + ϵ*HI1*BS'*en*en'
+#
+# A_v = D2 + σ₂*HI1*en*en'*D1 + σ₁*HI1*e0*e0' + β*HI1*BS'*e0*e0'  + ϵ*HI1*BS'*e0*e0'
+#
+# A1_v = - σ₁*HI1*en*e0' - β*HI1*BS'*en*e0' + ϵ*HI1*BS'*en*e0'  # Intersection happens to be at the maximum
+#
+# A2_u = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*BS'*e0*en'
 
 A = vcat(hcat(A_u,A1_v),hcat(A2_u, A_v))
 
