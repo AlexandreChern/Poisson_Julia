@@ -29,7 +29,7 @@ n_list = 1 ./h_list
 
 p = 2
 
-i = 3
+i = 4
 
 n = Integer(n_list[i])
 n_half = Integer(n/2)
@@ -39,7 +39,7 @@ N_half = n_half + 1
 (D1, HI1, H1, r1) = diagonal_sbp_D1(p,n_half,xc=(0,0.5))
 (D2, S0, SN, HI2, H2, r2) = diagonal_sbp_D2(p,n_half,xc=(0,0.5))
 
-span = LinRange(0,1,N)
+#span = LinRange(0,1,N)
 #analy_sol = sin.(span*π)
 
 half_span_1 = LinRange(0,0.5,N_half)
@@ -53,21 +53,25 @@ BS = SN - S0
 
 α = Dict(2=>1, 4=>0.2508560249, 6=>0.1878715026)
 γ = 2 # γ > 1 for stability
-σ₁ = -γ/(α[p]*h_list[i]) # For left boundary Dirichlet condition
-σ₂ = -γ/(α[p]*h_list[i]) # For right boundary Neumann condition
+#σ₁ = -γ/(α[p]*h_list[i]) # For left boundary Dirichlet condition
+#σ₂ = -γ/(α[p]*h_list[i]) # For right boundary Neumann condition
+σ₁ = -40
+σ₂ = 1
 β = 1
-ϵ = 1   # Interior
+ϵ = -40   # Interior
 
 g_L = 0
 g_R = -π
 
-A_u = D2 + β*HI1*BS'*e0*e0' + σ₁*HI1*e0*e0' + σ₁*HI1*en*en' + β*HI1*BS'*en*en' + ϵ*HI1*BS*en*en'
+# Still don't have a clear idea of penalty parameters
 
-A_v = D2 + σ₂*HI1*en*en'*D1 + σ₁*H1*e0*e0' + β*HI1*BS*e0*e0' + ϵ*HI1*BS*e0*e0'
+A_u = D2 + β*HI1*BS'*e0*e0' + σ₁*HI1*e0*e0' + σ₁*HI1*en*en' + β*HI1*BS'*en*en' + ϵ*HI1*en*en'*D1
 
-A1_v = - HI1 * σ₁*en*e0' - HI1*β*en*e0' - ϵ*HI1*BS*en*e0'
+A_v = D2 + σ₂*HI1*en*en'*D1 + σ₁*HI1*e0*e0' + β*HI1*BS'*e0*e0'  + ϵ*HI1*e0*e0'*D1
 
-A2_u = - HI1 * σ₁*e0*en' - HI1*β*e0*en' - ϵ*HI1*BS*e0*en'
+A1_v = - σ₁*HI1*en*e0' - β*HI1*BS'*en*e0' + ϵ*HI1*en*e0'*D1  # Intersection happens to be the summit
+
+A2_u = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*e0*en'*D1
 
 
 A = vcat(hcat(A_u,A1_v),hcat(A2_u, A_v))
