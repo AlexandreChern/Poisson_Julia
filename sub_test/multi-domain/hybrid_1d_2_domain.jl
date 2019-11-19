@@ -30,7 +30,7 @@ n_list = 1 ./h_list
 
 p = 2
 
-i = 3
+i = 4
 
 h = h_list[i]
 
@@ -110,18 +110,18 @@ L2 = en'
 τ = σ₁
 δ_f = 0.0
 
-G1 = L1'*L1*BS*h
-G2 = L2'*L2*BS*h
+# G1 = L1*BS*h
+# G2 = L2*BS*h
 
-Mu =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'L2'*L2+ G2
-Mv =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS + G1#*BS #+G1
+Mu =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'L2'*L2
+Mv =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS#*BS #+G1
 
-F = vcat(-τ*L2'-BS'*L2',-τ*L1'-BS'*L1')
-F_T = hcat(-τ*L2-L2*BS, -τ*L1 - L1*BS)
+F = vcat(τ*L2'+BS'*L2',τ*L1'+ BS'*L1')
+F_T = hcat(τ*L2+L2*BS, τ*L1 + L1*BS )
 
-D = 2*τ*h
+D = 2*τ
 
-g_bar = vcat(-τ*L1'*g_L - BS'*L1'*g_L + F_L, -L2'*g_R - 1/τ*BS'*L2'*g_R + F_R)
+g_bar = vcat(τ*L1'*g_L + BS'*L1'*g_L + H1*F_L, L2'*g_R + 1/τ*BS'*L2'*g_R + H1*F_R)
 g_bar_delta = 2*h*δ_f # Not Sure
 
 Mzero = zeros(N_half,N_half)
