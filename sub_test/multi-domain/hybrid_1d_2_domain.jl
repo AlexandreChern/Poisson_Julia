@@ -100,21 +100,25 @@ using Plots
 plot(span, num_sol)
 
 
+
 # NOW DEFINING HYBRID METHOD parameters
+F_L = -π^2*sin.(half_span_1*π)
+F_R = -π^2*sin.(half_span_2*π)
+
 L1 = e0'
 L2 = en'
 τ = σ₁
-δ_f = 0
+δ_f = 0.1
 
-Mu = - H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
-Mv = - H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS
+Mu =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*L2'*L2*BS
+Mv =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS
 
 F = vcat(-τ*L2'-BS'*L2',-τ*L1'-BS'*L1')
 F_T = hcat(-τ*L2-L2*BS, -τ*L1 - L1*BS)
 
 D = 2*h*τ
 
-g_bar = vcat(-τ*L1'*g_L - BS'*L1'*g_L, -L2'*g_R - 1/τ*BS'*L2'*g_R)
+g_bar = vcat(-τ*L1'*g_L - BS'*L1'*g_L + F_L, -L2'*g_R - 1/τ*BS'*L2'*g_R+ F_R)
 g_bar_delta = 2*h*δ_f # Not Sure
 
 Mzero = zeros(N_half,N_half)
