@@ -32,6 +32,8 @@ p = 2
 
 i = 3
 
+h = h_list[i]
+
 n = Integer(n_list[i])
 n_half = Integer(n/2)
 N = n + 1
@@ -58,11 +60,11 @@ BS = SN - S0
 #σ₂ = -γ/(α[p]*h_list[i]) # For right boundary Neumann condition
 σ₁ = -40
 σ₂ = 1
-β = 0
+β = 1
 ϵ = 1  # Intersection
 
 g_L = 0
-g_R = 0
+g_R = -π
 
 # Still don't have a clear idea of penalty parameters
 
@@ -94,6 +96,33 @@ b2 = σ₂*HI1*g_R*en - π^2*sin.(half_span_2*π)
 b = vcat(b1,b2)
 
 num_sol = A\b
-
 using Plots
 plot(span, num_sol)
+
+
+# NOW DEFINING HYBRID METHOD parameters
+L1 = e0'
+L2 = en'
+τ = σ₁
+δ_f = 0
+
+Mu = - H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
+Mv = - H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS
+
+F = vcat(-τ*L2'-BS'*L2',-τ*L1'-BS'*L1')
+F_T = hcat(-τ*L2-L2*BS, -τ*L1 - L1*BS)
+
+D = 2*h*τ
+
+g_bar = vcat(-τ*L1'*g_L - BS'*L1'*g_L, -L2'*g_R - 1/τ*BS'*L2'*g_R)
+g_bar_delta = 2*h*δ_f # Not Sure
+
+Mzero = zeros(N_half,N_half)
+
+A1 = vcat(hcat(Mu,Mzero),hcat(Mzero,Mv))
+
+A = vcat(hcat(A1,F),hcat(F_T,D))
+b = vcat(g_bar,g_bar_delta)
+
+num_sol_2 = A\b
+plot(span,num_sol_2[1:end-1])
