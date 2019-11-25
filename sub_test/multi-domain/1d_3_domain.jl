@@ -72,51 +72,36 @@ g_L = 0
 g_R = -π
 
 
+# u for left one third
+A_u = D2 + β*HI1*BS'*e0*e0' + σ₁*HI1*e0*e0' + σ₁*HI1*en*en' + β*HI1*BS'*en*en' + ϵ*HI1*en*en'*BS
+# v for middle one third
+A_v = D2 + β*HI1*BS'*e0*e0' + σ₁*HI1*e0*e0' + ϵ*HI1*e0*e0'*BS + β*HI1*BS'*en*en' + σ₁*HI1*en*en' + ϵ*HI1*en*en'*BS
+# w for right one third
+A_w = D2 + σ₂*HI1*en*en'*D1 + σ₁*HI1*e0*e0' + β*HI1*BS'*e0*e0'  + ϵ*HI1*e0*e0'*BS
 
-# NOW DEFINING HYBRID METHOD parameters
-F_L = -π^2*sin.(span_1*π)
-F_M = -π^2*sin.(span_2*π)
-F_R = -π^2*sin.(span_3*π)
+# Off diagonal terms
 
-L1 = e0'
-L2 = en'
-τ = σ₁
-δ_f = 0.1
+A1_v = - σ₁*HI1*en*e0' - β*HI1*BS'*en*e0' + ϵ*HI1*en*e0'*BS  # Intersection happens to be at the maximum
 
-# G1 = L1*BS*h
-# G2 = L2*BS*h
+A2_u = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*e0*en'*BS
 
-g_L = 0
-g_R = -π
+A2_w = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*e0*en'*BS
 
+A3_v = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*e0*en'*BS
 
-Mu =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
-Mv =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
-Mw =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS#*BS #+G1
+A_zero = zeros(N_one_third,N_one_third);
 
-# Mw = H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS
+A = vcat(hcat(A_u,A1_v,A_zero),hcat(A2_u, A_v, A2_w),hcat(A_zero, A3_v, A_w))
 
-# F = vcat(τ*L2'+BS'*L2', τ*L1' + BS'*L1' + τ*L2' + BS'*L2' ,τ*L1'+ BS'*L1')
-# F_T = hcat(τ*L2+L2*BS, τ*L1 + L1*BS + τ*L2 + L2*BS  ,τ*L1 + L1*BS )
+# b1 = σ₁*HI1*g_L*e0 + β*HI1*BS'*g_L*e0 - 1/4*π^2*sin.(half_span_1*π/2)
+# b2 = σ₂*HI1*g_R*en - 1/4*π^2*sin.(half_span_2*π/2)
 
-F = hcat(vcat(τ*L2'+BS'*L2',τ*L1'+ BS'*L1',b_zero),vcat(b_zero,τ*L2' + BS'*L2', τ*L1' + BS'*L1'))
-F_T = vcat(hcat(τ*L2+L2*BS, τ*L1 + L1*BS , b_zero'),hcat(b_zero', τ*L2 + L2*BS, τ*L1 + L1*BS))
+b1 = σ₁*HI1*g_L*e0 + β*HI1*BS'*g_L*e0 - π^2*sin.(span_1*π)
+b2 = zeros(N_one_third) - π^2*sin.(span_2*π)
+b3 = σ₂*HI1*g_R*en - π^2*sin.(span_3*π)
+b = vcat(b1,b2,b3)
+b_zero = zeros(N_one_third)
 
-# D = 4*τ*h
-D = vcat(hcat(2*τ,0),hcat(0,2*τ))
-# D = vcat(hcat(τ,τ),hcat(τ,τ))
-
-g_bar = vcat(τ*L1'*g_L + BS'*L1'*g_L + H1*F_L, H1*F_M ,L2'*g_R + 1/τ*BS'*L2'*g_R + H1*F_R)
-# g_bar_delta = 2*h*δ_f
-g_bar_delta = vcat(2*h*δ_f,2*h*δ_f) # Not Sure
-
-Mzero = zeros(N_one_third,N_one_third)
-
-A1 = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
-
-A = vcat(hcat(A1,F),hcat(F_T,D))
-b = vcat(g_bar,g_bar_delta)
-
-num_sol_2 = A\b
-num_sol_2_tranc = num_sol_2[1:end-2]
-plot(span,num_sol_2_tranc)
+num_sol = A\b
+using Plots
+plot(span, num_sol)
