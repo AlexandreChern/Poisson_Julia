@@ -43,8 +43,8 @@ n_one_third = Integer(n/3)
 N = n + 1
 N_one_third = n_one_third + 1
 
-(D1, HI1, H1, r1) = diagonal_sbp_D1(p,n_one_third,xc=(0,0.5))
-(D2, S0, SN, HI2, H2, r2) = diagonal_sbp_D2(p,n_one_third,xc=(0,0.5))
+(D1, HI1, H1, r1) = diagonal_sbp_D1(p,n_one_third,xc=(0,1/3))
+(D2, S0, SN, HI2, H2, r2) = diagonal_sbp_D2(p,n_one_third,xc=(0,1/3))
 
 #span = LinRange(0,1,N)
 #analy_sol = sin.(span*π)
@@ -85,7 +85,7 @@ A1_v = - σ₁*HI1*en*e0' - β*HI1*BS'*en*e0' + ϵ*HI1*en*e0'*BS  # Intersection
 
 A2_u = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*e0*en'*BS
 
-A2_w = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*e0*en'*BS
+A2_w = - σ₁*HI1*en*e0' - β*HI1*BS'*en*e0' + ϵ*HI1*en*e0'*BS
 
 A3_v = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*e0*en'*BS
 

@@ -62,7 +62,7 @@ BS = SN - S0
 ϵ = 1  # Intersection
 
 g_L = 0
-g_R = 0
+g_R = -π
 
 # Still don't have a clear idea of penalty parameters
 
@@ -86,8 +86,8 @@ A2_u = - σ₁*HI1*e0*en' - β*HI1*BS'*e0*en' + ϵ*HI1*e0*en'*BS
 
 A = vcat(hcat(A_u,A1_v),hcat(A2_u, A_v))
 
-b1 = σ₁*HI1*g_L*e0 + β*HI1*BS'*g_L*e0 - 1/4*π^2*sin.(half_span_1*π/2)
-b2 = σ₂*HI1*g_R*en - 1/4*π^2*sin.(half_span_2*π/2)
+b1 = σ₁*HI1*g_L*e0 + β*HI1*BS'*g_L*e0 - π^2*sin.(half_span_1*π)
+b2 = σ₂*HI1*g_R*en - π^2*sin.(half_span_2*π)
 b = vcat(b1,b2)
 
 num_sol = A\b

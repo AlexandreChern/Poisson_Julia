@@ -43,8 +43,8 @@ n_one_third = Integer(n/3)
 N = n + 1
 N_one_third = n_one_third + 1
 
-(D1, HI1, H1, r1) = diagonal_sbp_D1(p,n_one_third,xc=(0,0.5))
-(D2, S0, SN, HI2, H2, r2) = diagonal_sbp_D2(p,n_one_third,xc=(0,0.5))
+(D1, HI1, H1, r1) = diagonal_sbp_D1(p,n_one_third,xc=(0,1/3)) # be careful about domain
+(D2, S0, SN, HI2, H2, r2) = diagonal_sbp_D2(p,n_one_third,xc=(0,1/3))
 
 #span = LinRange(0,1,N)
 #analy_sol = sin.(span*π)
@@ -88,6 +88,7 @@ L2 = en'
 
 g_L = 0
 g_R = -π
+
 
 
 Mu =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
