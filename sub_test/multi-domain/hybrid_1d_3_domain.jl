@@ -23,7 +23,7 @@ end
 
 n_list = Array{Int64,1}(undef,6)
 for i in range(1,step=1,stop=6)
-    n_list[i] = Integer(3)^(i+1)
+    n_list[i] = Integer(2)^(i+1)
 end
 
 h_list = 1 ./ n_list
@@ -39,7 +39,7 @@ i = 5
 h = h_list[i]
 
 n = Integer(n_list[i])
-n_one_third = Integer(n/3)
+n_one_third = Integer(n)
 N = n + 1
 N_one_third = n_one_third + 1
 
@@ -108,17 +108,22 @@ F_T = vcat(hcat(τ*L2+L2*BS, τ*L1 + L1*BS , b_zero'),hcat(b_zero', τ*L2 + L2*B
 D = vcat(hcat(2*τ,0),hcat(0,2*τ))
 # D = vcat(hcat(τ,τ),hcat(τ,τ))
 
+
+
 g_bar = vcat(τ*L1'*g_L + BS'*L1'*g_L + H1*F_L, H1*F_M ,L2'*g_R + 1/τ*BS'*L2'*g_R + H1*F_R)
 # g_bar_delta = 2*h*δ_f
 g_bar_delta = vcat(2*h*δ_f,2*h*δ_f) # Not Sure
 
 Mzero = zeros(N_one_third,N_one_third)
 
-A1 = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
+M = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
 
-A = vcat(hcat(A1,F),hcat(F_T,D))
-b = vcat(g_bar,g_bar_delta)
+lambda = (D - F_T*inv(M)*F)\(g_bar_delta - F_T*inv(M)*g_bar)
+num_sol = M\(g_bar - F*lambda)
 
-num_sol_2 = A\b
-num_sol_2_tranc = num_sol_2[1:end-2]
-plot(span,num_sol_2_tranc)
+# A = vcat(hcat(A1,F),hcat(F_T,D))
+# b = vcat(g_bar,g_bar_delta)
+#
+# num_sol_2 = A\b
+# num_sol_2_tranc = num_sol_2[1:end-2]
+plot(span,num_sol)

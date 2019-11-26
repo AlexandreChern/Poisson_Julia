@@ -26,7 +26,7 @@ end
 
 n_list = Array{Int64,1}(undef,10)
 for i in range(1,step=1,stop=length(n_list))
-    n_list[i] = Integer(3)^(i+1)
+    n_list[i] = Integer(2)^(i+1)
 end
 
 h_list = 1 ./ n_list
@@ -47,7 +47,7 @@ function hybrid_sbp(i)
     h = h_list[i]
 
     n = Integer(n_list[i])
-    n_one_third = Integer(n/3)
+    n_one_third = Integer(n)
     N = n + 1
     N_one_third = n_one_third + 1
 
@@ -112,23 +112,40 @@ function hybrid_sbp(i)
     D = vcat(hcat(2*τ,0),hcat(0,2*τ))
     # D = vcat(hcat(τ,τ),hcat(τ,τ))
 
+    # g_bar = vcat(τ*L1'*g_L + BS'*L1'*g_L + H1*F_L, H1*F_M ,L2'*g_R + 1/τ*BS'*L2'*g_R + H1*F_R)
+    # # g_bar_delta = 2*h*δ_f
+    # g_bar_delta = vcat(2*h*δ_f,2*h*δ_f) # Not Sure
+    #
+    # Mzero = zeros(N_one_third,N_one_third)
+    #
+    # A1 = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
+    #
+    # A = vcat(hcat(A1,F),hcat(F_T,D))
+    # b = vcat(g_bar,g_bar_delta)
+
     g_bar = vcat(τ*L1'*g_L + BS'*L1'*g_L + H1*F_L, H1*F_M ,L2'*g_R + 1/τ*BS'*L2'*g_R + H1*F_R)
     # g_bar_delta = 2*h*δ_f
     g_bar_delta = vcat(2*h*δ_f,2*h*δ_f) # Not Sure
 
     Mzero = zeros(N_one_third,N_one_third)
 
-    A1 = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
+    M = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
 
-    A = vcat(hcat(A1,F),hcat(F_T,D))
-    b = vcat(g_bar,g_bar_delta)
+    lambda = (D - F_T*inv(M)*F)\(g_bar_delta - F_T*inv(M)*g_bar)
+    rhs = (g_bar - F*lambda)
+    num_sol1 = Mu\rhs[1:N_one_third]
+    num_sol2 = Mv\rhs[N_one_third+1:2*N_one_third]
+    num_sol3 = Mw\rhs[2*N_one_third+1:3*N_one_third]
 
-    num_sol = A\b
-    num_sol_tranc = num_sol[1:end-2]
-    err = (num_sol_tranc - analy_sol);
+    num_sol = vcat(num_sol1,num_sol2,num_sol3)
+
+    # num_sol = A\b
+    # num_sol_tranc = num_sol[1:end-2]
+    err = (num_sol - analy_sol);
     H = vcat(hcat(H1,Mzero,Mzero),hcat(Mzero,H1,Mzero),hcat(Mzero,Mzero,H1))
     normalized_err = err'*H*err
-    return normalized_err
+    log_err = log(2,normalized_err)
+    return normalized_err, log_err
 end
 
 # test
@@ -137,18 +154,39 @@ err = hybrid_sbp(3)
 
 function convergence(n)
     errs = zeros(n)
+    log_errs = zeros(n)
     for i in range(1,stop=n)
-        err = hybrid_sbp(i)
-        errs[i] = err
+        results = hybrid_sbp(i)
+        errs[i] = results[1]
+        log_errs[i] = results[2]
     end
-    log_errs = log.(errs)
-    return log_errs
+    return errs, log_errs
 end
 
 
 convergence_result = (convergence(7));
 
-println("********** CONVERGENCE RESULTS **********")
-for i in range(1,stop=length(convergence_result))
-    println(convergence_result[i])
+function print_result(convergence_result)
+    println("********** CONVERGENCE RESULTS **********")
+    println()
+    println("****** GRID NUMBERS FOR EACH DOMAIN ******")
+    for i in range(1,stop=length(convergence_result[1]))
+        println(n_list[i])
+    end
+    println("*************** ERRORS ******************")
+    for i in range(1,stop=length(convergence_result[1]))
+        println(convergence_result[1][i])
+    end
+
+    println("************* LOG ERRORS ****************")
+    for j in range(1,stop=length(convergence_result[2]))
+        println(convergence_result[2][j])
+    end
+
+    println("************* CONVERGENCE ***************")
+    for j in range(2,stop=length(convergence_result[2]))
+        println(convergence_result[2][j-1] - convergence_result[2][j])
+    end
 end
+
+print_result(convergence_result)
