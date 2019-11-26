@@ -121,9 +121,17 @@ M = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
 lambda = (D - F_T*inv(M)*F)\(g_bar_delta - F_T*inv(M)*g_bar)
 num_sol = M\(g_bar - F*lambda)
 
+rhs = (g_bar - F*lambda)
+num_sol1 = Mu\rhs[1:N_one_third]
+num_sol2 = Mv\rhs[N_one_third+1:2*N_one_third]
+num_sol3 = Mw\rhs[2*N_one_third+1:3*N_one_third]
+num_sol_parallel = vcat(num_sol1,num_sol2,num_sol3)
+
 # A = vcat(hcat(A1,F),hcat(F_T,D))
 # b = vcat(g_bar,g_bar_delta)
 #
 # num_sol_2 = A\b
 # num_sol_2_tranc = num_sol_2[1:end-2]
 plot(span,num_sol)
+
+plot(span,num_sol_parallel)
