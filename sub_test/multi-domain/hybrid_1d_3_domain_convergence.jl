@@ -5,6 +5,9 @@
 # {u_{0}} & {=0,} & {x=0} \\     Dirichlet Boundary Condition
 # {u}_x_{|1} & {=-\pi,} & {x=1}\end{array}\right.$$                  Neumann Boundary Condition
 
+## We are using hybrid method with 3 domains
+
+
 # Using external Julia file
 
 include("diagonal_sbp.jl")
