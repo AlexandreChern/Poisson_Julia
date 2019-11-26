@@ -128,7 +128,7 @@ function hybrid_sbp(i)
     return normalized_err
 end
 
-# test    
+# test
 err = hybrid_sbp(3)
 
 
@@ -143,4 +143,9 @@ function convergence(n)
 end
 
 
-println(convergence(7))
+convergence_result = (convergence(7));
+
+println("********** CONVERGENCE RESULTS **********")
+for i in range(1,stop=length(convergence_result))
+    println(convergence_result[i])
+end
