@@ -476,8 +476,7 @@ M = vcat(
  hcat(n_hcat(5,M_zero),M_MT, n_hcat(3,M_zero)),
  hcat(n_hcat(6,M_zero),M_RB, n_hcat(2,M_zero)),
  hcat(n_hcat(7,M_zero),M_RM, n_hcat(1,M_zero)),
- hcat(n_hcat(8,M_zero),M_RT),
-)
+ hcat(n_hcat(8,M_zero),M_RT))
 
 
 # getting g vectors, recall g defines boundary conditions
@@ -489,17 +488,17 @@ M = vcat(
 
 b_zero = zeros(N_one_third*N_one_third)
 
-g_LB = b_LB_W*g_LB_W + b_LB_S*g_LB_S
-g_LM = b_LM_W*g_LM_W
-g_LT = b_LT_W*g_LT_W
-g_MB = b_LB_S*g_LB_S
-g_MM = zeros(N_one_third*N_one_third)
-g_MT = b_MT_N*g_MT_N
-g_RB = b_RB_E*g_RB_E + b_RB_S*g_RB_S
-g_RM = b_RM_E*g_RM_E
-g_RT = b_RT_E*g_RT_E + b_RT_N*g_RT_N
+# g_LB = b_LB_W*g_LB_W + b_LB_S*g_LB_S
+# g_LM = b_LM_W*g_LM_W
+# g_LT = b_LT_W*g_LT_W
+# g_MB = b_LB_S*g_LB_S
+# g_MM = zeros(N_one_third*N_one_third)
+# g_MT = b_MT_N*g_MT_N
+# g_RB = b_RB_E*g_RB_E + b_RB_S*g_RB_S
+# g_RM = b_RM_E*g_RM_E
+# g_RT = b_RT_E*g_RT_E + b_RT_N*g_RT_N
 
-g = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
+# g = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 
 # We form F_T in the same order
 # LB -> LM -> LR -> MB -> MM -> MT -> RB -> RM -> RT
@@ -654,49 +653,42 @@ A = vcat(hcat(M,F),hcat(F_T,D))
 g_LB = (
     (τ*LW' + BS_x'*LW')*g_LB_W           # LB_W
     + (LS'+1/τ*BS_y'*LS')*g_LB_S         # LB_S
-    + F_LB[:]                            # Source Function for LB
-)
+    + H_tilde*F_LB[:])                            # Source Function for LB
 
 
 g_LM = (
     (τ*LW' + BS_x'*LW')*g_LM_W           # LM_W
-    + F_LM[:]                            # Source function for LM
-)
+    + H_tilde*F_LM[:])                            # Source function for LM
 
 g_LT = (
     (τ*LW' + BS_x'*LW')*g_LT_W
     + (LN'+1/τ*BS_y'*LN')*g_LT_N
-)
+    + H_tilde*F_LT[:])
 
 g_MB = (
     (LS'+1/τ*BS_y'*LS')*g_MB_S         # LB_S
-    + F_MB[:]                          # Source Function for LB
-)
+    + H_tilde*F_MB[:])                          # Source Function for LB
 
 g_MM = (
-    F_MM[:]                             # Only source function
-)
+    H_tilde*F_MM[:] )                            # Only source function
+
 
 g_MT = (
     (LN'+1/τ*BS_y'*LN')*g_MT_N       # MT_N
-    + F_MT[:]
-)
+    + H_tilde*F_MT[:])
 
 g_RB = (
     (τ*LE' + BS_x'*LE')*g_RB_E           # RB_E
-    + F_RB[:]
-)
+    + H_tilde*F_RB[:])
 
 g_RM = (
     (τ*LE' + BS_x'*LE')*g_RM_E           # RM_E
-    + F_RM[:]
-)
+    + H_tilde*F_RM[:])
 
 g_RT = (
     (τ*LE' + BS_x'*LE')*g_RT_E           # RT_E
     + (LN'+1/τ*BS_y'*LN')*g_RT_N         # RT_N
-    + F_RT[:]
-)
+    + H_tilde*F_RT[:])
 
 g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 
