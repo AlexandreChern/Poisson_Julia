@@ -563,19 +563,160 @@ F_T_LT_MT_MT = τ*LW + LW*BS_x
 F_T_LT_MT = hcat(n_hcat(2,F_T_zero),F_T_LT_MT_LT, n_hcat(2,F_T_zero),F_T_LT_MT_MT,n_hcat(3,F_T_zero))
 
 # Constructing Interface 6: MB_MM
+F_T_MB_MM_MB = τ*LN + LN*BS_y
+F_T_MB_MM_MM = τ*LS + LS*BS_y
+F_T_MB_MM = hcat(n_hcat(3,F_T_zero),F_T_MB_MM_MB,F_T_MB_MM_MM,n_hcat(4,F_T_zero))
 
 # Constructing Interface 7: MM_MT
+F_T_MM_MT_MM = τ*LN + LN*BS_y
+F_T_MM_MT_MT = τ*LS + LS*BS_y
+F_T_MM_MT = hcat(n_hcat(4,F_T_zero),F_T_MM_MT_MM,F_T_MM_MT_MT,n_hcat(3,F_T_zero))
+
 #
 # Constructing Interface 8: MB_RB
+F_T_MB_RB_MB = τ*LE + LE*BS_x
+F_T_MB_RB_RB = τ*LW + LW*BS_x
+F_T_MB_RB = hcat(n_hcat(3,F_T_zero),F_T_MB_RB_MB,n_hcat(2,F_T_zero),F_T_MB_RB_RB,n_hcat(2,F_T_zero))
+
 # Constructing Interface 9: MM_RM
+F_T_MM_RM_MM = τ*LE + LE*BS_x
+F_T_MM_RM_RM = τ*LW + LW*BS_x
+F_T_MM_RM = hcat(n_hcat(4,F_T_zero),F_T_MM_RM_MM,n_hcat(2,F_T_zero),F_T_MM_RM_RM,n_hcat(1,F_T_zero))
+
+
 # Constructing Interface 10: MT_RT
+F_T_MT_RT_MT = τ*LE + LE*BS_x
+F_T_MT_RT_RT = τ*LW + LW*BS_x
+F_T_MT_RT = hcat(n_hcat(5,F_T_zero),F_T_MT_RT_MT,n_hcat(2,F_T_zero),F_T_MT_RT_RT)
 #
+
+
 # Constructing Interface 11: RB_RM
+F_T_RB_RM_RB = τ*LN + LN*BS_y
+F_T_RB_RM_RM = τ*LS + LS*BS_y
+F_T_RB_RM = hcat(n_hcat(6,F_T_zero),F_T_RB_RM_RB,F_T_RB_RM_RM,n_hcat(1,F_T_zero))
+
+#
 # Constructing Interface 12: RM_RT
+F_T_RM_RT_RM = τ*LN + LN*BS_y
+F_T_RM_RT_RT = τ*LS + LS*BS_y
+F_T_RM_RT = hcat(n_hcat(7,F_T_zero),F_T_RM_RT_RM,F_T_RM_RT_RT)
 
 
-# Constructing Interface LM-LT
-F_T_LT_LB =
+# Construting Final Matrix F_T, vertical catenation of all 12 interfaces
+F_T = vcat(F_T_LB_LM,F_T_LM_LT,         # First 2 interfaces
+    F_T_LB_MB, F_T_LM_MM, F_T_LT_MT,    # Next 3 interfaces
+    F_T_MB_MM, F_T_MM_MT,               # Next 2 interfaces
+    F_T_MB_RB, F_T_MM_RM, F_T_MT_RT,    # Next 3 interfaces
+    F_T_RB_RM, F_T_RM_RT                # Next 2 interfaces
+)
+
+
+# For simplification We construct F by taking the inverse of F_T
+
+F = F_T'
+
+
+# Formulation D terms
+# D represents 12 interfaces, with each interface being a 28*28 matrix
+# coming from the combination of LW LE LS LN and τ
+D_zero = zeros(N_one_third,N_one_third)
+D_ones = ones(N_one_third, N_one_third)
+
+# 1: LB_LM
+D_LB_LM = D_ones*τ
+
+# 2: LM_LT
+D_LM_LT = D_ones
+#
+# 3: LB_MB
+# 4: LM_MM
+# 5: LT_MT
+#
+# 6: MB_MM
+# 7: MM_MT
+#
+# 8: MB_RB
+# 9: MM_RM
+# 10: MT_RT
+#
+# 11: RB_RM
+# 12: RM_RT
+D = ones(N_one_third*12,N_one_third*12)*2τ
+
+
+# Forming A terms
+A = vcat(hcat(M,F),hcat(F_T,D))
+
+
+# Forming g terms, g terms are the combination of source functions and boundary conditions
+# each g component refers to each block, starting from block LB
+g_LB = (
+    (τ*LW' + BS_x'*LW')*g_LB_W           # LB_W
+    + (LS'+1/τ*BS_y'*LS')*g_LB_S         # LB_S
+    + F_LB[:]                            # Source Function for LB
+)
+
+
+g_LM = (
+    (τ*LW' + BS_x'*LW')*g_LM_W           # LM_W
+    + F_LM[:]                            # Source function for LM
+)
+
+g_LT = (
+    (τ*LW' + BS_x'*LW')*g_LT_W
+    + (LN'+1/τ*BS_y'*LN')*g_LT_N
+)
+
+g_MB = (
+    (LS'+1/τ*BS_y'*LS')*g_MB_S         # LB_S
+    + F_MB[:]                          # Source Function for LB
+)
+
+g_MM = (
+    F_MM[:]                             # Only source function
+)
+
+g_MT = (
+    (LN'+1/τ*BS_y'*LN')*g_MT_N       # MT_N
+    + F_MT[:]
+)
+
+g_RB = (
+    (τ*LE' + BS_x'*LE')*g_RB_E           # RB_E
+    + F_RB[:]
+)
+
+g_RM = (
+    (τ*LE' + BS_x'*LE')*g_RM_E           # RM_E
+    + F_RM[:]
+)
+
+g_RT = (
+    (τ*LE' + BS_x'*LE')*g_RT_E           # RT_E
+    + (LN'+1/τ*BS_y'*LN')*g_RT_N         # RT_N
+    + F_RT[:]
+)
+
+g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
+
+
+# Forming g_bar_delta
+g_bar_delta = n_vcat(12,2*h*δ_f*ones(N_one_third))
+
+
+# Forming b vector
+
+b = vcat(g_bar,g_bar_delta)
+
+A\b
+
+# g_LB == ( F_LB[:] + (τ*LW' + BS_x'*LW')*g_LB_W + (LS'+1/τ*BS_y'*LS')*g_LB_S)
+# returns false didn't know why, only difference -4.440892098500626e-16
+
+
+
+
 
 # Constructing Interface for L
 
@@ -588,34 +729,34 @@ F_T_LT_LB =
 # end test dimensions
 
 
-Mu =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
-Mv =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
-Mw =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS#*BS #+G1
-
-# Mw = H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS
-
-# F = vcat(τ*L2'+BS'*L2', τ*L1' + BS'*L1' + τ*L2' + BS'*L2' ,τ*L1'+ BS'*L1')
-# F_T = hcat(τ*L2+L2*BS, τ*L1 + L1*BS + τ*L2 + L2*BS  ,τ*L1 + L1*BS )
-b_zero = zeros(N_one_third)
-
-F = hcat(vcat(τ*L2'+BS'*L2',τ*L1'+ BS'*L1',b_zero),vcat(b_zero,τ*L2' + BS'*L2', τ*L1' + BS'*L1'))
-F_T = vcat(hcat(τ*L2+L2*BS, τ*L1 + L1*BS , b_zero'),hcat(b_zero', τ*L2 + L2*BS, τ*L1 + L1*BS))
-
-# D = 4*τ*h
-D = vcat(hcat(2*τ,0),hcat(0,2*τ))
-# D = vcat(hcat(τ,τ),hcat(τ,τ))
-
-g_bar = vcat(τ*L1'*g_L + BS'*L1'*g_L + H1*F_L, H1*F_M ,L2'*g_R + 1/τ*BS'*L2'*g_R + H1*F_R)
-# g_bar_delta = 2*h*δ_f
-g_bar_delta = vcat(2*h*δ_f,2*h*δ_f) # Not Sure
-
-Mzero = zeros(N_one_third,N_one_third)
-
-A1 = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
-
-A = vcat(hcat(A1,F),hcat(F_T,D))
-b = vcat(g_bar,g_bar_delta)
-
-num_sol_2 = A\b
-num_sol_2_tranc = num_sol_2[1:end-2]
-plot(span,num_sol_2_tranc)
+# Mu =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
+# Mv =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
+# Mw =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS#*BS #+G1
+#
+# # Mw = H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + β*L2'*L2*BS + 1/τ*BS'*L2'*L2*BS
+#
+# # F = vcat(τ*L2'+BS'*L2', τ*L1' + BS'*L1' + τ*L2' + BS'*L2' ,τ*L1'+ BS'*L1')
+# # F_T = hcat(τ*L2+L2*BS, τ*L1 + L1*BS + τ*L2 + L2*BS  ,τ*L1 + L1*BS )
+# b_zero = zeros(N_one_third)
+#
+# F = hcat(vcat(τ*L2'+BS'*L2',τ*L1'+ BS'*L1',b_zero),vcat(b_zero,τ*L2' + BS'*L2', τ*L1' + BS'*L1'))
+# F_T = vcat(hcat(τ*L2+L2*BS, τ*L1 + L1*BS , b_zero'),hcat(b_zero', τ*L2 + L2*BS, τ*L1 + L1*BS))
+#
+# # D = 4*τ*h
+# D = vcat(hcat(2*τ,0),hcat(0,2*τ))
+# # D = vcat(hcat(τ,τ),hcat(τ,τ))
+#
+# g_bar = vcat(τ*L1'*g_L + BS'*L1'*g_L + H1*F_L, H1*F_M ,L2'*g_R + 1/τ*BS'*L2'*g_R + H1*F_R)
+# # g_bar_delta = 2*h*δ_f
+# g_bar_delta = vcat(2*h*δ_f,2*h*δ_f) # Not Sure
+#
+# Mzero = zeros(N_one_third,N_one_third)
+#
+# A1 = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
+#
+# A = vcat(hcat(A1,F),hcat(F_T,D))
+# b = vcat(g_bar,g_bar_delta)
+#
+# num_sol_2 = A\b
+# num_sol_2_tranc = num_sol_2[1:end-2]
+# plot(span,num_sol_2_tranc)
