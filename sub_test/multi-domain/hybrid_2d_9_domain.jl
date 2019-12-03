@@ -606,8 +606,7 @@ F_T = vcat(F_T_LB_LM,F_T_LM_LT,         # First 2 interfaces
     F_T_LB_MB, F_T_LM_MM, F_T_LT_MT,    # Next 3 interfaces
     F_T_MB_MM, F_T_MM_MT,               # Next 2 interfaces
     F_T_MB_RB, F_T_MM_RM, F_T_MT_RT,    # Next 3 interfaces
-    F_T_RB_RM, F_T_RM_RT                # Next 2 interfaces
-)
+    F_T_RB_RM, F_T_RM_RT)                # Next 2 interfaces
 
 
 # For simplification We construct F by taking the inverse of F_T
@@ -649,14 +648,15 @@ A = vcat(hcat(M,F),hcat(F_T,D))
 
 # Forming g terms, g terms are the combination of source functions and boundary conditions
 # each g component refers to each block, starting from block LB
+
+
+#---------------------------- PREVIOUS IMPLEMENTATIONS -------------------------
 # g_LB = (
 #     (τ*LW' + BS_x'*LW')*g_LB_W           # LB_W
 #     + (LS'+1/τ*BS_y'*LS')*g_LB_S         # LB_S
 #     + H_tilde*F_LB[:])                            # Source Function for LB
 
-g_LB = (b_LB_W*g_LB_W + b_LB_S*g_LB_S) + H_tilde*F_LB[:]
-g_LM = (b_LM_W*g_LM_W) + H_tilde*F_LM[:]
-g_LT = (b_LT_W*g_LT_W + b_LT_N*g_LT_N) + H_tilde*F_LT[:]
+
 # g_LM = (
 #     (τ*LW' + BS_x'*LW')*g_LM_W           # LM_W
 #     + H_tilde*F_LM[:])                            # Source function for LM
@@ -666,9 +666,7 @@ g_LT = (b_LT_W*g_LT_W + b_LT_N*g_LT_N) + H_tilde*F_LT[:]
 #     + (LN'+1/τ*BS_y'*LN')*g_LT_N
 #     + H_tilde*F_LT[:])
 
-g_MB = (b_MB_S * g_MB_S) + H_tilde*F_MB[:]
-g_MM = H_tilde*F_MM[:]
-g_MT = (b_MT_N*g_MT_N) + H_tilde*F_MT[:]
+
 # g_MB = (
 #     (LS'+1/τ*BS_y'*LS')*g_MB_S         # LB_S
 #     + H_tilde*F_MB[:])                          # Source Function for LB
@@ -681,9 +679,6 @@ g_MT = (b_MT_N*g_MT_N) + H_tilde*F_MT[:]
 #     (LN'+1/τ*BS_y'*LN')*g_MT_N       # MT_N
 #     + H_tilde*F_MT[:])
 
-g_RB = (b_RB_E*g_RB_E + b_RB_S*g_RB_S) + H_tilde*F_RB[:]
-g_RM = (b_RM_E*g_RM_E) + H_tilde*F_RM[:]
-g_RT = (b_RT_E*g_RT_E + b_RT_N*g_RT_N) + H_tilde*F_RT[:]
 # g_RB = (
 #     (τ*LE' + BS_x'*LE')*g_RB_E           # RB_E
 #     + H_tilde*F_RB[:])
@@ -696,6 +691,29 @@ g_RT = (b_RT_E*g_RT_E + b_RT_N*g_RT_N) + H_tilde*F_RT[:]
 #     (τ*LE' + BS_x'*LE')*g_RT_E           # RT_E
 #     + (LN'+1/τ*BS_y'*LN')*g_RT_N         # RT_N
 #     + H_tilde*F_RT[:])
+#
+
+#----------------------- END OF PREVIOUS IMPLEMENTATIONS -------------------
+
+
+
+#-------------------- NEW IMPLEMENTATIONS ---------------------------------
+
+
+g_LB = (b_LB_W*g_LB_W + b_LB_S*g_LB_S) + H_tilde*F_LB[:]
+g_LM = (b_LM_W*g_LM_W) + H_tilde*F_LM[:]
+g_LT = (b_LT_W*g_LT_W + b_LT_N*g_LT_N) + H_tilde*F_LT[:]
+
+
+g_MB = (b_MB_S * g_MB_S) + H_tilde*F_MB[:]
+g_MM = H_tilde*F_MM[:]
+g_MT = (b_MT_N*g_MT_N) + H_tilde*F_MT[:]
+
+
+g_RB = (b_RB_E*g_RB_E + b_RB_S*g_RB_S) + H_tilde*F_RB[:]
+g_RM = (b_RM_E*g_RM_E) + H_tilde*F_RM[:]
+g_RT = (b_RT_E*g_RT_E + b_RT_N*g_RT_N) + H_tilde*F_RT[:]
+
 
 g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 
@@ -703,6 +721,7 @@ g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 # Forming g_bar_delta
 g_bar_delta = n_vcat(12,2*h*δ_f*ones(N_one_third))
 
+#------------------------ END OF NEW IMPLEMENTATIONS ------------------------
 
 # Forming b vector
 
