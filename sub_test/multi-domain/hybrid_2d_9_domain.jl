@@ -70,6 +70,25 @@
 ##############################
 
 
+# Interfaces: 12
+# 1: LB_LM
+# 2: LM_LT
+#
+# 3: LB_MB
+# 4: LM_MM
+# 5: LT_MT
+#
+# 6: MB_MM
+# 7: MM_MT
+#
+# 8: MB_RB
+# 9: MM_RM
+# 10: MT_RT
+#
+# 11: RB_RM
+# 12: RM_RT
+
+
 include("diagonal_sbp.jl")
 using Plots
 
@@ -255,6 +274,8 @@ g_R = -π
 
 # L M R for Left Middle Right
 # B M T for Bottom Middle Top
+# F_LB defines external source function for block LB
+
 F_LB = -π^2*analy_sol(span_1,span_1')
 F_LM = -π^2*analy_sol(span_1,span_2')
 F_LT = -π^2*analy_sol(span_1,span_3')
@@ -375,6 +396,9 @@ M_RT = H_tilde*D2
 M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
 
 
+# b_LB_W here defines the opeartor to be multiplied
+# with boundary condions or interface conditions
+
 
 b_LB_W = τ*LW'*LW*LW' + β*BS_x'*LW'*LW*LW' # Operators for imposing boundary conditions
 b_LB_E = τ*LE'*LE*LE' + β*BS_x'*LE'*LE*LE'
@@ -423,14 +447,145 @@ b_RT_S = τ*LS'*LS*LS' + β*BS_y'*LS'*LS*LS'
 b_RT_N = τ*LN'*LN*LN' + 1/τ*BS_y'*LN'*LN*LN'
 
 
+# Order for stacking M_matrix
+# LB -> LM -> LR -> MB -> MM -> MT -> RB -> RM -> RT
+
+function n_vcat(n::Int64,M)
+    init_M = M;
+    for i in 1:n-1
+        init_M = vcat(init_M,M)
+    end
+    return init_M
+end
+
+function n_hcat(n::Int64,M)
+    init_M = M;
+    for i in 1:n-1
+        init_M = hcat(init_M,M)
+    end
+    return init_M
+end
+
+
+M = vcat(
+ hcat(M_LB,n_hcat(8,M_zero)),
+ hcat(n_hcat(1,M_zero),M_LM,n_hcat(7,M_zero)),
+ hcat(n_hcat(2,M_zero),M_LT, n_hcat(6,M_zero)),
+ hcat(n_hcat(3,M_zero),M_MB, n_hcat(5,M_zero)),
+ hcat(n_hcat(4,M_zero),M_MM, n_hcat(4,M_zero)),
+ hcat(n_hcat(5,M_zero),M_MT, n_hcat(3,M_zero)),
+ hcat(n_hcat(6,M_zero),M_RB, n_hcat(2,M_zero)),
+ hcat(n_hcat(7,M_zero),M_RM, n_hcat(1,M_zero)),
+ hcat(n_hcat(8,M_zero),M_RT),
+)
+
+
+# getting g vectors, recall g defines boundary conditions
+# each term refers to one component of g vector
+# We form the g vector in the same order
+# LB -> LM -> LR -> MB -> MM -> MT -> RB -> RM -> RT
+# The first component is g_LB, refering to the boundary conditions for
+# block LB (Left-Bottom)
+
+b_zero = zeros(N_one_third*N_one_third)
+
+g_LB = b_LB_W*g_LB_W + b_LB_S*g_LB_S
+g_LM = b_LM_W*g_LM_W
+g_LT = b_LT_W*g_LT_W
+g_MB = b_LB_S*g_LB_S
+g_MM = zeros(N_one_third*N_one_third)
+g_MT = b_MT_N*g_MT_N
+g_RB = b_RB_E*g_RB_E + b_RB_S*g_RB_S
+g_RM = b_RM_E*g_RM_E
+g_RT = b_RT_E*g_RT_E + b_RT_N*g_RT_N
+
+g = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
+
+# We form F_T in the same order
+# LB -> LM -> LR -> MB -> MM -> MT -> RB -> RM -> RT
+# So the first row will be the interfaces of LB with the rest of blocks
+# The first component will be the interface between LB and LM
+
+F_zero = zeros(N_one_third*N_one_third,N_one_third)
+F_T_zero = zeros(N_one_third,N_one_third*N_one_third)
+
+# eg: F_T_LB_LM defines the component of LB-LM interface of F_T,
+# refering to the term involving block LB and MB
+
+# Constructing Interface 1: LB_LM
+
+F_T_LB_LM_LB = τ*LN + LN*BS_y # + τ*LE + LE*BS_x
+F_T_LB_LM_LM = τ*LS + LS*BS_y
+F_T_LB_LM_LT = F_T_zero
+F_T_LB_LM_MB = F_T_zero #τ*LW + LW*BS_x
+F_T_LB_LM_MM = F_T_zero
+F_T_LB_LM_MT = F_T_zero
+F_T_LB_LM_RB = F_T_zero
+F_T_LB_LM_RM = F_T_zero
+F_T_LB_LM_RT = F_T_zero
+
+
+F_T_LB_LM = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,F_T_LB_LM_LT,
+        F_T_LB_LM_MB,F_T_LB_LM_MM,F_T_LB_LM_MT,
+        F_T_LB_LM_RB,F_T_LB_LM_RM,F_T_LB_LM_LT
+)
+
+
+# Constructing Interface 2: LM_LT
+
+F_T_LM_LT_LB = FT_zero # LM_LT interface does not involve LB block
+F_T_LM_LT_LM = τ*LN + LN*BS_y
+F_T_LM_LT_LT = τ*LS + LS*BS_y
+F_T_LM_LT_MB = F_T_zero
+# ... Trivial Terms
+F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero))
 
 
 
-LW'*g_LB_W
+# Constructing Interface 3: LB_MB
+F_T_LB_MB_LB = τ*LE + LE*BS_x
+F_T_LB_MB_LM = F_T_zero
+F_T_LB_MB_LT = F_T_zero
+F_T_LB_MB_MB = τ*LW + LW*BS_x
+F_T_LB_MB_MB = F_T_zero
+# ... Trivial Terms
+F_T_LB_MB = hcat(F_T_LB_MB_LB,n_hcat(2,F_T_zero),F_T_LB_MB_MB,n_hcat(5,F_T_zero))
 
-LW'*LW
-H_tilde
-D2
+# Constructing Interface 4: LM_MM
+F_T_LM_MM_LM = τ*LE + LE*BS_x
+F_T_LM_MM_MM = τ*LW + LW*BS_x
+F_T_LM_MM = hcat(F_T_zero,F_T_LM_MM_LM,n_hcat(2,F_T_zero),F_T_LM_MM_MM,n_hcat(4,F_T_zero))
+
+
+# Constructing Interface 5: LT_MT
+F_T_LT_MT_LT = τ*LE + LE*BS_x
+F_T_LT_MT_MT = τ*LW + LW*BS_x
+F_T_LT_MT = hcat(n_hcat(2,F_T_zero),F_T_LT_MT_LT, n_hcat(2,F_T_zero),F_T_LT_MT_MT,n_hcat(3,F_T_zero))
+
+# Constructing Interface 6: MB_MM
+
+# Constructing Interface 7: MM_MT
+#
+# Constructing Interface 8: MB_RB
+# Constructing Interface 9: MM_RM
+# Constructing Interface 10: MT_RT
+#
+# Constructing Interface 11: RB_RM
+# Constructing Interface 12: RM_RT
+
+
+# Constructing Interface LM-LT
+F_T_LT_LB =
+
+# Constructing Interface for L
+
+# test dimensions
+# LW'*g_LB_W
+#
+# LW'*LW
+# H_tilde
+# D2
+# end test dimensions
 
 
 Mu =  H1*D2 + τ*L1'*L1 + β*BS'*L1'*L1 + τ*L2'*L2 + β*BS'*L2'*L2
