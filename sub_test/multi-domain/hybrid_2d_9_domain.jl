@@ -252,9 +252,9 @@ analy_solution = analy_sol(span,span')
 plot(span,span,analy_solution,st=:surface)
 
 
-e0 = e(1,N_one_third);
-en = e(N_one_third,N_one_third);
-BS = SN - S0
+# e0 = e(1,N_one_third);
+# en = e(N_one_third,N_one_third);
+# BS = SN - S0
 
 α = Dict(2=>1, 4=>0.2508560249, 6=>0.1878715026)
 γ = 2 # γ > 1 for stability
@@ -526,13 +526,12 @@ F_T_LB_LM_RT = F_T_zero
 
 F_T_LB_LM = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,F_T_LB_LM_LT,
         F_T_LB_LM_MB,F_T_LB_LM_MM,F_T_LB_LM_MT,
-        F_T_LB_LM_RB,F_T_LB_LM_RM,F_T_LB_LM_LT
-)
+        F_T_LB_LM_RB,F_T_LB_LM_RM,F_T_LB_LM_LT)
 
 
 # Constructing Interface 2: LM_LT
 
-F_T_LM_LT_LB = FT_zero # LM_LT interface does not involve LB block
+F_T_LM_LT_LB = F_T_zero # LM_LT interface does not involve LB block
 F_T_LM_LT_LM = τ*LN + LN*BS_y
 F_T_LM_LT_LT = τ*LS + LS*BS_y
 F_T_LM_LT_MB = F_T_zero
@@ -650,45 +649,53 @@ A = vcat(hcat(M,F),hcat(F_T,D))
 
 # Forming g terms, g terms are the combination of source functions and boundary conditions
 # each g component refers to each block, starting from block LB
-g_LB = (
-    (τ*LW' + BS_x'*LW')*g_LB_W           # LB_W
-    + (LS'+1/τ*BS_y'*LS')*g_LB_S         # LB_S
-    + H_tilde*F_LB[:])                            # Source Function for LB
+# g_LB = (
+#     (τ*LW' + BS_x'*LW')*g_LB_W           # LB_W
+#     + (LS'+1/τ*BS_y'*LS')*g_LB_S         # LB_S
+#     + H_tilde*F_LB[:])                            # Source Function for LB
+
+g_LB = (b_LB_W*g_LB_W + b_LB_S*g_LB_S) + H_tilde*F_LB[:]
+g_LM = (b_LM_W*g_LM_W) + H_tilde*F_LM[:]
+g_LT = (b_LT_W*g_LT_W + b_LT_N*g_LT_N) + H_tilde*F_LT[:]
+# g_LM = (
+#     (τ*LW' + BS_x'*LW')*g_LM_W           # LM_W
+#     + H_tilde*F_LM[:])                            # Source function for LM
+
+# g_LT = (
+#     (τ*LW' + BS_x'*LW')*g_LT_W
+#     + (LN'+1/τ*BS_y'*LN')*g_LT_N
+#     + H_tilde*F_LT[:])
+
+g_MB = (b_MB_S * g_MB_S) + H_tilde*F_MB[:]
+g_MM = H_tilde*F_MM[:]
+g_MT = (b_MT_N*g_MT_N) + H_tilde*F_MT[:]
+# g_MB = (
+#     (LS'+1/τ*BS_y'*LS')*g_MB_S         # LB_S
+#     + H_tilde*F_MB[:])                          # Source Function for LB
+
+# g_MM = (
+#     H_tilde*F_MM[:] )                            # Only source function
 
 
-g_LM = (
-    (τ*LW' + BS_x'*LW')*g_LM_W           # LM_W
-    + H_tilde*F_LM[:])                            # Source function for LM
+# g_MT = (
+#     (LN'+1/τ*BS_y'*LN')*g_MT_N       # MT_N
+#     + H_tilde*F_MT[:])
 
-g_LT = (
-    (τ*LW' + BS_x'*LW')*g_LT_W
-    + (LN'+1/τ*BS_y'*LN')*g_LT_N
-    + H_tilde*F_LT[:])
+g_RB = (b_RB_E*g_RB_E + b_RB_S*g_RB_S) + H_tilde*F_RB[:]
+g_RM = (b_RM_E*g_RM_E) + H_tilde*F_RM[:]
+g_RT = (b_RT_E*g_RT_E + b_RT_N*g_RT_N) + H_tilde*F_RT[:]
+# g_RB = (
+#     (τ*LE' + BS_x'*LE')*g_RB_E           # RB_E
+#     + H_tilde*F_RB[:])
 
-g_MB = (
-    (LS'+1/τ*BS_y'*LS')*g_MB_S         # LB_S
-    + H_tilde*F_MB[:])                          # Source Function for LB
-
-g_MM = (
-    H_tilde*F_MM[:] )                            # Only source function
-
-
-g_MT = (
-    (LN'+1/τ*BS_y'*LN')*g_MT_N       # MT_N
-    + H_tilde*F_MT[:])
-
-g_RB = (
-    (τ*LE' + BS_x'*LE')*g_RB_E           # RB_E
-    + H_tilde*F_RB[:])
-
-g_RM = (
-    (τ*LE' + BS_x'*LE')*g_RM_E           # RM_E
-    + H_tilde*F_RM[:])
-
-g_RT = (
-    (τ*LE' + BS_x'*LE')*g_RT_E           # RT_E
-    + (LN'+1/τ*BS_y'*LN')*g_RT_N         # RT_N
-    + H_tilde*F_RT[:])
+# g_RM = (
+#     (τ*LE' + BS_x'*LE')*g_RM_E           # RM_E
+#     + H_tilde*F_RM[:])
+#
+# g_RT = (
+#     (τ*LE' + BS_x'*LE')*g_RT_E           # RT_E
+#     + (LN'+1/τ*BS_y'*LN')*g_RT_N         # RT_N
+#     + H_tilde*F_RT[:])
 
 g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 
