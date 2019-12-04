@@ -63,7 +63,7 @@ span_1 = LinRange(0,1/3,N_one_third)
 span_2 = LinRange(1/3,2/3,N_one_third)
 span_3 = LinRange(2/3,1,N_one_third)
 span= vcat(span_1,span_2,span_3)
-analy_sol = vcat(sin.(span_1*π),sin.(span_2*π),sin.(span_3*π))
+analy_solution = vcat(sin.(span_1*π),sin.(span_2*π),sin.(span_3*π))
 
 e0 = e(1,N_one_third);
 en = e(N_one_third,N_one_third);
@@ -128,7 +128,7 @@ Mzero = zeros(N_one_third,N_one_third)
 
 M = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
 
-lambda = (D - F_T*inv(M)*F)\(g_bar_delta - F_T*inv(M)*g_bar)
+lambda = (D - F_T*(M\F))\(g_bar_delta - F_T*(M\g_bar))
 num_sol = M\(g_bar - F*lambda)
 
 rhs = (g_bar - F*lambda)
