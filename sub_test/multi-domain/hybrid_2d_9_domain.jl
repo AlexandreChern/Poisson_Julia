@@ -294,6 +294,7 @@ L1 = e0'
 L2 = en'
 τ = σ₁
 δ_f = 0.1
+#Dδ_f = 0
 
 # G1 = L1*BS*h
 # G2 = L2*BS*h
@@ -336,6 +337,8 @@ LW = e_W'
 LE = e_E'
 LS = e_S'
 LN = e_N'
+
+τ = 1
 
 M_LB = H_tilde*D2
         + τ*LW'*LW + β*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
@@ -620,6 +623,8 @@ F = F_T'
 D_zero = zeros(N_one_third,N_one_third)
 D_ones = ones(N_one_third, N_one_third)
 
+N_one_third
+
 # 1: LB_LM
 D_LB_LM = D_ones*τ
 
@@ -639,7 +644,14 @@ D_LM_LT = D_ones
 #
 # 11: RB_RM
 # 12: RM_RT
-D = ones(N_one_third*12,N_one_third*12)*2τ
+n_x_one_third = 28
+(D1x, HIx, H1x, r1x) = diagonal_sbp_D1(p,n_x_one_third,xc=(0,1/3));
+
+# Define D matrix for each interface
+
+D_LB_LM =
+
+D = Diagonal(ones(N_one_third*12))*2τ  # Need to modify D blocks later
 
 
 # Forming A terms
@@ -719,7 +731,7 @@ g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 
 
 # Forming g_bar_delta
-g_bar_delta = n_vcat(12,2*h*δ_f*ones(N_one_third))
+g_bar_delta = n_vcat(12,2*h*δ_f*Delta(ones(N_one_third)))
 
 #------------------------ END OF NEW IMPLEMENTATIONS ------------------------
 
