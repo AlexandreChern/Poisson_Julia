@@ -131,7 +131,7 @@ function hybrid_sbp(i)
 
     M = vcat(hcat(Mu,Mzero,Mzero),hcat(Mzero,Mv,Mzero),hcat(Mzero,Mzero,Mw))
 
-    lambda = (D - F_T*inv(M)*F)\(g_bar_delta - F_T*inv(M)*g_bar)
+    lambda = (D - F_T*(M\F))\(g_bar_delta - F_T*(M\g_bar))
     rhs = (g_bar - F*lambda)
     num_sol1 = Mu\rhs[1:N_one_third]
     num_sol2 = Mv\rhs[N_one_third+1:2*N_one_third]
