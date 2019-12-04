@@ -17,6 +17,14 @@ function e(i,n)
     return A[:,i]
 end
 
+function is_symmetric(A)
+    if norm(A-A')==0
+        return true
+    else
+        return false
+    end
+end
+
 
 # Solve for special case h = 0.05, n = 20
 # Generating data
@@ -30,6 +38,8 @@ h_list = 1 ./ n_list
 
 # h_list = [0.02, 0.01, 0.005, 0.0025, 0.00125, 0.000625, 0.0003125] # uncomment to use for p = 4, 6, 8
 # n_list = Int(1 ./h_list)
+
+
 
 
 p = 2

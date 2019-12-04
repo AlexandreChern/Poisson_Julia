@@ -109,6 +109,13 @@ function analy_sol(x,y) # Defines analytical_solution
     return sin.(π*x .+ π*y)
 end
 
+function is_symmetric(A)
+    if norm(A-A')==0
+        return true
+    else
+        return false
+    end
+end
 
 function Diag(A)
     # Self defined function that is similar to Matlab Diag
