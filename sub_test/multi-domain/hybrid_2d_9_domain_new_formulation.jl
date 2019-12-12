@@ -179,6 +179,11 @@ function Operators_2d(i, j)
     BSx = sparse(SNx - S0x);
     BSy = sparse(SNy - S0y);
 
+    Ax = BSx - H1x*D2x;
+    Ay = BSy - H1y*D2y;
+
+
+
 
     # Forming 2d Operators
     e_1x = sparse(e(1,N_x_one_third));
@@ -211,23 +216,26 @@ function Operators_2d(i, j)
     D2 = D2_x + D2_y
 
 
+
+
     HI_x = kron(HIx,I_Ny);
     HI_y = kron(I_Nx,HIy);
 
     H_x = kron(H1x,I_Ny);
     H_y = kron(I_Nx,H1y);
 
+    A2_x = H_x*(e_E*Ax*e_E');
+    # A2_y = H_y*(e_S*Ay*e_S);
+
     BS_x = kron(BSx,I_Ny);
     BS_y = kron(I_Nx,BSy);
 
 
     HI_tilde = kron(HIx,HIx);
-    # H_tilde = kron(H1x,H1y);
-    Hx_tilde = kron(H1x,I_Ny);
-    Hy_tilde = kron(I_Nx,H1y)
-    H_tilde = Hx_tilde + Hy_tilde;
+    H_tilde = kron(H1x,H1y);
 
-    return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, H_x, H_y , BS_x, BS_y, HI_tilde, Hx_tilde, Hy_tilde , H_tilde , I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
+
+    return (D1_x, D1_y, D2_x, D2_y, Ax, Ay, A2_x D2, HI_x, HI_y, H_x, H_y , BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
 # h_list = [0.02, 0.01, 0.005, 0.0025, 0.00125, 0.000625, 0.0003125] # uncomment to use for p = 4, 6, 8
@@ -242,7 +250,7 @@ end
 # n_one_third = Integer(n)
 # N_one_third = n_one_third + 1
 
-(D1_x, D1_y, D2_x, D2_y, D2, H_x, H_y, HI_x, HI_y, BS_x, BS_y, HI_tilde, Hx_tilde, Hy_tilde, H_tilde , I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
+(D1_x, D1_y, D2_x, D2_y, Ax, Ay, D2,  H_x, H_y, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
 
 D2_x
 E_E
