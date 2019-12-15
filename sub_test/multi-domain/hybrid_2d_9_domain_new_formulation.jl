@@ -6,7 +6,7 @@
 # Manufactured Solution would be u(x,y) = sin(πx + πy)
 # u(0,y) = sin(y)                   // Dirichlet Boundary Condition on West Side
 # u(1,y) = sin(π+y) = -sin(y)       // Dirichlet Boundary Condition on East Side
-# ∂u(x,0)/∂y = π*cos(π*x)           // Neumann Boundary Condition on South Side
+# ∂u(x,0)/∂y = π*cos(π*x)   // Need negative sign    // Neumann Boundary Condition on South Side
 # ∂u(x,1)/̡∂y = -π*cos(π*x)          // Neumann Boundary Condition on North Side
 
 # Using external Julia file
@@ -137,7 +137,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 1
+i = j = 2
 
 h = h_list[i]
 
@@ -224,8 +224,8 @@ function Operators_2d(i, j)
     H_x = kron(H1x,I_Ny);
     H_y = kron(I_Nx,H1y);
 
-    A2_x = H_x*(e_E*Ax*e_E');
-    # A2_y = H_y*(e_S*Ay*e_S);
+    A2_x = H_x*(kron(Ax,I_Ny));
+    A2_y = H_y*(kron(I_Nx,Ay));
 
     BS_x = kron(BSx,I_Ny);
     BS_y = kron(I_Nx,BSy);
@@ -235,7 +235,7 @@ function Operators_2d(i, j)
     H_tilde = kron(H1x,H1y);
 
 
-    return (D1_x, D1_y, D2_x, D2_y, Ax, Ay, A2_x D2, HI_x, HI_y, H_x, H_y , BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
+    return (D1_x, D1_y, D2_x, D2_y, Ax, Ay, A2_x, A2_y, D2, HI_x, HI_y, H1x, H1y, H_x, H_y , BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
 # h_list = [0.02, 0.01, 0.005, 0.0025, 0.00125, 0.000625, 0.0003125] # uncomment to use for p = 4, 6, 8
@@ -250,7 +250,7 @@ end
 # n_one_third = Integer(n)
 # N_one_third = n_one_third + 1
 
-(D1_x, D1_y, D2_x, D2_y, Ax, Ay, D2,  H_x, H_y, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
+(D1_x, D1_y, D2_x, D2_y, Ax, Ay, A2_x, A2_y, D2, HI_x, HI_y, H1x, H1y, H_x, H_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
 
 D2_x
 E_E
@@ -311,7 +311,7 @@ F_RT = -π^2*analy_sol(span_3,span_3')
 # L1 = e0'
 # L2 = en'
 # τ = σ₁
-# δ_f = 0.1
+δ_f = 0.1
 #Dδ_f = 0
 
 # G1 = L1*BS*h
@@ -328,7 +328,7 @@ F_RT = -π^2*analy_sol(span_3,span_3')
 g_W = sin.(π*span)  # Boundary conditions on the west side
 g_E = -sin.(π*span) # Boundary conditions on the east side
 
-g_S = π*cos.(π*span) # Boundary conditions on the south side
+g_S = -π*cos.(π*span) # add negative sing because of normal vectors # Boundary conditions on the south side
 g_N = -π*cos.(π*span) # Bondary conditions on the north side
 
 g_LB_W = g_W[1:N_one_third]
@@ -360,61 +360,64 @@ LN = e_N'
 
 
 
-M_LB =  H_x*D2_x + H_y*D2_y
-        + τ*LW'*LW + β*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
-        + τ*LE'*LE + β*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + β*LS'*LS*BS_y + 1/τ*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
-        + τ*LN'*LN + β*BS_y'*LN'*LN  # Dirichlet boundary condition on the north side
-
-M_LM = H_x*D2_x + H_y*D2_y
-        + τ*LW'*LW + β*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*LE'*LE + β*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*LS'*LS + β*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + τ*LN'*LN + β*BS_y'*LN'*LN # Dirichlet boundary condition on the north side
+M_LB = ( -H_tilde*(D2_x+D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
+        +(τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE)  # Dirichlet boundary condition on the east side
+        + β*H_x*LS'*LS*BS_y + 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
+        +(τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN )) # Dirichlet boundary condition on the north side
 
 
-M_LT = H_x*D2_x + H_y*D2_y
-        + τ*LW'*LW + β*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*LE'*LE + β*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*LS'*LS + β*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + β*LN'*LN*BS_y + 1/τ*BS_y'*LN'*LN*BS_y # Neumann condition on the north side
 
 
-M_MB = H_x*D2_x + H_y*D2_y
-        + τ*LW'*LW + β*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*LE'*LE + β*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + β*LS'*LS*BS_y + 1/τ*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
-        + τ*LN'*LN + β*BS_y'*LN'*LN  # Dirichlet boundary condition on the north side
+ M_LM = (-H_tilde*(D2_x+D2_y)  # H_x*D2_x + H_y*D2_y
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
-M_MM = H_x*D2_x + H_y*D2_y
-        + τ*LW'*LW + β*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*LE'*LE + β*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*LS'*LS + β*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + τ*LN'*LN + β*BS_y'*LN'*LN # Dirichlet boundary condition on the north side
 
-M_MT =  H_x*D2_x + H_y*D2_y
-        + τ*LW'*LW + β*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*LE'*LE + β*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*LS'*LS + β*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + β*LN'*LN*BS_y + 1/τ*BS_y'*LN'*LN*BS_y # Neumann condition on the north side
+M_LT =  (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + β*H_x*LN'*LN*BS_y + 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
-M_RB = H_x*D2_x + H_y*D2_y
-        + τ*LW'*LW + β*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
-        + τ*LE'*LE + β*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + β*LS'*LS*BS_y + 1/τ*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
-        + τ*LN'*LN + β*BS_y'*LN'*LN  # Dirichlet boundary condition on the north side
 
-M_RM = H_x*D2_x + H_y*D2_y
-        + τ*LW'*LW + β*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*LE'*LE + β*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*LS'*LS + β*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + τ*LN'*LN + β*BS_y'*LN'*LN # Dirichlet boundary condition on the north side
+M_MB = (-H_tilde*(D2_x + H_y*D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + β*H_x*LS'*LS*BS_y + 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
-M_RT = H_x*D2_x + H_y*D2_y
-        + τ*LW'*LW + β*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*LE'*LE + β*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*LS'*LS + β*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + β*LN'*LN*BS_y + 1/τ*BS_y'*LN'*LN*BS_y # Neumann condition on the north side
+M_MM = (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
+
+M_MT =  (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + β*H_x*LN'*LN*BS_y + 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
+
+M_RB = (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + β*H_x*LS'*LS*BS_y + 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN)  # Dirichlet boundary condition on the north side
+
+M_RM = (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
+
+M_RT = (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + β*H_x*LN'*LN*BS_y + 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
 M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
 
@@ -536,8 +539,8 @@ F_T_zero = zeros(N_one_third,N_one_third*N_one_third)
 
 # Constructing Interface 1: LB_LM
 
-F_T_LB_LM_LB = τ*LN + LN*BS_y -τ*H1*LN # + τ*LE + LE*BS_x
-F_T_LB_LM_LM = τ*LS + LS*BS_y - τ*H1*LS
+F_T_LB_LM_LB = τ*LN + LN*BS_y -τ*LN # + τ*LE + LE*BS_x
+F_T_LB_LM_LM = τ*LS + LS*BS_y - τ*LS
 F_T_LB_LM_LT = F_T_zero
 F_T_LB_LM_MB = F_T_zero #τ*LW + LW*BS_x
 F_T_LB_LM_MM = F_T_zero
@@ -564,7 +567,7 @@ F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero))
 
 
 # Constructing Interface 3: LB_MB
-F_T_LB_MB_LB = τ*LE + LE*BS_x -τ*H1*LE
+F_T_LB_MB_LB = τ*LE + LE*BS_x -τ*H1y*LE
 F_T_LB_MB_LM = F_T_zero
 F_T_LB_MB_LT = F_T_zero
 F_T_LB_MB_MB = τ*LW + LW*BS_x - τ*H1*LW
@@ -712,7 +715,7 @@ A = vcat(hcat(M,F),hcat(F_T,D))
 #     + H_tilde*F_MT[:])
 
 # g_RB = (
-#     (τ*LE' + BS_x'*LE')*g_RB_E           # RB_E
+#     (τ*LE' + BS_x'*LE')*g_RB_E           # RB_Eg
 #     + H_tilde*F_RB[:])
 
 # g_RM = (
@@ -750,6 +753,7 @@ g_RT = (b_RT_E*g_RT_E + b_RT_N*g_RT_N) + H_tilde*F_RT[:]
 g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 
 
+
 # Forming g_bar_delta
 g_bar_delta = n_vcat(12,2*h*δ_f*(ones(N_one_third)))
 
@@ -760,10 +764,16 @@ g_bar_delta = n_vcat(12,2*h*δ_f*(ones(N_one_third)))
 b = vcat(g_bar,g_bar_delta)
 
 
-lambda = (D - F_T*(M\F))\(g_bar_delta - F_T*(M\g_bar))
 
-A\b
+lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
 
+num_sol = A\b
+num_sol_tranc = num_sol[1:N^2*(N-1)^2]
+plot(span,span,num_sol_tranc,st=:surface)
+
+num_sol_1 = num_sol[1:N^2]
+num_sol_1 = reshape(num_sol_1,N,N)
+plot(span_1,span_2,num_sol_1,st=:surface)
 # g_LB == ( F_LB[:] + (τ*LW' + BS_x'*LW')*g_LB_W + (LS'+1/τ*BS_y'*LS')*g_LB_S)
 # returns false didn't know why, only difference -4.440892098500626e-16
 
