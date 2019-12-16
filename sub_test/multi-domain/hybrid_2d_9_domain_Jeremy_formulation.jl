@@ -252,6 +252,9 @@ end
 d0 = S0x
 dN = SNx
 
+Q = H1x*D2
+
+
 GW = -kron(H1x,d0') - kron(BS_x,e_1x')
 
 
