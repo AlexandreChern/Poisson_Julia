@@ -685,5 +685,10 @@ plot(span,span,num_sol_tranc,st=:surface)
 num_sol_1 = num_sol[1:N^2]
 num_sol_1 = reshape(num_sol_1,N,N)
 plot(span_1,span_1,num_sol_1,st=:surface)
+savefig("./num_sol_1.png")
 analy_sol_1 = analy_sol(span_1,span_1')
 plot(span_1,span_1,analy_sol_1,st=:surface)
+savefig("./analy_sol_1.png")
+
+plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
+savefig("./num_sol_1_isolated.png")
