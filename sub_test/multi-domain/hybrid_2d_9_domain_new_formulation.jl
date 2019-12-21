@@ -270,7 +270,7 @@ plot(span,span,analy_solution,st=:surface)
 σ₂ = 1
 β = 1
 ϵ = 1  # Intersection
-τ = 1
+τ = -1
 δ_f = 0.1
 
 
