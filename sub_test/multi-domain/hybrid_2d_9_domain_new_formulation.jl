@@ -551,51 +551,51 @@ M = vcat(
 # with boundary condions or interface conditions
 
 
-b_LB_W = τ*H_y*LW' + β*H_y*BS_x'*LW' # Operators for imposing boundary conditions
-b_LB_E = τ*H_y*LE' + β*H_y*BS_x'*LE'
-b_LB_S = τ*H_x*LS' + 1/τ*H_x*BS_y'*LS'
-b_LB_N = τ*H_x*LN' + β*H_x*BS_y'*LN'
+b_LB_W = (τ*H_y*LW' + β*H_y*BS_x'*LW')*LW*LW' # Operators for imposing boundary conditions
+b_LB_E = (τ*H_y*LE' + β*H_y*BS_x'*LE')*LE*LE'
+b_LB_S = (τ*H_x*LS' + 1/τ*H_x*BS_y'*LS')*LS*LS'
+b_LB_N = (τ*H_x*LN' + β*H_x*BS_y'*LN')*LN*LN'
 
-b_LM_W = τ*H_y*LW' + β*H_y*BS_x'*LW'
-b_LM_E = τ*H_y*LE' + β*H_y*BS_x'*LE'
-b_LM_S = τ*H_x*LS' + β*H_x*BS_x'*LS'
-b_LM_N = τ*H_x*LN' + β*H_x*BS_y'*LN'
+b_LM_W = (τ*H_y*LW' + β*H_y*BS_x'*LW')*LW*LW'
+b_LM_E = (τ*H_y*LE' + β*H_y*BS_x'*LE')*LE*LE'
+b_LM_S = (τ*H_x*LS' + β*H_x*BS_x'*LS')*LS*LS'
+b_LM_N = (τ*H_x*LN' + β*H_x*BS_y'*LN')*LN*LN'
 
-b_LT_W = τ*H_y*LW' + β*H_y*BS_x'*LW'
-b_LT_E = τ*H_y*LE' + β*H_y*BS_x'*LE'
-b_LT_S = τ*H_y*LS' + β*H_y*BS_y'*LS'
-b_LT_N = τ*H_y*LN' + 1/τ*H_y*BS_y'*LN'
+b_LT_W = (τ*H_y*LW' + β*H_y*BS_x'*LW')*LW*LW'
+b_LT_E = (τ*H_y*LE' + β*H_y*BS_x'*LE')*LE*LE'
+b_LT_S = (τ*H_y*LS' + β*H_y*BS_y'*LS')*LS*LS'
+b_LT_N = (τ*H_y*LN' + 1/τ*H_y*BS_y'*LN')*LN*LN'
 
 
-b_MB_W = H_y*(τ*LW' + β*BS_x'*LW') # Operators for imposing boundary conditions
-b_MB_E = H_y*(τ*LE' + β*BS_x'*LE')
-b_MB_S = H_x*(τ*LS' + 1/τ*BS_y'*LS')
-b_MB_N = H_x*(τ*LN' + β*BS_y'*LN')
+b_MB_W = (H_y*(τ*LW' + β*BS_x'*LW'))*LW*LW' # Operators for imposing boundary conditions
+b_MB_E = (H_y*(τ*LE' + β*BS_x'*LE'))*LE*LE'
+b_MB_S = (H_x*(τ*LS' + 1/τ*BS_y'*LS'))*LS*LS'
+b_MB_N = (H_x*(τ*LN' + β*BS_y'*LN'))*LN*LN'
 
-b_MM_W = H_y*(τ*LW' + β*BS_x'*LW')
-b_MM_E = H_y*(τ*LE' + β*BS_x'*LE')
-b_MM_S = H_x*(τ*LS' + β*BS_x'*LS')
-b_MM_N = H_x*(τ*LN' + β*BS_y'*LN')
+b_MM_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW'
+b_MM_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
+b_MM_S = H_x*(τ*LS' + β*BS_x'*LS')*LS*LS'
+b_MM_N = H_x*(τ*LN' + β*BS_y'*LN')*LN*LN'
 
-b_MT_W = H_y*(τ*LW' + β*BS_x'*LW')
-b_MT_E = H_y*(τ*LE' + β*BS_x'*LE')
-b_MT_S = H_x*(τ*LS' + β*BS_y'*LS')
-b_MT_N = H_x*(τ*LN' + 1/τ*BS_y'*LN')
+b_MT_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW'
+b_MT_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
+b_MT_S = H_x*(τ*LS' + β*BS_y'*LS')*LS*LS'
+b_MT_N = H_x*(τ*LN' + 1/τ*BS_y'*LN')*LN*LN'
 
-b_RB_W = H_y*(τ*LW' + β*BS_x'*LW') # Operators for imposing boundary conditions
-b_RB_E = H_y*(τ*LE' + β*BS_x'*LE')
-b_RB_S = H_x*(τ*LS' + 1/τ*BS_y'*LS')
-b_RB_N = H_x*(τ*LN' + β*BS_y'*LN')
+b_RB_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW' # Operators for imposing boundary conditions
+b_RB_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
+b_RB_S = H_x*(τ*LS' + 1/τ*BS_y'*LS')*LS*LS'
+b_RB_N = H_x*(τ*LN' + β*BS_y'*LN')*LN*LN'
 
-b_RM_W = H_y*(τ*LW' + β*BS_x'*LW')
-b_RM_E = H_y*(τ*LE' + β*BS_x'*LE')
-b_RM_S = H_x*(τ*LS' + β*BS_x'*LS')
-b_RM_N = H_x*(τ*LN' + β*BS_y'*LN')
+b_RM_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW'
+b_RM_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
+b_RM_S = H_x*(τ*LS' + β*BS_x'*LS')*LS*LS'
+b_RM_N = H_x*(τ*LN' + β*BS_y'*LN')*LN*LN'
 
-b_RT_W = H_y*(τ*LW' + β*BS_x'*LW')
-b_RT_E = H_y*(τ*LE' + β*BS_x'*LE')
-b_RT_S = H_x*(τ*LS' + β*BS_y'*LS')
-b_RT_N = H_x*(τ*LN' + 1/τ*BS_y'*LN')
+b_RT_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW'
+b_RT_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
+b_RT_S = H_x*(τ*LS' + β*BS_y'*LS')*LS*LS'
+b_RT_N = H_x*(τ*LN' + 1/τ*BS_y'*LN')*LN*LN'
 
 
 
@@ -726,7 +726,7 @@ num_sol_stacked = vcat(hcat(num_sol_LB,num_sol_MB,num_sol_RB),
 plot(span,span,num_sol_stacked,st=:surface)
 
 
-plot(span_1,span_1,num_sol_LB',st=:surface)
+plot(span_1,span_1,num_sol_LB,st=:surface)
 savefig("./num_sol_1.png")
 analy_sol_1 = analy_sol(span_1,span_1')
 plot(span_1,span_1,analy_sol_1,st=:surface)
