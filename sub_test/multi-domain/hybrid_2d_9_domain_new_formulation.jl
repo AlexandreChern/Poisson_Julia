@@ -6,7 +6,7 @@
 # Manufactured Solution would be u(x,y) = sin(πx + πy)
 # u(0,y) = sin(y)                   // Dirichlet Boundary Condition on West Side
 # u(1,y) = sin(π+y) = -sin(y)       // Dirichlet Boundary Condition on East Side
-# ∂u(x,0)/∂y = π*cos(π*x)   // Need negative sign    // Neumann Boundary Condition on South Side
+# ∂u(x,0)/∂y = -π*cos(π*x)   // Need negative sign    // Neumann Boundary Condition on South Side
 # ∂u(x,1)/̡∂y = -π*cos(π*x)          // Neumann Boundary Condition on North Side
 
 # Using external Julia file
@@ -111,6 +111,9 @@ end
 
 function is_symmetric(A)
     if norm(A-A')==0
+        return true
+    elseif norm(A-A') <= 1e-16
+        println("Close enough");
         return true
     else
         return false
@@ -267,6 +270,8 @@ plot(span,span,analy_solution,st=:surface)
 σ₂ = 1
 β = 1
 ϵ = 1  # Intersection
+τ = 1
+δ_f = 0.1
 
 
 
@@ -290,7 +295,7 @@ F_RB = -π^2*analy_sol(span_3,span_1')
 F_RM = -π^2*analy_sol(span_3,span_2')
 F_RT = -π^2*analy_sol(span_3,span_3')
 
-δ_f = 0.1
+
 
 
 # Boundary Conditions
@@ -324,12 +329,12 @@ g_RT_N = g_N[2*N_one_third+1:3*N_one_third]
 
 
 
-LW = e_W'
-LE = e_E'
-LS = e_S'
-LN = e_N'
+LW
+LE
+LS
+LN
 
-τ = 1
+
 
 
 # Order for stacking M_matrix
@@ -352,64 +357,65 @@ function n_hcat(n::Int64,M)
 end
 
 
-M_LB = (-H_tilde*(D2_x+D2_y)
-        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
-        +(τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE)  # Dirichlet boundary condition on the east side
-        + β*H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the south Side
-        +(τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN )) # Dirichlet boundary condition on the north side
+M_LB = (+ H_tilde*(D2_x+D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + β*H_x*LS'*LS*BS_y + 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the south Side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
 
 
 
- M_LM = (-H_tilde*(D2_x+D2_y)  # H_x*D2_x + H_y*D2_y
-        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
+
+ M_LM = (H_tilde*(D2_x+D2_y)  # H_x*D2_x + H_y*D2_y
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
 
-M_LT =  (-H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + β*H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
+M_LT =  (+ H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + β*H_x*LN'*LN*BS_y + 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
 
-M_MB = (-H_tilde*(D2_x + H_y*D2_y)
-        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + β*H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
-        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
+M_MB = (H_tilde*(D2_x + H_y*D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + β*H_x*LS'*LS*BS_y + 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
-M_MM = (-H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
+M_MM = (H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
-M_MT =  (-H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + β*H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
+M_MT =  (H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + β*H_x*LN'*LN*BS_y + 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
-M_RB = (-H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + β*H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
-        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN)  # Dirichlet boundary condition on the north side
+M_RB = (H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + β*H_x*LS'*LS*BS_y + 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN)  # Dirichlet boundary condition on the north side
 
-M_RM = (-H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
+M_RM = (H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
-M_RT = (-H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + β*H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
+M_RT = (H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + β*H_x*LN'*LN*BS_y + 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
 M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
 
@@ -424,55 +430,172 @@ M = vcat(
  hcat(n_hcat(7,M_zero),M_RM, n_hcat(1,M_zero)),
  hcat(n_hcat(8,M_zero),M_RT))
 
+
+ # We form F_T in the same order
+ # LB -> LM -> LR -> MB -> MM -> MT -> RB -> RM -> RT
+ # So the first row will be the interfaces of LB with the rest of blocks
+ # The first component will be the interface between LB and LM
+
+ F_zero = zeros(N_one_third*N_one_third,N_one_third)
+ F_T_zero = zeros(N_one_third,N_one_third*N_one_third)
+
+ # eg: F_T_LB_LM defines the component of LB-LM interface of F_T,
+ # refering to the term involving block LB and MB
+
+ # Constructing Interface 1: LB_LM
+
+ F_T_LB_LM_LB = (τ*LN + LN*BS_y)*H_x # + τ*LE + LE*BS_x
+ F_T_LB_LM_LM = (τ*LS + LS*BS_y)*H_x
+ F_T_LB_LM_LT = F_T_zero
+ F_T_LB_LM_MB = F_T_zero #τ*LW + LW*BS_x
+ F_T_LB_LM_MM = F_T_zero
+ F_T_LB_LM_MT = F_T_zero
+ F_T_LB_LM_RB = F_T_zero
+ F_T_LB_LM_RM = F_T_zero
+ F_T_LB_LM_RT = F_T_zero
+
+
+ F_T_LB_LM = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,F_T_LB_LM_LT,
+         F_T_LB_LM_MB,F_T_LB_LM_MM,F_T_LB_LM_MT,
+         F_T_LB_LM_RB,F_T_LB_LM_RM,F_T_LB_LM_LT)
+
+
+ # Constructing Interface 2: LM_LT
+
+ F_T_LM_LT_LB = F_T_zero # LM_LT interface does not involve LB block
+ F_T_LM_LT_LM = (τ*LN + LN*BS_y)*H_x
+ F_T_LM_LT_LT = (τ*LS + LS*BS_y)*H_x
+ F_T_LM_LT_MB = F_T_zero
+ # ... Trivial Terms
+ F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero))
+
+
+
+ # Constructing Interface 3: LB_MB
+ F_T_LB_MB_LB = (τ*LE + LE*BS_x)*H_y
+ F_T_LB_MB_LM = F_T_zero
+ F_T_LB_MB_LT = F_T_zero
+ F_T_LB_MB_MB = (τ*LW + LW*BS_x)*H_y
+ F_T_LB_MB_MB = F_T_zero
+ # ... Trivial Terms
+ F_T_LB_MB = hcat(F_T_LB_MB_LB,n_hcat(2,F_T_zero),F_T_LB_MB_MB,n_hcat(5,F_T_zero))
+
+ # Constructing Interface 4: LM_MM
+ F_T_LM_MM_LM = (τ*LE + LE*BS_x)*H_y
+ F_T_LM_MM_MM = (τ*LW + LW*BS_x)*H_y
+ F_T_LM_MM = hcat(F_T_zero,F_T_LM_MM_LM,n_hcat(2,F_T_zero),F_T_LM_MM_MM,n_hcat(4,F_T_zero))
+
+
+ # Constructing Interface 5: LT_MT
+ F_T_LT_MT_LT = (τ*LE + LE*BS_x)*H_y
+ F_T_LT_MT_MT = (τ*LW + LW*BS_x)*H_y
+ F_T_LT_MT = hcat(n_hcat(2,F_T_zero),F_T_LT_MT_LT, n_hcat(2,F_T_zero),F_T_LT_MT_MT,n_hcat(3,F_T_zero))
+
+ # Constructing Interface 6: MB_MM
+ F_T_MB_MM_MB = (τ*LN + LN*BS_y)*H_x
+ F_T_MB_MM_MM = (τ*LS + LS*BS_y)*H_x
+ F_T_MB_MM = hcat(n_hcat(3,F_T_zero),F_T_MB_MM_MB,F_T_MB_MM_MM,n_hcat(4,F_T_zero))
+
+ # Constructing Interface 7: MM_MT
+ F_T_MM_MT_MM = (τ*LN + LN*BS_y)*H_x
+ F_T_MM_MT_MT = (τ*LS + LS*BS_y)*H_x
+ F_T_MM_MT = hcat(n_hcat(4,F_T_zero),F_T_MM_MT_MM,F_T_MM_MT_MT,n_hcat(3,F_T_zero))
+
+ #
+ # Constructing Interface 8: MB_RB
+ F_T_MB_RB_MB = (τ*LE + LE*BS_x)*H_y
+ F_T_MB_RB_RB = (τ*LW + LW*BS_x)*H_y
+ F_T_MB_RB = hcat(n_hcat(3,F_T_zero),F_T_MB_RB_MB,n_hcat(2,F_T_zero),F_T_MB_RB_RB,n_hcat(2,F_T_zero))
+
+ # Constructing Interface 9: MM_RM
+ F_T_MM_RM_MM = (τ*LE + LE*BS_x)*H_y
+ F_T_MM_RM_RM = (τ*LW + LW*BS_x)*H_y
+ F_T_MM_RM = hcat(n_hcat(4,F_T_zero),F_T_MM_RM_MM,n_hcat(2,F_T_zero),F_T_MM_RM_RM,n_hcat(1,F_T_zero))
+
+
+ # Constructing Interface 10: MT_RT
+ F_T_MT_RT_MT = (τ*LE + LE*BS_x)*H_y
+ F_T_MT_RT_RT = (τ*LW + LW*BS_x)*H_y
+ F_T_MT_RT = hcat(n_hcat(5,F_T_zero),F_T_MT_RT_MT,n_hcat(2,F_T_zero),F_T_MT_RT_RT)
+ #
+
+
+ # Constructing Interface 11: RB_RM
+ F_T_RB_RM_RB = (τ*LN + LN*BS_y)*H_x
+ F_T_RB_RM_RM = (τ*LS + LS*BS_y)*H_x
+ F_T_RB_RM = hcat(n_hcat(6,F_T_zero),F_T_RB_RM_RB,F_T_RB_RM_RM,n_hcat(1,F_T_zero))
+
+ #
+ # Constructing Interface 12: RM_RT
+ F_T_RM_RT_RM = (τ*LN + LN*BS_y)*H_x
+ F_T_RM_RT_RT = (τ*LS + LS*BS_y)*H_x
+ F_T_RM_RT = hcat(n_hcat(7,F_T_zero),F_T_RM_RT_RM,F_T_RM_RT_RT)
+
+
+ # Construting Final Matrix F_T, vertical catenation of all 12 interfaces
+ F_T = vcat(F_T_LB_LM,F_T_LM_LT,         # First 2 interfaces
+     F_T_LB_MB, F_T_LM_MM, F_T_LT_MT,    # Next 3 interfaces
+     F_T_MB_MM, F_T_MM_MT,               # Next 2 interfaces
+     F_T_MB_RB, F_T_MM_RM, F_T_MT_RT,    # Next 3 interfaces
+     F_T_RB_RM, F_T_RM_RT)                # Next 2 interfaces
+
+
+ # For simplification We construct F by taking the inverse of F_T
+
+ F = F_T'
+
+
+
+
 # b_LB_W here defines the opeartor to be multiplied
 # with boundary condions or interface conditions
 
 
-b_LB_W = τ*H_y*LW' - β*H_y*BS_x'*LW' # Operators for imposing boundary conditions
-b_LB_E = τ*H_y*LE' - β*H_y*BS_x'*LE'
-b_LB_S = τ*H_x*LS' - 1/τ*H_x*BS_y'*LS'
-b_LB_N = τ*H_x*LN' - β*H_x*BS_y'*LN'
+b_LB_W = τ*H_y*LW' + β*H_y*BS_x'*LW' # Operators for imposing boundary conditions
+b_LB_E = τ*H_y*LE' + β*H_y*BS_x'*LE'
+b_LB_S = τ*H_x*LS' + 1/τ*H_x*BS_y'*LS'
+b_LB_N = τ*H_x*LN' + β*H_x*BS_y'*LN'
 
-b_LM_W = τ*H_y*LW' - β*H_y*BS_x'*LW'
-b_LM_E = τ*H_y*LE' - β*H_y*BS_x'*LE'
-b_LM_S = τ*H_x*LS' - β*H_x*BS_x'*LS'
-b_LM_N = τ*H_x*LN' - β*H_x*BS_y'*LN'
+b_LM_W = τ*H_y*LW' + β*H_y*BS_x'*LW'
+b_LM_E = τ*H_y*LE' + β*H_y*BS_x'*LE'
+b_LM_S = τ*H_x*LS' + β*H_x*BS_x'*LS'
+b_LM_N = τ*H_x*LN' + β*H_x*BS_y'*LN'
 
-b_LT_W = τ*H_y*LW' - β*H_y*BS_x'*LW'
-b_LT_E = τ*H_y*LE' - β*H_y*BS_x'*LE'
-b_LT_S = τ*H_y*LS' - β*H_y*BS_y'*LS'
-b_LT_N = τ*H_y*LN' - 1/τ*H_y*BS_y'*LN'
+b_LT_W = τ*H_y*LW' + β*H_y*BS_x'*LW'
+b_LT_E = τ*H_y*LE' + β*H_y*BS_x'*LE'
+b_LT_S = τ*H_y*LS' + β*H_y*BS_y'*LS'
+b_LT_N = τ*H_y*LN' + 1/τ*H_y*BS_y'*LN'
 
 
-b_MB_W = H_y*(τ*LW' - β*BS_x'*LW') # Operators for imposing boundary conditions
-b_MB_E = H_y*(τ*LE' - β*BS_x'*LE')
-b_MB_S = H_x*(τ*LS' - 1/τ*BS_y'*LS')
-b_MB_N = H_x*(τ*LN' - β*BS_y'*LN')
+b_MB_W = H_y*(τ*LW' + β*BS_x'*LW') # Operators for imposing boundary conditions
+b_MB_E = H_y*(τ*LE' + β*BS_x'*LE')
+b_MB_S = H_x*(τ*LS' + 1/τ*BS_y'*LS')
+b_MB_N = H_x*(τ*LN' + β*BS_y'*LN')
 
-b_MM_W = H_y*(τ*LW' - β*BS_x'*LW')
-b_MM_E = H_y*(τ*LE' - β*BS_x'*LE')
-b_MM_S = H_x*(τ*LS' - β*BS_x'*LS')
-b_MM_N = H_x*(τ*LN' - β*BS_y'*LN')
+b_MM_W = H_y*(τ*LW' + β*BS_x'*LW')
+b_MM_E = H_y*(τ*LE' + β*BS_x'*LE')
+b_MM_S = H_x*(τ*LS' + β*BS_x'*LS')
+b_MM_N = H_x*(τ*LN' + β*BS_y'*LN')
 
-b_MT_W = H_y*(τ*LW' - β*BS_x'*LW')
-b_MT_E = H_y*(τ*LE' - β*BS_x'*LE')
-b_MT_S = H_x*(τ*LS' - β*BS_y'*LS')
-b_MT_N = H_x*(τ*LN' - 1/τ*BS_y'*LN')
+b_MT_W = H_y*(τ*LW' + β*BS_x'*LW')
+b_MT_E = H_y*(τ*LE' + β*BS_x'*LE')
+b_MT_S = H_x*(τ*LS' + β*BS_y'*LS')
+b_MT_N = H_x*(τ*LN' + 1/τ*BS_y'*LN')
 
-b_RB_W = H_y*(τ*LW' - β*BS_x'*LW') # Operators for imposing boundary conditions
-b_RB_E = H_y*(τ*LE' - β*BS_x'*LE')
-b_RB_S = H_x*(τ*LS' - 1/τ*BS_y'*LS')
-b_RB_N = H_x*(τ*LN' - β*BS_y'*LN')
+b_RB_W = H_y*(τ*LW' + β*BS_x'*LW') # Operators for imposing boundary conditions
+b_RB_E = H_y*(τ*LE' + β*BS_x'*LE')
+b_RB_S = H_x*(τ*LS' + 1/τ*BS_y'*LS')
+b_RB_N = H_x*(τ*LN' + β*BS_y'*LN')
 
-b_RM_W = H_y*(τ*LW' - β*BS_x'*LW')
-b_RM_E = H_y*(τ*LE' - β*BS_x'*LE')
-b_RM_S = H_x*(τ*LS' - β*BS_x'*LS')
-b_RM_N = H_x*(τ*LN' - β*BS_y'*LN')
+b_RM_W = H_y*(τ*LW' + β*BS_x'*LW')
+b_RM_E = H_y*(τ*LE' + β*BS_x'*LE')
+b_RM_S = H_x*(τ*LS' + β*BS_x'*LS')
+b_RM_N = H_x*(τ*LN' + β*BS_y'*LN')
 
-b_RT_W = H_y*(τ*LW' - β*BS_x'*LW')
-b_RT_E = H_y*(τ*LE' - β*BS_x'*LE')
-b_RT_S = H_x*(τ*LS' - β*BS_y'*LS')
-b_RT_N = H_x*(τ*LN' - 1/τ*BS_y'*LN')
+b_RT_W = H_y*(τ*LW' + β*BS_x'*LW')
+b_RT_E = H_y*(τ*LE' + β*BS_x'*LE')
+b_RT_S = H_x*(τ*LS' + β*BS_y'*LS')
+b_RT_N = H_x*(τ*LN' + 1/τ*BS_y'*LN')
 
 
 
@@ -493,19 +616,19 @@ b_zero = zeros(N_one_third*N_one_third)
 # Forming g terms, g terms are the combination of source functions and boundary conditions
 # each g component refers to each block, starting from block LB
 
-g_LB = (b_LB_W*g_LB_W + b_LB_S*g_LB_S) - H_tilde*F_LB[:]
-g_LM = (b_LM_W*g_LM_W) - H_tilde*F_LM[:]
-g_LT = (b_LT_W*g_LT_W + b_LT_N*g_LT_N) - H_tilde*F_LT[:]
+g_LB = (b_LB_W*g_LB_W + b_LB_S*g_LB_S) + H_tilde*F_LB[:]
+g_LM = (b_LM_W*g_LM_W) + H_tilde*F_LM[:]
+g_LT = (b_LT_W*g_LT_W + b_LT_N*g_LT_N) + H_tilde*F_LT[:]
 
 
-g_MB = (b_MB_S * g_MB_S) - H_tilde*F_MB[:]
-g_MM = -H_tilde*F_MM[:]
-g_MT = (b_MT_N*g_MT_N) - H_tilde*F_MT[:]
+g_MB = (b_MB_S * g_MB_S) + H_tilde*F_MB[:]
+g_MM = H_tilde*F_MM[:]
+g_MT = (b_MT_N*g_MT_N) + H_tilde*F_MT[:]
 
 
-g_RB = (b_RB_E*g_RB_E + b_RB_S*g_RB_S) - H_tilde*F_RB[:]
-g_RM = (b_RM_E*g_RM_E) - H_tilde*F_RM[:]
-g_RT = (b_RT_E*g_RT_E + b_RT_N*g_RT_N) - H_tilde*F_RT[:]
+g_RB = (b_RB_E*g_RB_E + b_RB_S*g_RB_S) + H_tilde*F_RB[:]
+g_RM = (b_RM_E*g_RM_E) + H_tilde*F_RM[:]
+g_RT = (b_RT_E*g_RT_E + b_RT_N*g_RT_N) + H_tilde*F_RT[:]
 
 
 g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
@@ -527,118 +650,6 @@ g_bar_delta = n_vcat(12,2*h*δ_f*(ones(N_one_third)))
 
 # g = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 
-# We form F_T in the same order
-# LB -> LM -> LR -> MB -> MM -> MT -> RB -> RM -> RT
-# So the first row will be the interfaces of LB with the rest of blocks
-# The first component will be the interface between LB and LM
-
-F_zero = zeros(N_one_third*N_one_third,N_one_third)
-F_T_zero = zeros(N_one_third,N_one_third*N_one_third)
-
-# eg: F_T_LB_LM defines the component of LB-LM interface of F_T,
-# refering to the term involving block LB and MB
-
-# Constructing Interface 1: LB_LM
-
-F_T_LB_LM_LB = (τ*LN - LN*BS_y)*H_x # + τ*LE + LE*BS_x
-F_T_LB_LM_LM = (τ*LS - LS*BS_y)*H_x
-F_T_LB_LM_LT = F_T_zero
-F_T_LB_LM_MB = F_T_zero #τ*LW + LW*BS_x
-F_T_LB_LM_MM = F_T_zero
-F_T_LB_LM_MT = F_T_zero
-F_T_LB_LM_RB = F_T_zero
-F_T_LB_LM_RM = F_T_zero
-F_T_LB_LM_RT = F_T_zero
-
-
-F_T_LB_LM = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,F_T_LB_LM_LT,
-        F_T_LB_LM_MB,F_T_LB_LM_MM,F_T_LB_LM_MT,
-        F_T_LB_LM_RB,F_T_LB_LM_RM,F_T_LB_LM_LT)
-
-
-# Constructing Interface 2: LM_LT
-
-F_T_LM_LT_LB = F_T_zero # LM_LT interface does not involve LB block
-F_T_LM_LT_LM = (τ*LN - LN*BS_y)*H_x
-F_T_LM_LT_LT = (τ*LS - LS*BS_y)*H_x
-F_T_LM_LT_MB = F_T_zero
-# ... Trivial Terms
-F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero))
-
-
-
-# Constructing Interface 3: LB_MB
-F_T_LB_MB_LB = (τ*LE - LE*BS_x)*H_y
-F_T_LB_MB_LM = F_T_zero
-F_T_LB_MB_LT = F_T_zero
-F_T_LB_MB_MB = (τ*LW - LW*BS_x)*H_y
-F_T_LB_MB_MB = F_T_zero
-# ... Trivial Terms
-F_T_LB_MB = hcat(F_T_LB_MB_LB,n_hcat(2,F_T_zero),F_T_LB_MB_MB,n_hcat(5,F_T_zero))
-
-# Constructing Interface 4: LM_MM
-F_T_LM_MM_LM = (τ*LE - LE*BS_x)*H_y
-F_T_LM_MM_MM = (τ*LW - LW*BS_x)*H_y
-F_T_LM_MM = hcat(F_T_zero,F_T_LM_MM_LM,n_hcat(2,F_T_zero),F_T_LM_MM_MM,n_hcat(4,F_T_zero))
-
-
-# Constructing Interface 5: LT_MT
-F_T_LT_MT_LT = (τ*LE - LE*BS_x)*H_y
-F_T_LT_MT_MT = (τ*LW - LW*BS_x)*H_y
-F_T_LT_MT = hcat(n_hcat(2,F_T_zero),F_T_LT_MT_LT, n_hcat(2,F_T_zero),F_T_LT_MT_MT,n_hcat(3,F_T_zero))
-
-# Constructing Interface 6: MB_MM
-F_T_MB_MM_MB = (τ*LN - LN*BS_y)*H_x
-F_T_MB_MM_MM = (τ*LS - LS*BS_y)*H_x
-F_T_MB_MM = hcat(n_hcat(3,F_T_zero),F_T_MB_MM_MB,F_T_MB_MM_MM,n_hcat(4,F_T_zero))
-
-# Constructing Interface 7: MM_MT
-F_T_MM_MT_MM = (τ*LN - LN*BS_y)*H_x
-F_T_MM_MT_MT = (τ*LS - LS*BS_y)*H_x
-F_T_MM_MT = hcat(n_hcat(4,F_T_zero),F_T_MM_MT_MM,F_T_MM_MT_MT,n_hcat(3,F_T_zero))
-
-#
-# Constructing Interface 8: MB_RB
-F_T_MB_RB_MB = (τ*LE - LE*BS_x)*H_y
-F_T_MB_RB_RB = (τ*LW - LW*BS_x)*H_y
-F_T_MB_RB = hcat(n_hcat(3,F_T_zero),F_T_MB_RB_MB,n_hcat(2,F_T_zero),F_T_MB_RB_RB,n_hcat(2,F_T_zero))
-
-# Constructing Interface 9: MM_RM
-F_T_MM_RM_MM = (τ*LE - LE*BS_x)*H_y
-F_T_MM_RM_RM = (τ*LW - LW*BS_x)*H_y
-F_T_MM_RM = hcat(n_hcat(4,F_T_zero),F_T_MM_RM_MM,n_hcat(2,F_T_zero),F_T_MM_RM_RM,n_hcat(1,F_T_zero))
-
-
-# Constructing Interface 10: MT_RT
-F_T_MT_RT_MT = (τ*LE - LE*BS_x)*H_y
-F_T_MT_RT_RT = (τ*LW - LW*BS_x)*H_y
-F_T_MT_RT = hcat(n_hcat(5,F_T_zero),F_T_MT_RT_MT,n_hcat(2,F_T_zero),F_T_MT_RT_RT)
-#
-
-
-# Constructing Interface 11: RB_RM
-F_T_RB_RM_RB = (τ*LN - LN*BS_y)*H_x
-F_T_RB_RM_RM = (τ*LS - LS*BS_y)*H_x
-F_T_RB_RM = hcat(n_hcat(6,F_T_zero),F_T_RB_RM_RB,F_T_RB_RM_RM,n_hcat(1,F_T_zero))
-
-#
-# Constructing Interface 12: RM_RT
-F_T_RM_RT_RM = (τ*LN - LN*BS_y)*H_x
-F_T_RM_RT_RT = (τ*LS - LS*BS_y)*H_x
-F_T_RM_RT = hcat(n_hcat(7,F_T_zero),F_T_RM_RT_RM,F_T_RM_RT_RT)
-
-
-# Construting Final Matrix F_T, vertical catenation of all 12 interfaces
-F_T = vcat(F_T_LB_LM,F_T_LM_LT,         # First 2 interfaces
-    F_T_LB_MB, F_T_LM_MM, F_T_LT_MT,    # Next 3 interfaces
-    F_T_MB_MM, F_T_MM_MT,               # Next 2 interfaces
-    F_T_MB_RB, F_T_MM_RM, F_T_MT_RT,    # Next 3 interfaces
-    F_T_RB_RM, F_T_RM_RT)                # Next 2 interfaces
-
-
-# For simplification We construct F by taking the inverse of F_T
-
-F = F_T'
 
 
 # Formulation D terms
@@ -682,13 +693,44 @@ num_sol = A\b # solving the system directly
 num_sol_tranc = num_sol[1:N^2*9]
 plot(span,span,num_sol_tranc,st=:surface)
 
-num_sol_1 = num_sol[1:N^2]
-num_sol_1 = reshape(num_sol_1,N,N)
-plot(span_1,span_1,num_sol_1,st=:surface)
+num_sol_LB = num_sol[1:N^2];
+num_sol_LB = reshape(num_sol_LB,N,N)';
+
+num_sol_LM = num_sol[N^2+1:2*N^2];
+num_sol_LM = reshape(num_sol_LM,N,N)';
+
+num_sol_LT = num_sol[2*N^2+1:3*N^2];
+num_sol_LT = reshape(num_sol_LT,N,N)';
+
+num_sol_MB = num_sol[3*N^2+1:4*N^2];
+num_sol_MB = reshape(num_sol_MB,N,N)';
+
+num_sol_MM = num_sol[4*N^2+1:5*N^2];
+num_sol_MM = reshape(num_sol_MM,N,N)';
+
+num_sol_MT = num_sol[5*N^2+1:6*N^2];
+num_sol_MT = reshape(num_sol_MT,N,N)';
+
+num_sol_RB = num_sol[6*N^2+1:7*N^2];
+num_sol_RB = reshape(num_sol_RB,N,N)';
+
+num_sol_RM = num_sol[7*N^2+1:8*N^2];
+num_sol_RM = reshape(num_sol_RM,N,N)';
+
+num_sol_RT = num_sol[8*N^2+1:9*N^2];
+num_sol_RT = reshape(num_sol_RT,N,N)';
+
+num_sol_stacked = vcat(hcat(num_sol_LB,num_sol_MB,num_sol_RB),
+                    hcat(num_sol_LM,num_sol_MM,num_sol_RM),
+                    hcat(num_sol_LT,num_sol_MT,num_sol_RT));
+plot(span,span,num_sol_stacked,st=:surface)
+
+
+plot(span_1,span_1,num_sol_LB',st=:surface)
 savefig("./num_sol_1.png")
 analy_sol_1 = analy_sol(span_1,span_1')
 plot(span_1,span_1,analy_sol_1,st=:surface)
 savefig("./analy_sol_1.png")
 
-plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
+plot(span_1,span_1,reshape(M_LB\g_LB,N,N)',st=:surface)
 savefig("./num_sol_1_isolated.png")
