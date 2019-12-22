@@ -445,8 +445,8 @@ M = vcat(
 
  # Constructing Interface 1: LB_LM
 
- F_T_LB_LM_LB = (τ*LN + LN*BS_y)*H_x # + τ*LE + LE*BS_x
- F_T_LB_LM_LM = (τ*LS + LS*BS_y)*H_x
+ F_T_LB_LM_LB = H1x*(τ*LN + LN*BS_y) # + τ*LE + LE*BS_x
+ F_T_LB_LM_LM = H1x*(τ*LS + LS*BS_y)
  F_T_LB_LM_LT = F_T_zero
  F_T_LB_LM_MB = F_T_zero #τ*LW + LW*BS_x
  F_T_LB_LM_MM = F_T_zero
@@ -464,8 +464,8 @@ M = vcat(
  # Constructing Interface 2: LM_LT
 
  F_T_LM_LT_LB = F_T_zero # LM_LT interface does not involve LB block
- F_T_LM_LT_LM = (τ*LN + LN*BS_y)*H_x
- F_T_LM_LT_LT = (τ*LS + LS*BS_y)*H_x
+ F_T_LM_LT_LM = H1x*(τ*LN + LN*BS_y)
+ F_T_LM_LT_LT = H1x*(τ*LS + LS*BS_y)
  F_T_LM_LT_MB = F_T_zero
  # ... Trivial Terms
  F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero))
@@ -473,63 +473,63 @@ M = vcat(
 
 
  # Constructing Interface 3: LB_MB
- F_T_LB_MB_LB = (τ*LE + LE*BS_x)*H_y
+ F_T_LB_MB_LB = H1y*(τ*LE + LE*BS_x)
  F_T_LB_MB_LM = F_T_zero
  F_T_LB_MB_LT = F_T_zero
- F_T_LB_MB_MB = (τ*LW + LW*BS_x)*H_y
+ F_T_LB_MB_MB = H1y*(τ*LW + LW*BS_x)
  F_T_LB_MB_MB = F_T_zero
  # ... Trivial Terms
  F_T_LB_MB = hcat(F_T_LB_MB_LB,n_hcat(2,F_T_zero),F_T_LB_MB_MB,n_hcat(5,F_T_zero))
 
  # Constructing Interface 4: LM_MM
- F_T_LM_MM_LM = (τ*LE + LE*BS_x)*H_y
- F_T_LM_MM_MM = (τ*LW + LW*BS_x)*H_y
+ F_T_LM_MM_LM = H1y*(τ*LE + LE*BS_x)
+ F_T_LM_MM_MM = H1y*(τ*LW + LW*BS_x)
  F_T_LM_MM = hcat(F_T_zero,F_T_LM_MM_LM,n_hcat(2,F_T_zero),F_T_LM_MM_MM,n_hcat(4,F_T_zero))
 
 
  # Constructing Interface 5: LT_MT
- F_T_LT_MT_LT = (τ*LE + LE*BS_x)*H_y
- F_T_LT_MT_MT = (τ*LW + LW*BS_x)*H_y
+ F_T_LT_MT_LT = H1y*(τ*LE + LE*BS_x)
+ F_T_LT_MT_MT = H1y*(τ*LW + LW*BS_x)
  F_T_LT_MT = hcat(n_hcat(2,F_T_zero),F_T_LT_MT_LT, n_hcat(2,F_T_zero),F_T_LT_MT_MT,n_hcat(3,F_T_zero))
 
  # Constructing Interface 6: MB_MM
- F_T_MB_MM_MB = (τ*LN + LN*BS_y)*H_x
- F_T_MB_MM_MM = (τ*LS + LS*BS_y)*H_x
+ F_T_MB_MM_MB = H1x*(τ*LN + LN*BS_y)
+ F_T_MB_MM_MM = H1x*(τ*LS + LS*BS_y)
  F_T_MB_MM = hcat(n_hcat(3,F_T_zero),F_T_MB_MM_MB,F_T_MB_MM_MM,n_hcat(4,F_T_zero))
 
  # Constructing Interface 7: MM_MT
- F_T_MM_MT_MM = (τ*LN + LN*BS_y)*H_x
- F_T_MM_MT_MT = (τ*LS + LS*BS_y)*H_x
+ F_T_MM_MT_MM = H1x*(τ*LN + LN*BS_y)
+ F_T_MM_MT_MT = H1x*(τ*LS + LS*BS_y)
  F_T_MM_MT = hcat(n_hcat(4,F_T_zero),F_T_MM_MT_MM,F_T_MM_MT_MT,n_hcat(3,F_T_zero))
 
  #
  # Constructing Interface 8: MB_RB
- F_T_MB_RB_MB = (τ*LE + LE*BS_x)*H_y
- F_T_MB_RB_RB = (τ*LW + LW*BS_x)*H_y
+ F_T_MB_RB_MB = H1y*(τ*LE + LE*BS_x)
+ F_T_MB_RB_RB = H1y*(τ*LW + LW*BS_x)
  F_T_MB_RB = hcat(n_hcat(3,F_T_zero),F_T_MB_RB_MB,n_hcat(2,F_T_zero),F_T_MB_RB_RB,n_hcat(2,F_T_zero))
 
  # Constructing Interface 9: MM_RM
- F_T_MM_RM_MM = (τ*LE + LE*BS_x)*H_y
- F_T_MM_RM_RM = (τ*LW + LW*BS_x)*H_y
+ F_T_MM_RM_MM = H1y*(τ*LE + LE*BS_x)
+ F_T_MM_RM_RM = H1y*(τ*LW + LW*BS_x)
  F_T_MM_RM = hcat(n_hcat(4,F_T_zero),F_T_MM_RM_MM,n_hcat(2,F_T_zero),F_T_MM_RM_RM,n_hcat(1,F_T_zero))
 
 
  # Constructing Interface 10: MT_RT
- F_T_MT_RT_MT = (τ*LE + LE*BS_x)*H_y
- F_T_MT_RT_RT = (τ*LW + LW*BS_x)*H_y
+ F_T_MT_RT_MT = H1y*(τ*LE + LE*BS_x)
+ F_T_MT_RT_RT = H1y*(τ*LW + LW*BS_x)
  F_T_MT_RT = hcat(n_hcat(5,F_T_zero),F_T_MT_RT_MT,n_hcat(2,F_T_zero),F_T_MT_RT_RT)
  #
 
 
  # Constructing Interface 11: RB_RM
- F_T_RB_RM_RB = (τ*LN + LN*BS_y)*H_x
- F_T_RB_RM_RM = (τ*LS + LS*BS_y)*H_x
+ F_T_RB_RM_RB = H1x*(τ*LN + LN*BS_y)
+ F_T_RB_RM_RM = H1x*(τ*LS + LS*BS_y)
  F_T_RB_RM = hcat(n_hcat(6,F_T_zero),F_T_RB_RM_RB,F_T_RB_RM_RM,n_hcat(1,F_T_zero))
 
  #
  # Constructing Interface 12: RM_RT
- F_T_RM_RT_RM = (τ*LN + LN*BS_y)*H_x
- F_T_RM_RT_RT = (τ*LS + LS*BS_y)*H_x
+ F_T_RM_RT_RM = H1x*(τ*LN + LN*BS_y)
+ F_T_RM_RT_RT = H1x*(τ*LS + LS*BS_y)*H_x
  F_T_RM_RT = hcat(n_hcat(7,F_T_zero),F_T_RM_RT_RM,F_T_RM_RT_RT)
 
 
@@ -552,51 +552,51 @@ M = vcat(
 # with boundary condions or interface conditions
 
 
-b_LB_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')*LW*LW' # Operators for imposing boundary conditions
-b_LB_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')*LE*LE'
-b_LB_S = (β*H_x*LS' - 1/τ*H_x*BS_y'*LS')*LS*LS'
-b_LB_N = (τ*H_x*LN' - β*H_x*BS_y'*LN')*LN*LN'
+b_LB_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')#*LW*LW' # Operators for imposing boundary conditions
+b_LB_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')#*LE*LE'
+b_LB_S = (β*H_x*LS' - 1/τ*H_x*BS_y'*LS')#*LS*LS'
+b_LB_N = (τ*H_x*LN' - β*H_x*BS_y'*LN')#*LN*LN'
 
-b_LM_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')*LW*LW'
-b_LM_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')*LE*LE'
-b_LM_S = (τ*H_x*LS' - β*H_x*BS_x'*LS')*LS*LS'
-b_LM_N = (τ*H_x*LN' - β*H_x*BS_y'*LN')*LN*LN'
+b_LM_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')#*LW*LW'
+b_LM_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')#*LE*LE'
+b_LM_S = (τ*H_x*LS' - β*H_x*BS_x'*LS')#*LS*LS'
+b_LM_N = (τ*H_x*LN' - β*H_x*BS_y'*LN')#*LN*LN'
 
-b_LT_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')*LW*LW'
-b_LT_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')*LE*LE'
-b_LT_S = (τ*H_y*LS' - β*H_y*BS_y'*LS')*LS*LS'
-b_LT_N = (β*H_y*LN' - 1/τ*H_y*BS_y'*LN')*LN*LN'
+b_LT_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')#*LW*LW'
+b_LT_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')#*LE*LE'
+b_LT_S = (τ*H_y*LS' - β*H_y*BS_y'*LS')#*LS*LS'
+b_LT_N = (β*H_y*LN' - 1/τ*H_y*BS_y'*LN')#*LN*LN'
 
 
-b_MB_W = (H_y*(τ*LW' - β*BS_x'*LW'))*LW*LW' # Operators for imposing boundary conditions
-b_MB_E = (H_y*(τ*LE' - β*BS_x'*LE'))*LE*LE'
-b_MB_S = (H_x*(β*LS' - 1/τ*BS_y'*LS'))*LS*LS'
-b_MB_N = (H_x*(τ*LN' - β*BS_y'*LN'))*LN*LN'
+b_MB_W = (H_y*(τ*LW' - β*BS_x'*LW'))#*LW*LW' # Operators for imposing boundary conditions
+b_MB_E = (H_y*(τ*LE' - β*BS_x'*LE'))#*LE*LE'
+b_MB_S = (H_x*(β*LS' - 1/τ*BS_y'*LS'))#*LS*LS'
+b_MB_N = (H_x*(τ*LN' - β*BS_y'*LN'))#*LN*LN'
 
-b_MM_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW'
-b_MM_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
-b_MM_S = H_x*(τ*LS' - β*BS_x'*LS')*LS*LS'
-b_MM_N = H_x*(τ*LN' - β*BS_y'*LN')*LN*LN'
+b_MM_W = H_y*(τ*LW' - β*BS_x'*LW')#*LW*LW'
+b_MM_E = H_y*(τ*LE' - β*BS_x'*LE')#*LE*LE'
+b_MM_S = H_x*(τ*LS' - β*BS_x'*LS')#*LS*LS'
+b_MM_N = H_x*(τ*LN' - β*BS_y'*LN')#*LN*LN'
 
-b_MT_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW'
-b_MT_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
-b_MT_S = H_x*(τ*LS' - β*BS_y'*LS')*LS*LS'
-b_MT_N = H_x*(β*LN' - 1/τ*BS_y'*LN')*LN*LN'
+b_MT_W = H_y*(τ*LW' - β*BS_x'*LW')#*LW*LW'
+b_MT_E = H_y*(τ*LE' - β*BS_x'*LE')#*LE*LE'
+b_MT_S = H_x*(τ*LS' - β*BS_y'*LS')#*LS*LS'
+b_MT_N = H_x*(β*LN' - 1/τ*BS_y'*LN')#*LN*LN'
 
-b_RB_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW' # Operators for imposing boundary conditions
-b_RB_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
-b_RB_S = H_x*(β*LS' - 1/τ*BS_y'*LS')*LS*LS'
-b_RB_N = H_x*(τ*LN' - β*BS_y'*LN')*LN*LN'
+b_RB_W = H_y*(τ*LW' - β*BS_x'*LW')#*LW*LW' # Operators for imposing boundary conditions
+b_RB_E = H_y*(τ*LE' - β*BS_x'*LE')#*LE*LE'
+b_RB_S = H_x*(β*LS' - 1/τ*BS_y'*LS')#*LS*LS'
+b_RB_N = H_x*(τ*LN' - β*BS_y'*LN')#*LN*LN'
 
-b_RM_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW'
-b_RM_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
-b_RM_S = H_x*(τ*LS' - β*BS_x'*LS')*LS*LS'
-b_RM_N = H_x*(τ*LN' - β*BS_y'*LN')*LN*LN'
+b_RM_W = H_y*(τ*LW' - β*BS_x'*LW')#*LW*LW'
+b_RM_E = H_y*(τ*LE' - β*BS_x'*LE')#*LE*LE'
+b_RM_S = H_x*(τ*LS' - β*BS_x'*LS')#*LS*LS'
+b_RM_N = H_x*(τ*LN' - β*BS_y'*LN')#*LN*LN'
 
-b_RT_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW'
-b_RT_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
-b_RT_S = H_x*(τ*LS' - β*BS_y'*LS')*LS*LS'
-b_RT_N = H_x*(β*LN' - 1/τ*BS_y'*LN')*LN*LN'
+b_RT_W = H_y*(τ*LW' - β*BS_x'*LW')#*LW*LW'
+b_RT_E = H_y*(τ*LE' - β*BS_x'*LE')#*LE*LE'
+b_RT_S = H_x*(τ*LS' - β*BS_y'*LS')#*LS*LS'
+b_RT_N = H_x*(β*LN' - 1/τ*BS_y'*LN')#*LN*LN'
 
 
 
