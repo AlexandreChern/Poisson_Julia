@@ -270,7 +270,7 @@ plot(span,span,analy_solution,st=:surface)
 σ₂ = 1
 β = 1
 ϵ = 1  # Intersection
-τ = -1
+τ = 1
 δ_f = 0.1
 
 
@@ -356,66 +356,67 @@ function n_hcat(n::Int64,M)
     return init_M
 end
 
+# I set τ to be -1 now
 
-M_LB = (+ H_tilde*(D2_x+D2_y)
-        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + β*H_x*LS'*LS*BS_y + 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the south Side
-        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
-
-
-
+M_LB = (- H_tilde*(D2_x+D2_y)
+        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the south Side
+        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
 
- M_LM = (H_tilde*(D2_x+D2_y)  # H_x*D2_x + H_y*D2_y
-        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
 
-M_LT =  (+ H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + β*H_x*LN'*LN*BS_y + 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
+ M_LM = (- H_tilde*(D2_x + D2_y)  # H_x*D2_x + H_y*D2_y
+        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
 
-M_MB = (H_tilde*(D2_x + H_y*D2_y)
-        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + β*H_x*LS'*LS*BS_y + 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
-        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
+M_LT =  (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
-M_MM = (H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
-M_MT =  (H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + β*H_x*LN'*LN*BS_y + 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
-M_RB = (H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + β*H_x*LS'*LS*BS_y + 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
-        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN)  # Dirichlet boundary condition on the north side
+M_MB = (- H_tilde*(D2_x + H_y*D2_y)
+        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
+        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
-M_RM = (H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + τ*H_x*LN'*LN + β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
+M_MM = (- H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
-M_RT = (H_tilde*(D2_x + D2_y)
-        + τ*H_y*LW'*LW + β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
-        + τ*H_y*LE'*LE + β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
-        + τ*H_x*LS'*LS + β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
-        + β*H_x*LN'*LN*BS_y + 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
+M_MT =  (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
+
+M_RB = (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + β*H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
+        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN)  # Dirichlet boundary condition on the north side
+
+M_RM = (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
+
+M_RT = (-H_tilde*(D2_x + D2_y)
+        + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
+        + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
+        + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
+        + H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
 M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
 
@@ -551,51 +552,51 @@ M = vcat(
 # with boundary condions or interface conditions
 
 
-b_LB_W = (τ*H_y*LW' + β*H_y*BS_x'*LW')*LW*LW' # Operators for imposing boundary conditions
-b_LB_E = (τ*H_y*LE' + β*H_y*BS_x'*LE')*LE*LE'
-b_LB_S = (τ*H_x*LS' + 1/τ*H_x*BS_y'*LS')*LS*LS'
-b_LB_N = (τ*H_x*LN' + β*H_x*BS_y'*LN')*LN*LN'
+b_LB_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')*LW*LW' # Operators for imposing boundary conditions
+b_LB_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')*LE*LE'
+b_LB_S = (β*H_x*LS' - 1/τ*H_x*BS_y'*LS')*LS*LS'
+b_LB_N = (τ*H_x*LN' - β*H_x*BS_y'*LN')*LN*LN'
 
-b_LM_W = (τ*H_y*LW' + β*H_y*BS_x'*LW')*LW*LW'
-b_LM_E = (τ*H_y*LE' + β*H_y*BS_x'*LE')*LE*LE'
-b_LM_S = (τ*H_x*LS' + β*H_x*BS_x'*LS')*LS*LS'
-b_LM_N = (τ*H_x*LN' + β*H_x*BS_y'*LN')*LN*LN'
+b_LM_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')*LW*LW'
+b_LM_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')*LE*LE'
+b_LM_S = (τ*H_x*LS' - β*H_x*BS_x'*LS')*LS*LS'
+b_LM_N = (τ*H_x*LN' - β*H_x*BS_y'*LN')*LN*LN'
 
-b_LT_W = (τ*H_y*LW' + β*H_y*BS_x'*LW')*LW*LW'
-b_LT_E = (τ*H_y*LE' + β*H_y*BS_x'*LE')*LE*LE'
-b_LT_S = (τ*H_y*LS' + β*H_y*BS_y'*LS')*LS*LS'
-b_LT_N = (τ*H_y*LN' + 1/τ*H_y*BS_y'*LN')*LN*LN'
+b_LT_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')*LW*LW'
+b_LT_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')*LE*LE'
+b_LT_S = (τ*H_y*LS' - β*H_y*BS_y'*LS')*LS*LS'
+b_LT_N = (β*H_y*LN' - 1/τ*H_y*BS_y'*LN')*LN*LN'
 
 
-b_MB_W = (H_y*(τ*LW' + β*BS_x'*LW'))*LW*LW' # Operators for imposing boundary conditions
-b_MB_E = (H_y*(τ*LE' + β*BS_x'*LE'))*LE*LE'
-b_MB_S = (H_x*(τ*LS' + 1/τ*BS_y'*LS'))*LS*LS'
-b_MB_N = (H_x*(τ*LN' + β*BS_y'*LN'))*LN*LN'
+b_MB_W = (H_y*(τ*LW' - β*BS_x'*LW'))*LW*LW' # Operators for imposing boundary conditions
+b_MB_E = (H_y*(τ*LE' - β*BS_x'*LE'))*LE*LE'
+b_MB_S = (H_x*(β*LS' - 1/τ*BS_y'*LS'))*LS*LS'
+b_MB_N = (H_x*(τ*LN' - β*BS_y'*LN'))*LN*LN'
 
-b_MM_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW'
-b_MM_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
-b_MM_S = H_x*(τ*LS' + β*BS_x'*LS')*LS*LS'
-b_MM_N = H_x*(τ*LN' + β*BS_y'*LN')*LN*LN'
+b_MM_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW'
+b_MM_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
+b_MM_S = H_x*(τ*LS' - β*BS_x'*LS')*LS*LS'
+b_MM_N = H_x*(τ*LN' - β*BS_y'*LN')*LN*LN'
 
-b_MT_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW'
-b_MT_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
-b_MT_S = H_x*(τ*LS' + β*BS_y'*LS')*LS*LS'
-b_MT_N = H_x*(τ*LN' + 1/τ*BS_y'*LN')*LN*LN'
+b_MT_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW'
+b_MT_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
+b_MT_S = H_x*(τ*LS' - β*BS_y'*LS')*LS*LS'
+b_MT_N = H_x*(β*LN' - 1/τ*BS_y'*LN')*LN*LN'
 
-b_RB_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW' # Operators for imposing boundary conditions
-b_RB_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
-b_RB_S = H_x*(τ*LS' + 1/τ*BS_y'*LS')*LS*LS'
-b_RB_N = H_x*(τ*LN' + β*BS_y'*LN')*LN*LN'
+b_RB_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW' # Operators for imposing boundary conditions
+b_RB_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
+b_RB_S = H_x*(β*LS' - 1/τ*BS_y'*LS')*LS*LS'
+b_RB_N = H_x*(τ*LN' - β*BS_y'*LN')*LN*LN'
 
-b_RM_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW'
-b_RM_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
-b_RM_S = H_x*(τ*LS' + β*BS_x'*LS')*LS*LS'
-b_RM_N = H_x*(τ*LN' + β*BS_y'*LN')*LN*LN'
+b_RM_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW'
+b_RM_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
+b_RM_S = H_x*(τ*LS' - β*BS_x'*LS')*LS*LS'
+b_RM_N = H_x*(τ*LN' - β*BS_y'*LN')*LN*LN'
 
-b_RT_W = H_y*(τ*LW' + β*BS_x'*LW')*LW*LW'
-b_RT_E = H_y*(τ*LE' + β*BS_x'*LE')*LE*LE'
-b_RT_S = H_x*(τ*LS' + β*BS_y'*LS')*LS*LS'
-b_RT_N = H_x*(τ*LN' + 1/τ*BS_y'*LN')*LN*LN'
+b_RT_W = H_y*(τ*LW' - β*BS_x'*LW')*LW*LW'
+b_RT_E = H_y*(τ*LE' - β*BS_x'*LE')*LE*LE'
+b_RT_S = H_x*(τ*LS' - β*BS_y'*LS')*LS*LS'
+b_RT_N = H_x*(β*LN' - 1/τ*BS_y'*LN')*LN*LN'
 
 
 
@@ -616,19 +617,19 @@ b_zero = zeros(N_one_third*N_one_third)
 # Forming g terms, g terms are the combination of source functions and boundary conditions
 # each g component refers to each block, starting from block LB
 
-g_LB = (b_LB_W*g_LB_W + b_LB_S*g_LB_S) + H_tilde*F_LB[:]
-g_LM = (b_LM_W*g_LM_W) + H_tilde*F_LM[:]
-g_LT = (b_LT_W*g_LT_W + b_LT_N*g_LT_N) + H_tilde*F_LT[:]
+g_LB = (b_LB_W*g_LB_W + b_LB_S*g_LB_S) - H_tilde*F_LB[:]
+g_LM = (b_LM_W*g_LM_W) - H_tilde*F_LM[:]
+g_LT = (b_LT_W*g_LT_W + b_LT_N*g_LT_N) - H_tilde*F_LT[:]
 
 
-g_MB = (b_MB_S * g_MB_S) + H_tilde*F_MB[:]
-g_MM = H_tilde*F_MM[:]
-g_MT = (b_MT_N*g_MT_N) + H_tilde*F_MT[:]
+g_MB = (b_MB_S * g_MB_S) - H_tilde*F_MB[:]
+g_MM = -H_tilde*F_MM[:]
+g_MT = (b_MT_N*g_MT_N) - H_tilde*F_MT[:]
 
 
-g_RB = (b_RB_E*g_RB_E + b_RB_S*g_RB_S) + H_tilde*F_RB[:]
-g_RM = (b_RM_E*g_RM_E) + H_tilde*F_RM[:]
-g_RT = (b_RT_E*g_RT_E + b_RT_N*g_RT_N) + H_tilde*F_RT[:]
+g_RB = (b_RB_E*g_RB_E + b_RB_S*g_RB_S) - H_tilde*F_RB[:]
+g_RM = (b_RM_E*g_RM_E) - H_tilde*F_RM[:]
+g_RT = (b_RT_E*g_RT_E + b_RT_N*g_RT_N) - H_tilde*F_RT[:]
 
 
 g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
