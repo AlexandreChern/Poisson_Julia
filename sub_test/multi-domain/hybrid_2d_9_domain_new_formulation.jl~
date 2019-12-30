@@ -20,8 +20,8 @@
 # For each block
 # W E S T for West East South North
 
-# Eg: We refer the interfect between LB and MB (of LB) as LB_E
-# Eg: We refer the interfect between LB and MB (of LM) as MB_W
+# Eg: We refer the interface between LB and MB (of LB) as LB_E
+# Eg: We refer the interface between LB and MB (of LM) as MB_W
 # Eg: We refer the interface between MM and MB (of MM) as MM_S
 # Eg: We refer the interface between MM and MB (of MB) as MB_N
 
@@ -104,35 +104,10 @@ function eyes(n)
     return Matrix{Float64}(I,n,n)
 end
 
-# DEFINE ANALYICAL SOLUTIONS
-#
-
-COF_x = 1;
-COF_y = 1;
-
 
 function analy_sol(x,y) # Defines analytical_solution
-    return sin.(COF_x*π*x .+ COF_y*π*y)
+    return sin.(π*x .+ π*y)
 end
-
-function u_xx(x,y)
-	return -COF_x^2*π^2 .*sin(COF_x*π*x .+ COF_y*π*y)
-end
-
-function u_yy(x,y)
-	return -COF_y^2*π^2 .*sin(COF_x*π*x .+ COF_y*π*y)
-end
-
-function u_x(x,y)
-	return COF_x*π.*cos(COF_x*π*x .+ COF_y*π*y)
-end
-
-function u_y(x,y)
-	return COF_y*π.*cos(COF_x*π*x .+ COF_y*π*y)
-end
-
-
-
 
 function is_symmetric(A)
     if norm(A-A')==0
@@ -295,9 +270,8 @@ plot(span,span,analy_solution,st=:surface)
 σ₂ = 1
 β = 1
 ϵ = 1  # Intersection
-τ = 1 # Can be set as constant
-# τ = 2/(h*γ[p] + 2/(h*α))
-δ_f = 0 # set to zero for there is no jump
+τ = 1
+δ_f = 0.1
 
 
 
@@ -307,7 +281,6 @@ plot(span,span,analy_solution,st=:surface)
 # L M R for Left Middle Right
 # B M T for Bottom Middle Top
 # F_LB defines external source function for block LB
-
 
 F_LB = -π^2*analy_sol(span_1,span_1')
 F_LM = -π^2*analy_sol(span_1,span_2')
