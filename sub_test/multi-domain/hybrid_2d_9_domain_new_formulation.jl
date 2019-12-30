@@ -226,19 +226,11 @@ function Operators_2d(i, j)
     I_Ny = sparse(eyes(N_y_one_third));
 
 
-    # e_E = kron(e_Nx,I_Ny);
-    # e_W = kron(e_1x,I_Ny);
-    # e_S = kron(I_Nx,e_1y);
-    # e_N = kron(I_Nx,e_Ny);
     LW = kron(I_Nx,e_1x')
     LE = kron(I_Nx,e_Nx')
     LS = kron(e_1y',I_Ny)
     LN = kron(e_Ny',I_Ny)
 
-    # E_E = kron(sparse(Diag(e_Nx)),I_Ny);   # E_E = e_E * e_E'
-    # E_W = kron(sparse(Diag(e_1x)),I_Ny);
-    # E_S = kron(I_Nx,sparse(Diag(e_1y)));
-    # E_N = sparse(kron(I_Nx,sparse(Diag(e_Ny))));
 
 
     D1_x = kron(D1x,I_Ny);
@@ -308,19 +300,19 @@ plot(span,span,analy_solution,st=:surface)
 # B M T for Bottom Middle Top
 # F_LB defines external source function for block LB
 
+# F were missing a factor of 2
+F_LB = u_xx(span_1',span_1) .+ u_yy(span_1',span_1)
+F_LM = u_xx(span_1',span_2) .+ u_yy(span_1',span_2)
+F_LT = u_xx(span_1',span_3) .+ u_yy(span_1',span_3)
 
-F_LB = -π^2*analy_sol(span_1,span_1')
-F_LM = -π^2*analy_sol(span_1,span_2')
-F_LT = -π^2*analy_sol(span_1,span_3')
 
+F_MB = u_xx(span_2',span_1) .+ u_yy(span_2',span_1)
+F_MM = u_xx(span_2',span_2) .+ u_yy(span_2',span_2)
+F_MT = u_xx(span_2',span_3) .+ u_yy(span_2',span_3)
 
-F_MB = -π^2*analy_sol(span_2,span_1')
-F_MM = -π^2*analy_sol(span_2,span_2')
-F_MT = -π^2*analy_sol(span_2,span_3')
-
-F_RB = -π^2*analy_sol(span_3,span_1')
-F_RM = -π^2*analy_sol(span_3,span_2')
-F_RT = -π^2*analy_sol(span_3,span_3')
+F_RB = u_xx(span_3',span_1) .+ u_yy(span_3',span_1)
+F_RM = u_xx(span_3',span_2) .+ u_yy(span_3',span_2)
+F_RT = u_xx(span_3',span_3) .+ u_yy(span_3',span_3)
 
 
 
@@ -333,8 +325,8 @@ F_RT = -π^2*analy_sol(span_3,span_3')
 g_W = sin.(π*span)  # Boundary conditions on the west side
 g_E = -sin.(π*span) # Boundary conditions on the east side
 
-g_S = -π*cos.(π*span) # add negative sing because of normal vectors # Boundary conditions on the south side
-g_N = -π*cos.(π*span) # Bondary conditions on the north side
+g_S = -u_y(span',0) # add negative sing because of normal vectors # Boundary conditions on the south side
+g_N = u_y(span',1) # Bondary conditions on the north side
 
 g_LB_W = g_W[1:N_one_third]
 g_LM_W = g_W[N_one_third+1:2*N_one_third]

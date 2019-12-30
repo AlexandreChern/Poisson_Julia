@@ -332,7 +332,7 @@ M = vcat(
  F_zero = zeros(N_one_half*N_one_half,N_one_half)
  F_T_zero = zeros(N_one_half,N_one_half*N_one_half)
 
-
+ # Constructing Interface 1: LB_LT
  F_T_11 = (-τ*LN + β*LN*BS_y)*H_x 
  F_T_12= (-τ*LS + β*LS*BS_y)*H_x
  F_T_1 = hcat(F_T_11, F_T_12, F_T_zero, F_T_zero)
