@@ -116,19 +116,19 @@ function analy_sol(x,y) # Defines analytical_solution
 end
 
 function u_xx(x,y)
-	return -COF_x^2*π^2 .*sin(COF_x*π*x .+ COF_y*π*y)
+	return -COF_x^2*π^2 .*sin.(COF_x*π*x .+ COF_y*π*y)
 end
 
 function u_yy(x,y)
-	return -COF_y^2*π^2 .*sin(COF_x*π*x .+ COF_y*π*y)
+	return -COF_y^2*π^2 .*sin.(COF_x*π*x .+ COF_y*π*y)
 end
 
 function u_x(x,y)
-	return COF_x*π.*cos(COF_x*π*x .+ COF_y*π*y)
+	return COF_x*π .*cos.(COF_x*π.*x .+ COF_y*π*y)
 end
 
 function u_y(x,y)
-	return COF_y*π.*cos(COF_x*π*x .+ COF_y*π*y)
+	return COF_y*π .*cos.(COF_x*π .*x .+ COF_y*π*y)
 end
 
 
@@ -322,8 +322,8 @@ F_RT = u_xx(span_3',span_3) .+ u_yy(span_3',span_3)
 # L M R for Left Middle Right
 # B M T for Bottom Middle Top
 
-g_W = sin.(π*span)  # Boundary conditions on the west side
-g_E = -sin.(π*span) # Boundary conditions on the east side
+g_W = analy_sol(0,span)  # Boundary conditions on the west side
+g_E = analy_sol(1,span) # Boundary conditions on the east side
 
 g_S = -u_y(span',0) # add negative sing because of normal vectors # Boundary conditions on the south side
 g_N = u_y(span',1) # Bondary conditions on the north side
@@ -464,8 +464,8 @@ M = vcat(
 
  # Constructing Interface 1: LB_LM
 
- F_T_LB_LM_LB = H1x*(τ*LN + LN*BS_y) # + τ*LE + LE*BS_x
- F_T_LB_LM_LM = H1x*(τ*LS + LS*BS_y)
+ F_T_LB_LM_LB = (-τ*LN + β*LN*BS_y)*H_x # + τ*LE + LE*BS_x
+ F_T_LB_LM_LM = (-τ*LS + β*LS*BS_y)*H_x
  F_T_LB_LM_LT = F_T_zero
  F_T_LB_LM_MB = F_T_zero #τ*LW + LW*BS_x
  F_T_LB_LM_MM = F_T_zero
@@ -483,8 +483,8 @@ M = vcat(
  # Constructing Interface 2: LM_LT
 
  F_T_LM_LT_LB = F_T_zero # LM_LT interface does not involve LB block
- F_T_LM_LT_LM = (-τ*LN + LN*BS_y)*H_x
- F_T_LM_LT_LT = (-τ*LS + LS*BS_y)*H_x
+ F_T_LM_LT_LM = (-τ*LN + β*LN*BS_y)*H_x
+ F_T_LM_LT_LT = (-τ*LS + β*LS*BS_y)*H_x
  F_T_LM_LT_MB = F_T_zero
  # ... Trivial Terms
  F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero))
@@ -492,63 +492,63 @@ M = vcat(
 
 
  # Constructing Interface 3: LB_MB
- F_T_LB_MB_LB = (-τ*LE + LE*BS_x)*H_y
+ F_T_LB_MB_LB = (-τ*LE + β*LE*BS_x)*H_y
  F_T_LB_MB_LM = F_T_zero
  F_T_LB_MB_LT = F_T_zero
- F_T_LB_MB_MB = (-τ*LW + LW*BS_x)*H_y
+ F_T_LB_MB_MB = (-τ*LW + β*LW*BS_x)*H_y
  F_T_LB_MB_MB = F_T_zero
  # ... Trivial Terms
  F_T_LB_MB = hcat(F_T_LB_MB_LB,n_hcat(2,F_T_zero),F_T_LB_MB_MB,n_hcat(5,F_T_zero))
 
  # Constructing Interface 4: LM_MM
- F_T_LM_MM_LM = (-τ*LE + LE*BS_x)*H_y
- F_T_LM_MM_MM = (-τ*LW + LW*BS_x)*H_y
+ F_T_LM_MM_LM = (-τ*LE + β*LE*BS_x)*H_y
+ F_T_LM_MM_MM = (-τ*LW + β*LW*BS_x)*H_y
  F_T_LM_MM = hcat(F_T_zero,F_T_LM_MM_LM,n_hcat(2,F_T_zero),F_T_LM_MM_MM,n_hcat(4,F_T_zero))
 
 
  # Constructing Interface 5: LT_MT
- F_T_LT_MT_LT = (-τ*LE + LE*BS_x)*H_y
- F_T_LT_MT_MT = (-τ*LW + LW*BS_x)*H_y
+ F_T_LT_MT_LT = (-τ*LE + β*LE*BS_x)*H_y
+ F_T_LT_MT_MT = (-τ*LW + β*LW*BS_x)*H_y
  F_T_LT_MT = hcat(n_hcat(2,F_T_zero),F_T_LT_MT_LT, n_hcat(2,F_T_zero),F_T_LT_MT_MT,n_hcat(3,F_T_zero))
 
  # Constructing Interface 6: MB_MM
- F_T_MB_MM_MB = (-τ*LN + LN*BS_y)*H_x
- F_T_MB_MM_MM = (-τ*LS + LS*BS_y)*H_x
+ F_T_MB_MM_MB = (-τ*LN + β*LN*BS_y)*H_x
+ F_T_MB_MM_MM = (-τ*LS + β*LS*BS_y)*H_x
  F_T_MB_MM = hcat(n_hcat(3,F_T_zero),F_T_MB_MM_MB,F_T_MB_MM_MM,n_hcat(4,F_T_zero))
 
  # Constructing Interface 7: MM_MT
- F_T_MM_MT_MM = (-τ*LN + LN*BS_y)*H_x
- F_T_MM_MT_MT = (-τ*LS + LS*BS_y)*H_x
+ F_T_MM_MT_MM = (-τ*LN + β*LN*BS_y)*H_x
+ F_T_MM_MT_MT = (-τ*LS + β*LS*BS_y)*H_x
  F_T_MM_MT = hcat(n_hcat(4,F_T_zero),F_T_MM_MT_MM,F_T_MM_MT_MT,n_hcat(3,F_T_zero))
 
  #
  # Constructing Interface 8: MB_RB
- F_T_MB_RB_MB = (-τ*LE + LE*BS_x)*H_x
- F_T_MB_RB_RB = (-τ*LW + LW*BS_x)*H_x
+ F_T_MB_RB_MB = (-τ*LE + β*LE*BS_x)*H_x
+ F_T_MB_RB_RB = (-τ*LW + β*LW*BS_x)*H_x
  F_T_MB_RB = hcat(n_hcat(3,F_T_zero),F_T_MB_RB_MB,n_hcat(2,F_T_zero),F_T_MB_RB_RB,n_hcat(2,F_T_zero))
 
  # Constructing Interface 9: MM_RM
- F_T_MM_RM_MM = (-τ*LE + LE*BS_x)*H_x
- F_T_MM_RM_RM = (-τ*LW + LW*BS_x)*H_x
+ F_T_MM_RM_MM = (-τ*LE + β*LE*BS_x)*H_x
+ F_T_MM_RM_RM = (-τ*LW + β*LW*BS_x)*H_x
  F_T_MM_RM = hcat(n_hcat(4,F_T_zero),F_T_MM_RM_MM,n_hcat(2,F_T_zero),F_T_MM_RM_RM,n_hcat(1,F_T_zero))
 
 
  # Constructing Interface 10: MT_RT
- F_T_MT_RT_MT = (-τ*LE + LE*BS_x)*H_y
- F_T_MT_RT_RT = (-τ*LW + LW*BS_x)*H_y
+ F_T_MT_RT_MT = (-τ*LE + β*LE*BS_x)*H_y
+ F_T_MT_RT_RT = (-τ*LW + β*LW*BS_x)*H_y
  F_T_MT_RT = hcat(n_hcat(5,F_T_zero),F_T_MT_RT_MT,n_hcat(2,F_T_zero),F_T_MT_RT_RT)
  #
 
 
  # Constructing Interface 11: RB_RM
- F_T_RB_RM_RB = (-τ*LN + LN*BS_y)*H_x
- F_T_RB_RM_RM = (-τ*LS + LS*BS_y)*H_x
+ F_T_RB_RM_RB = (-τ*LN + β*LN*BS_y)*H_x
+ F_T_RB_RM_RM = (-τ*LS + β*LS*BS_y)*H_x
  F_T_RB_RM = hcat(n_hcat(6,F_T_zero),F_T_RB_RM_RB,F_T_RB_RM_RM,n_hcat(1,F_T_zero))
 
  #
  # Constructing Interface 12: RM_RT
- F_T_RM_RT_RM = (-τ*LN + LN*BS_y)*H_x
- F_T_RM_RT_RT = (-τ*LS + LS*BS_y)*H_x
+ F_T_RM_RT_RM = (-τ*LN + β*LN*BS_y)*H_x
+ F_T_RM_RT_RT = (-τ*LS + β*LS*BS_y)*H_x
  F_T_RM_RT = hcat(n_hcat(7,F_T_zero),F_T_RM_RT_RM,F_T_RM_RT_RT)
 
 
@@ -642,7 +642,7 @@ g_LT = (b_LT_W*g_LT_W + b_LT_N*g_LT_N) - H_tilde*F_LT[:]
 
 
 g_MB = (b_MB_S * g_MB_S) - H_tilde*F_MB[:]
-g_MM = -H_tilde*F_MM[:]
+g_MM = - H_tilde*F_MM[:]
 g_MT = (b_MT_N*g_MT_N) - H_tilde*F_MT[:]
 
 
@@ -693,8 +693,12 @@ D_LM_LT = D_ones
 
 D_LB_LM = H1*2τ
 
-D = Diagonal(ones(N_one_third*12))*2τ  # Need to modify D blocks later
-
+#D = Diagonal(ones(N_one_third*12))*2τ  # Need to modify D blocks later
+D = blockdiag(H1y*2τ,H1y*2τ,
+        H1x*2τ,H1x*2τ,H1x*2τ,
+        H1y*2τ,H1y*2τ,
+        H1x*2τ,H1x*2τ,H1x*2τ,
+        H1y*2τ,H1y*2τ)
 
 # Forming A terms
 A = vcat(hcat(M,F),hcat(F_T,D))
