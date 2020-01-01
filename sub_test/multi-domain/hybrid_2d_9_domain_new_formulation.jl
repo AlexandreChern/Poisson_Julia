@@ -165,7 +165,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 2
+i = j = 3
 
 h = h_list[i]
 
@@ -287,8 +287,8 @@ plot(span,span,analy_solution,st=:surface)
 σ₂ = 1
 β = 1
 ϵ = 1  # Intersection
-τ = 1 # Can be set as constant
-# τ = 2/(h*γ[p] + 2/(h*α))
+#τ = 1 # Can be set as constant
+τ = 2/(h*γ[p]) + 2/(h*α)
 δ_f = 0 # set to zero for there is no jump
 
 
@@ -374,7 +374,6 @@ function n_hcat(n::Int64,M)
     return init_M
 end
 
-# I set τ to be -1 now
 
 M_LB = (- H_tilde*(D2_x+D2_y)
         + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
@@ -385,7 +384,7 @@ M_LB = (- H_tilde*(D2_x+D2_y)
 
 
 
- M_LM = (- H_tilde*(D2_x + D2_y)  # H_x*D2_x + H_y*D2_y
+M_LM = (- H_tilde*(D2_x + D2_y)  # H_x*D2_x + H_y*D2_y
         + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
         + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
         + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
@@ -400,7 +399,7 @@ M_LT =  (-H_tilde*(D2_x + D2_y)
 
 
 
-M_MB = (- H_tilde*(D2_x + H_y*D2_y)
+M_MB = (- H_tilde*(D2_x + D2_y) # Oh Shit I have an extra H_y here
         + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW # Dirichlet boundary condition on the west side
         + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
         + H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the sout Side
@@ -586,10 +585,10 @@ b_LT_S = (τ*H_y*LS' - β*H_y*BS_y'*LS')
 b_LT_N = (β*H_y*LN' - 1/τ*H_y*BS_y'*LN')
 
 
-b_MB_W = (H_y*(τ*LW' - β*BS_x'*LW')) # Operators for imposing boundary conditions
-b_MB_E = (H_y*(τ*LE' - β*BS_x'*LE'))
-b_MB_S = (H_x*(β*LS' - 1/τ*BS_y'*LS'))
-b_MB_N = (H_x*(τ*LN' - β*BS_y'*LN'))
+b_MB_W = H_y*(τ*LW' - β*BS_x'*LW') # Operators for imposing boundary conditions
+b_MB_E = H_y*(τ*LE' - β*BS_x'*LE')
+b_MB_S = H_x*(β*LS' - 1/τ*BS_y'*LS')
+b_MB_N = H_x*(τ*LN' - β*BS_y'*LN')
 
 b_MM_W = H_y*(τ*LW' - β*BS_x'*LW')
 b_MM_E = H_y*(τ*LE' - β*BS_x'*LE')
@@ -710,39 +709,48 @@ lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
 
 #num_sol = A\b # solving the system directly
 num_sol = M\(g_bar - F*lambda)
-num_sol_tranc = num_sol[1:N^2*9]
+#num_sol_tranc = num_sol[1:N^2*9]
 plot(span,span,num_sol_tranc,st=:surface)
 
 num_sol_LB = num_sol[1:N^2];
-num_sol_LB = reshape(num_sol_LB,N,N)';
+num_sol_LB = reshape(num_sol_LB,N,N);
+sol_LB = analy_sol(span_1',span_1)
 
 num_sol_LM = num_sol[N^2+1:2*N^2];
-num_sol_LM = reshape(num_sol_LM,N,N)';
+num_sol_LM = reshape(num_sol_LM,N,N);
+sol_LM = analy_sol(span_1',span_2)
 
 num_sol_LT = num_sol[2*N^2+1:3*N^2];
-num_sol_LT = reshape(num_sol_LT,N,N)';
+num_sol_LT = reshape(num_sol_LT,N,N);
+sol_LT = analy_sol(span_1',span_3);
 
 num_sol_MB = num_sol[3*N^2+1:4*N^2];
-num_sol_MB = reshape(num_sol_MB,N,N)';
+num_sol_MB = reshape(num_sol_MB,N,N);
+sol_MB = analy_sol(span_2',span_1);
 
 num_sol_MM = num_sol[4*N^2+1:5*N^2];
-num_sol_MM = reshape(num_sol_MM,N,N)';
+num_sol_MM = reshape(num_sol_MM,N,N);
+sol_MM = analy_sol(span_2',span_2);
 
 num_sol_MT = num_sol[5*N^2+1:6*N^2];
-num_sol_MT = reshape(num_sol_MT,N,N)';
+num_sol_MT = reshape(num_sol_MT,N,N);
+sol_MT = analy_sol(span_2',span_3);
 
 num_sol_RB = num_sol[6*N^2+1:7*N^2];
-num_sol_RB = reshape(num_sol_RB,N,N)';
+num_sol_RB = reshape(num_sol_RB,N,N);
+sol_RB = analy_sol(span_3',span_1);
 
 num_sol_RM = num_sol[7*N^2+1:8*N^2];
-num_sol_RM = reshape(num_sol_RM,N,N)';
+num_sol_RM = reshape(num_sol_RM,N,N);
+sol_RM = analy_sol(span_3',span_2);
 
 num_sol_RT = num_sol[8*N^2+1:9*N^2];
-num_sol_RT = reshape(num_sol_RT,N,N)';
+num_sol_RT = reshape(num_sol_RT,N,N);
+sol_RT = analy_sol(span_3',span_3);
 
-num_sol_stacked = vcat(hcat(num_sol_LB,num_sol_MB,num_sol_RB),
-                    hcat(num_sol_LM,num_sol_MM,num_sol_RM),
-                    hcat(num_sol_LT,num_sol_MT,num_sol_RT));
+num_sol_stacked = vcat(hcat(num_sol_LB',num_sol_MB',num_sol_RB'),
+                    hcat(num_sol_LM',num_sol_MM',num_sol_RM'),
+                    hcat(num_sol_LT',num_sol_MT',num_sol_RT'));
 plot(span,span,num_sol_stacked,st=:surface)
 
 
