@@ -281,8 +281,8 @@ plot(span,span,analy_solution,st=:surface)
 # en = e(N_one_third,N_one_third);
 # BS = SN - S0
 
-α = Dict(2=>1, 4=>0.2508560249, 6=>0.1878715026)
-γ = 2 # γ > 1 for stability
+γ = Dict(2=>1, 4=>0.2508560249, 6=>0.1878715026)
+α = H_x[1,1]/h
 σ₁ = -40
 σ₂ = 1
 β = 1
@@ -339,7 +339,6 @@ g_RT_E = g_E[2*N_one_third+1:3*N_one_third]
 g_LB_S = g_S[1:N_one_third]
 g_MB_S = g_S[N_one_third+1:2*N_one_third]
 g_RB_S = g_S[2*N_one_third+1:3*N_one_third]
-
 
 g_LT_N = g_N[1:N_one_third]
 g_MT_N = g_N[N_one_third+1:2*N_one_third]
@@ -676,22 +675,22 @@ g_bar_delta = n_vcat(12,2*h*δ_f*(ones(N_one_third)))
 # D represents 12 interfaces, with each interface being a 28*28 matrix
 # coming from the combination of LW LE LS LN and τ
 D_zero = zeros(N_one_third,N_one_third)
-D_ones = ones(N_one_third, N_one_third)
-
-N_one_third
-
-# 1: LB_LM
-D_LB_LM = D_ones*τ
-
-# 2: LM_LT
-D_LM_LT = D_ones
-
-(D1, HI, H1, r1) = diagonal_sbp_D1(p,n_one_third,xc=(0,1/3));
+# D_ones = ones(N_one_third, N_one_third)
+#
+# N_one_third
+#
+# # 1: LB_LM
+# D_LB_LM = D_ones*τ
+#
+# # 2: LM_LT
+# D_LM_LT = D_ones
+#
+# (D1, HI, H1, r1) = diagonal_sbp_D1(p,n_one_third,xc=(0,1/3));
 
 # Define D matrix for each interface
 
 
-D_LB_LM = H1*2τ
+# D_LB_LM = H1*2τ
 
 #D = Diagonal(ones(N_one_third*12))*2τ  # Need to modify D blocks later
 D = blockdiag(H1y*2τ,H1y*2τ,
@@ -703,17 +702,14 @@ D = blockdiag(H1y*2τ,H1y*2τ,
 # Forming A terms
 A = vcat(hcat(M,F),hcat(F_T,D))
 
-
-
-
-
 b = vcat(g_bar,g_bar_delta)
 
 
 
 lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
 
-num_sol = A\b # solving the system directly
+#num_sol = A\b # solving the system directly
+num_sol = M\(g_bar - F*lambda)
 num_sol_tranc = num_sol[1:N^2*9]
 plot(span,span,num_sol_tranc,st=:surface)
 
