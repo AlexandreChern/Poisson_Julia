@@ -45,8 +45,9 @@
 include("diagonal_sbp.jl")
 #using Plots
 using Pkg
+using Plots
 Pkg.add("PyPlot")
-using PyPlot
+#using PyPlot
 
 using LinearAlgebra
 using SparseArrays
@@ -467,7 +468,10 @@ ERR = sqrt(err'*H4*err)
 
 EE[i] = ERR
 
-end
 
 
 @show [log2(EE[1]/EE[2]) log2(EE[2]/EE[3]) log2(EE[3]/EE[4])]
+
+plot(span_1,span_1,sol_LB,st=:surface)
+plot(span_1,span_1,num_sol_LB,st=:surface)
+plot(span_1,span_1,reshape(M_LB\g_LB,N,N)',st=:surface)
