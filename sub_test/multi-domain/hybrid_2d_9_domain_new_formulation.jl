@@ -165,7 +165,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 3
+i = j = 2
 
 h = h_list[i]
 
@@ -226,10 +226,10 @@ function Operators_2d(i, j)
     I_Ny = sparse(eyes(N_y_one_third));
 
 
-    LW = kron(I_Nx,e_1x')
-    LE = kron(I_Nx,e_Nx')
-    LS = kron(e_1y',I_Ny)
-    LN = kron(e_Ny',I_Ny)
+    LS = kron(I_Nx,e_1x')
+    LN = kron(I_Nx,e_Nx')
+    LW = kron(e_1y',I_Ny)
+    LE = kron(e_Ny',I_Ny)
 
 
 
@@ -375,12 +375,14 @@ function n_hcat(n::Int64,M)
 end
 
 
-M_LB = (- H_tilde*(D2_x+D2_y)
+M_LB = (-H_tilde*(D2_x+D2_y)
         + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW  # Dirichlet boundary condition on the west side
         + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE  # Dirichlet boundary condition on the east side
         + H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y # Numann boundary condition on the south Side
         + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN) # Dirichlet boundary condition on the north side
 
+# M_LB_test = -H_tilde*(D2_x + D2_y) + τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW + τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE + H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y + τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN
+# multi line operation is not the problem
 
 
 
@@ -760,5 +762,5 @@ analy_sol_1 = analy_sol(span_1,span_1')
 plot(span_1,span_1,analy_sol_1,st=:surface)
 savefig("./analy_sol_1.png")
 
-plot(span_1,span_1,reshape(M_LB\g_LB,N,N)',st=:surface)
+plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
 savefig("./num_sol_1_isolated.png")
