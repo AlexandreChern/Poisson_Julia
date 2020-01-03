@@ -661,17 +661,6 @@ g_bar = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 # Forming g_bar_delta
 g_bar_delta = n_vcat(12,2*h*δ_f*(ones(N_one_third)))
 
-# g_LB = b_LB_W*g_LB_W + b_LB_S*g_LB_S
-# g_LM = b_LM_W*g_LM_W
-# g_LT = b_LT_W*g_LT_W
-# g_MB = b_LB_S*g_LB_S
-# g_MM = zeros(N_one_third*N_one_third)
-# g_MT = b_MT_N*g_MT_N
-# g_RB = b_RB_E*g_RB_E + b_RB_S*g_RB_S
-# g_RM = b_RM_E*g_RM_E
-# g_RT = b_RT_E*g_RT_E + b_RT_N*g_RT_N
-
-# g = vcat(g_LB,g_LM,g_LT,g_MB,g_MM,g_MT,g_RB,g_RM,g_RT)
 
 
 
@@ -679,22 +668,7 @@ g_bar_delta = n_vcat(12,2*h*δ_f*(ones(N_one_third)))
 # D represents 12 interfaces, with each interface being a 28*28 matrix
 # coming from the combination of LW LE LS LN and τ
 D_zero = zeros(N_one_third,N_one_third)
-# D_ones = ones(N_one_third, N_one_third)
-#
-# N_one_third
-#
-# # 1: LB_LM
-# D_LB_LM = D_ones*τ
-#
-# # 2: LM_LT
-# D_LM_LT = D_ones
-#
-# (D1, HI, H1, r1) = diagonal_sbp_D1(p,n_one_third,xc=(0,1/3));
 
-# Define D matrix for each interface
-
-
-# D_LB_LM = H1*2τ
 
 #D = Diagonal(ones(N_one_third*12))*2τ  # Need to modify D blocks later
 D = blockdiag(H1y*2τ,H1y*2τ,
@@ -715,7 +689,7 @@ lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
 #num_sol = A\b # solving the system directly
 num_sol = M\(g_bar - F*lambda)
 #num_sol_tranc = num_sol[1:N^2*9]
-plot(span,span,num_sol_tranc,st=:surface)
+plot(span,span,num_sol,st=:surface)
 
 num_sol_LB = num_sol[1:N^2];
 num_sol_LB = reshape(num_sol_LB,N,N);
@@ -760,10 +734,18 @@ plot(span,span,num_sol_stacked,st=:surface)
 
 
 plot(span_1,span_1,num_sol_LB,st=:surface)
-savefig("./num_sol_1.png")
-analy_sol_1 = analy_sol(span_1,span_1')
-plot(span_1,span_1,analy_sol_1,st=:surface)
-savefig("./analy_sol_1.png")
+savefig("./num_sol_LB.png")
+analy_sol_LB = analy_sol(span_1,span_1')
+plot(span_1,span_1,analy_sol_LB,st=:surface)
+savefig("./analy_sol_LB.png")
+
+plot(span_1,span_2,num_sol_LM,st=:surface)
+plot(span_1,span_2,sol_LM,st=:surface)
 
 plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
 savefig("./num_sol_1_isolated.png")
+
+exact = [sol_LB[:]; sol_LM[:]; sol_LT[:]; sol_MB[:]; sol_MM[:]; sol_MT[:]; sol_RB[:]; sol_RM[:]; sol_RT[:]]
+
+num = [num_sol_LB[:]; num_sol_LM[:]; num_sol_LT[:]; num_sol_MB[:]; num_sol_MM[:]; num_sol_MT[:]; num_sol_RB[:]; num_sol_RM[:]; num_sol_RT[:]]
+err = num - exact
