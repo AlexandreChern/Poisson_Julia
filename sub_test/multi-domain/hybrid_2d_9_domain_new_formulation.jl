@@ -480,6 +480,9 @@ M = vcat(
          F_T_LB_LM_RB,F_T_LB_LM_RM,F_T_LB_LM_LT)
 
 
+F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero))
+
+
  # Constructing Interface 2: LM_LT
 
  F_T_LM_LT_LB = F_T_zero # LM_LT interface does not involve LB block
@@ -496,7 +499,7 @@ M = vcat(
  F_T_LB_MB_LM = F_T_zero
  F_T_LB_MB_LT = F_T_zero
  F_T_LB_MB_MB = (-τ*LW + β*LW*BS_x)*H_y
- F_T_LB_MB_MB = F_T_zero
+ F_T_LB_MB_MT = F_T_zero
  # ... Trivial Terms
  F_T_LB_MB = hcat(F_T_LB_MB_LB,n_hcat(2,F_T_zero),F_T_LB_MB_MB,n_hcat(5,F_T_zero))
 
