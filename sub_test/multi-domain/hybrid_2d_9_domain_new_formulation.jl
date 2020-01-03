@@ -225,11 +225,11 @@ function Operators_2d(i, j)
     I_Nx = sparse(eyes(N_x_one_third));
     I_Ny = sparse(eyes(N_y_one_third));
 
-
-    LS = kron(I_Nx,e_1x')
-    LN = kron(I_Nx,e_Nx')
     LW = kron(e_1y',I_Ny)
     LE = kron(e_Ny',I_Ny)
+    LS = kron(I_Nx,e_1x')
+    LN = kron(I_Nx,e_Nx')
+
 
 
 
@@ -523,13 +523,13 @@ M = vcat(
 
  #
  # Constructing Interface 8: MB_RB
- F_T_MB_RB_MB = (-τ*LE + β*LE*BS_x)*H_x
- F_T_MB_RB_RB = (-τ*LW + β*LW*BS_x)*H_x
+ F_T_MB_RB_MB = (-τ*LE + β*LE*BS_x)*H_y
+ F_T_MB_RB_RB = (-τ*LW + β*LW*BS_x)*H_y
  F_T_MB_RB = hcat(n_hcat(3,F_T_zero),F_T_MB_RB_MB,n_hcat(2,F_T_zero),F_T_MB_RB_RB,n_hcat(2,F_T_zero))
 
  # Constructing Interface 9: MM_RM
- F_T_MM_RM_MM = (-τ*LE + β*LE*BS_x)*H_x
- F_T_MM_RM_RM = (-τ*LW + β*LW*BS_x)*H_x
+ F_T_MM_RM_MM = (-τ*LE + β*LE*BS_x)*H_y
+ F_T_MM_RM_RM = (-τ*LW + β*LW*BS_x)*H_y
  F_T_MM_RM = hcat(n_hcat(4,F_T_zero),F_T_MM_RM_MM,n_hcat(2,F_T_zero),F_T_MM_RM_RM,n_hcat(1,F_T_zero))
 
 
