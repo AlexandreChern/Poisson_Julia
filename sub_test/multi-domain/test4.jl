@@ -41,7 +41,7 @@
 # 11: RB_RM
 # 12: RM_RT
 
-let 
+let
 
 include("diagonal_sbp.jl")
 #using Plots
@@ -67,12 +67,12 @@ function analy_sol(x,y) # Defines analytical_solution
 end
 
 function u_xx(x,y)
-	return -π^2 .* sin.(π*x .+ 2π*y) 
+	return -π^2 .* sin.(π*x .+ 2π*y)
 end
 
 function u_yy(x,y)
 	return -4π^2 .* sin.(π*x .+ 2π*y)
-end 
+end
 
 function u_x(x,y)
 	return π .* cos.(π*x .+ 2π*y)
@@ -117,7 +117,7 @@ EE = zeros(4,)
 
 p = 4
 
-for i = 1:4
+for i = 3:4
 
 j = i
 h = h_list[i]
@@ -156,7 +156,7 @@ function Operators_2d(i, j)
 
     (D1y, HIy, H1y, r1y) = diagonal_sbp_D1(p,n_x_one_half,xc=(0,1/2));
     (D2y, S0y, SNy, HI2y, H2y, r2y) = diagonal_sbp_D2(p,n_y_one_half,xc=(0,1/2));
-   
+
     BSx = sparse(SNx - S0x);
     BSy = sparse(SNy - S0y);
 
@@ -230,7 +230,7 @@ span= vcat(span_1,span_2)
 γ = Dict(2=>0.363636363, 4=>.2505765857, 6=>0.1878715026)  #called beta in paper
 β = 1
 ϵ = 1  # Intersection
-τ = 2/(h*γ[p]) + 2/(h*α) #Can be constant since we are doing constant coefficient problem here. 
+τ = 2/(h*γ[p]) + 2/(h*α) #Can be constant since we are doing constant coefficient problem here.
 δ_f = 0 #should be 0 if solution doesn't have jumps
 
 
@@ -327,13 +327,13 @@ M = vcat(
 
 
 
- # Form F_T 
+ # Form F_T
 
  F_zero = zeros(N_one_half*N_one_half,N_one_half)
  F_T_zero = zeros(N_one_half,N_one_half*N_one_half)
 
  # Constructing Interface 1: LB_LT
- F_T_11 = (-τ*LN + β*LN*BS_y)*H_x 
+ F_T_11 = (-τ*LN + β*LN*BS_y)*H_x
  F_T_12= (-τ*LS + β*LS*BS_y)*H_x
  F_T_1 = hcat(F_T_11, F_T_12, F_T_zero, F_T_zero)
 
@@ -354,7 +354,7 @@ M = vcat(
 
 
  # Construting Final Matrix F_T, vertical catenation of all 4 interfaces
- F_T = vcat(F_T_1, F_T_2, F_T_3, F_T_4)     
+ F_T = vcat(F_T_1, F_T_2, F_T_3, F_T_4)
 
 
  # For simplification We construct F by taking the transpose of F_T
@@ -473,5 +473,3 @@ end
 
 @show [log2(EE[1]/EE[2]) log2(EE[2]/EE[3]) log2(EE[3]/EE[4])]
 end
-
-

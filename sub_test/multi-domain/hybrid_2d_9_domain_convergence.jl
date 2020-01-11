@@ -160,12 +160,15 @@ end
 m_list = n_list
 
 h_list = 1 ./ n_list
-
 # h_list = [0.02, 0.01, 0.005, 0.0025, 0.00125, 0.000625, 0.0003125] # uncomment to use for p = 4, 6, 8
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 2
+
+EE = zeros(4,)
+
+for i = 1:4
+j = i
 
 h = h_list[i]
 
@@ -730,22 +733,34 @@ sol_RT = analy_sol(span_3',span_3);
 num_sol_stacked = vcat(hcat(num_sol_LB',num_sol_MB',num_sol_RB'),
                     hcat(num_sol_LM',num_sol_MM',num_sol_RM'),
                     hcat(num_sol_LT',num_sol_MT',num_sol_RT'));
-plot(span,span,num_sol_stacked,st=:surface)
-
-
-plot(span_1,span_1,num_sol_LB,st=:surface)
-savefig("./num_sol_LB.png")
-analy_sol_LB = analy_sol(span_1,span_1')
-plot(span_1,span_1,analy_sol_LB,st=:surface)
-savefig("./analy_sol_LB.png")
-
-plot(span_1,span_2,num_sol_LM,st=:surface)
-plot(span_1,span_2,sol_LM,st=:surface)
-
-plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
-savefig("./num_sol_1_isolated.png")
+# plot(span,span,num_sol_stacked,st=:surface)
+#
+#
+# plot(span_1,span_1,num_sol_LB,st=:surface)
+# savefig("./num_sol_LB.png")
+# analy_sol_LB = analy_sol(span_1,span_1')
+# plot(span_1,span_1,analy_sol_LB,st=:surface)
+# savefig("./analy_sol_LB.png")
+#
+# plot(span_1,span_2,num_sol_LM,st=:surface)
+# plot(span_1,span_2,sol_LM,st=:surface)
+#
+# plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
+# savefig("./num_sol_1_isolated.png")
 
 exact = [sol_LB[:]; sol_LM[:]; sol_LT[:]; sol_MB[:]; sol_MM[:]; sol_MT[:]; sol_RB[:]; sol_RM[:]; sol_RT[:]]
 
 num = [num_sol_LB[:]; num_sol_LM[:]; num_sol_LT[:]; num_sol_MB[:]; num_sol_MM[:]; num_sol_MT[:]; num_sol_RB[:]; num_sol_RM[:]; num_sol_RT[:]]
 err = num - exact
+
+I9 = sparse(eyes(9));
+H9 = kron(I9,kron(H1x,H1y))
+
+ERR = sqrt(err'*H9*err)
+
+@show ERR
+
+EE[i] = ERR
+
+end
+@show [log2(EE[1]/EE[2]) log2(EE[2]/EE[3]) log2(EE[3]/EE[4])]
