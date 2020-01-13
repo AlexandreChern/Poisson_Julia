@@ -160,12 +160,15 @@ end
 m_list = n_list
 
 h_list = 1 ./ n_list
-
 # h_list = [0.02, 0.01, 0.005, 0.0025, 0.00125, 0.000625, 0.0003125] # uncomment to use for p = 4, 6, 8
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 4
+
+EE = zeros(4,)
+
+for i = 1:4
+j = i
 
 h = h_list[i]
 
@@ -225,40 +228,40 @@ function Operators_2d(i, j)
     I_Nx = sparse(eyes(N_x_one_third));
     I_Ny = sparse(eyes(N_y_one_third));
 
-    LW = sparse(kron(e_1y',I_Ny))
-    LE = sparse(kron(e_Ny',I_Ny))
-    LS = sparse(kron(I_Nx,e_1x'))
-    LN = sparse(kron(I_Nx,e_Nx'))
+    LW = kron(e_1y',I_Ny)
+    LE = kron(e_Ny',I_Ny)
+    LS = kron(I_Nx,e_1x')
+    LN = kron(I_Nx,e_Nx')
 
 
 
 
-    D1_x = sparse(kron(D1x,I_Ny));
-    D1_y = sparse(kron(I_Nx,D1y));
+    D1_x = kron(D1x,I_Ny);
+    D1_y = kron(I_Nx,D1y);
 
 
-    D2_x = sparse(kron(D2x,I_Ny));
-    D2_y = sparse(kron(I_Nx,D2y));
+    D2_x = kron(D2x,I_Ny);
+    D2_y = kron(I_Nx,D2y);
     D2 = D2_x + D2_y
 
 
 
 
-    HI_x = sparse(kron(HIx,I_Ny));
-    HI_y = sparse(kron(I_Nx,HIy));
+    HI_x = kron(HIx,I_Ny);
+    HI_y = kron(I_Nx,HIy);
 
-    H_x = sparse(kron(H1x,I_Ny));
-    H_y = sparse(kron(I_Nx,H1y));
+    H_x = kron(H1x,I_Ny);
+    H_y = kron(I_Nx,H1y);
 
-    A2_x = sparse(H_x*(kron(Ax,I_Ny)));
-    A2_y = sparse(H_y*(kron(I_Nx,Ay)));
+    A2_x = H_x*(kron(Ax,I_Ny));
+    A2_y = H_y*(kron(I_Nx,Ay));
 
-    BS_x = sparse(kron(BSx,I_Ny));
-    BS_y = sparse(kron(I_Nx,BSy));
+    BS_x = kron(BSx,I_Ny);
+    BS_y = kron(I_Nx,BSy);
 
 
-    HI_tilde = sparse(kron(HIx,HIx));
-    H_tilde = sparse(kron(H1x,H1y));
+    HI_tilde = kron(HIx,HIx);
+    H_tilde = kron(H1x,H1y);
 
 
     return (D1_x, D1_y, D2_x, D2_y, Ax, Ay, A_tilde, A2_x, A2_y, D2, HI_x, HI_y, H1x, H1y, H_x, H_y , BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, LW, LE, LS, LN)
@@ -439,18 +442,16 @@ M_RT = (-H_tilde*(D2_x + D2_y)
 
 M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
 
-# M = vcat(
-#  hcat(M_LB,n_hcat(8,M_zero)),
-#  hcat(n_hcat(1,M_zero),M_LM,n_hcat(7,M_zero)),
-#  hcat(n_hcat(2,M_zero),M_LT, n_hcat(6,M_zero)),
-#  hcat(n_hcat(3,M_zero),M_MB, n_hcat(5,M_zero)),
-#  hcat(n_hcat(4,M_zero),M_MM, n_hcat(4,M_zero)),
-#  hcat(n_hcat(5,M_zero),M_MT, n_hcat(3,M_zero)),
-#  hcat(n_hcat(6,M_zero),M_RB, n_hcat(2,M_zero)),
-#  hcat(n_hcat(7,M_zero),M_RM, n_hcat(1,M_zero)),
-#  hcat(n_hcat(8,M_zero),M_RT));
-
-M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT)
+M = vcat(
+ hcat(M_LB,n_hcat(8,M_zero)),
+ hcat(n_hcat(1,M_zero),M_LM,n_hcat(7,M_zero)),
+ hcat(n_hcat(2,M_zero),M_LT, n_hcat(6,M_zero)),
+ hcat(n_hcat(3,M_zero),M_MB, n_hcat(5,M_zero)),
+ hcat(n_hcat(4,M_zero),M_MM, n_hcat(4,M_zero)),
+ hcat(n_hcat(5,M_zero),M_MT, n_hcat(3,M_zero)),
+ hcat(n_hcat(6,M_zero),M_RB, n_hcat(2,M_zero)),
+ hcat(n_hcat(7,M_zero),M_RM, n_hcat(1,M_zero)),
+ hcat(n_hcat(8,M_zero),M_RT))
 
 
  # We form F_T in the same order
@@ -458,8 +459,8 @@ M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT)
  # So the first row will be the interfaces of LB with the rest of blocks
  # The first component will be the interface between LB and LM
 
- F_zero = sparse(zeros(N_one_third*N_one_third,N_one_third))
- F_T_zero = sparse(zeros(N_one_third,N_one_third*N_one_third))
+ F_zero = zeros(N_one_third*N_one_third,N_one_third)
+ F_T_zero = zeros(N_one_third,N_one_third*N_one_third)
 
  # eg: F_T_LB_LM defines the component of LB-LM interface of F_T,
  # refering to the term involving block LB and MB
@@ -686,11 +687,7 @@ b = vcat(g_bar,g_bar_delta)
 
 
 
-lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar)) # still out of memory
-# \ will use LU!(), it does not support sparse Matrix
-# one way is to use lu(), but we cannot write it in this way
-# need some time to figure out
-
+lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
 
 #num_sol = A\b # solving the system directly
 num_sol = M\(g_bar - F*lambda)
@@ -736,20 +733,20 @@ sol_RT = analy_sol(span_3',span_3);
 num_sol_stacked = vcat(hcat(num_sol_LB',num_sol_MB',num_sol_RB'),
                     hcat(num_sol_LM',num_sol_MM',num_sol_RM'),
                     hcat(num_sol_LT',num_sol_MT',num_sol_RT'));
-plot(span,span,num_sol_stacked,st=:surface)
-
-
-plot(span_1,span_1,num_sol_LB,st=:surface)
-savefig("./num_sol_LB.png")
-analy_sol_LB = analy_sol(span_1,span_1')
-plot(span_1,span_1,analy_sol_LB,st=:surface)
-savefig("./analy_sol_LB.png")
-
-plot(span_1,span_2,num_sol_LM,st=:surface)
-plot(span_1,span_2,sol_LM,st=:surface)
-
-plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
-savefig("./num_sol_1_isolated.png")
+# plot(span,span,num_sol_stacked,st=:surface)
+#
+#
+# plot(span_1,span_1,num_sol_LB,st=:surface)
+# savefig("./num_sol_LB.png")
+# analy_sol_LB = analy_sol(span_1,span_1')
+# plot(span_1,span_1,analy_sol_LB,st=:surface)
+# savefig("./analy_sol_LB.png")
+#
+# plot(span_1,span_2,num_sol_LM,st=:surface)
+# plot(span_1,span_2,sol_LM,st=:surface)
+#
+# plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
+# savefig("./num_sol_1_isolated.png")
 
 exact = [sol_LB[:]; sol_LM[:]; sol_LT[:]; sol_MB[:]; sol_MM[:]; sol_MT[:]; sol_RB[:]; sol_RM[:]; sol_RT[:]]
 
@@ -760,3 +757,10 @@ I9 = sparse(eyes(9));
 H9 = kron(I9,kron(H1x,H1y))
 
 ERR = sqrt(err'*H9*err)
+
+@show ERR
+
+EE[i] = ERR
+
+end
+@show [log2(EE[1]/EE[2]) log2(EE[2]/EE[3]) log2(EE[3]/EE[4])]
