@@ -690,7 +690,9 @@ lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar)) #
 # \ will use LU!(), it does not support sparse Matrix
 # one way is to use lu(), but we cannot write it in this way
 # need some time to figure out
-
+M_LU = lu(M)
+lambda = (D - F_T*(M_LU.U\(M_LU.L\F[M_LU.p])))\(g_bar_delta - F_T*(M_LU.U\(M_LU.L\g_bar[M_LU.p])))
+num_sol = M_LU.U\(M_LU.L\(g_bar - F*lambda)[M_LU.p])
 
 #num_sol = A\b # solving the system directly
 num_sol = M\(g_bar - F*lambda)
