@@ -165,7 +165,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 3
+i = j = 4
 
 h = h_list[i]
 
@@ -451,7 +451,7 @@ M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
 #  hcat(n_hcat(7,M_zero),M_RM, n_hcat(1,M_zero)),
 #  hcat(n_hcat(8,M_zero),M_RT));
 
-M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT)
+M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT);
 
 
  # We form F_T in the same order
@@ -781,16 +781,16 @@ plot(span,span,num_sol_stacked,st=:surface)
 
 
 plot(span_1,span_1,num_sol_LB,st=:surface)
-savefig("./num_sol_LB.png")
+savefig("./sub_test/multi-domain/plots/num_sol_LB.png")
 analy_sol_LB = analy_sol(span_1,span_1')
 plot(span_1,span_1,analy_sol_LB,st=:surface)
-savefig("./analy_sol_LB.png")
+savefig("./sub_test/multi-domain/plots/analy_sol_LB.png")
 
 plot(span_1,span_2,num_sol_LM,st=:surface)
 plot(span_1,span_2,sol_LM,st=:surface)
 
 plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
-savefig("./num_sol_1_isolated.png")
+savefig("./sub_test/multi-domain/plots/num_sol_1_isolated.png")
 
 exact = [sol_LB[:]; sol_LM[:]; sol_LT[:]; sol_MB[:]; sol_MM[:]; sol_MT[:]; sol_RB[:]; sol_RM[:]; sol_RT[:]]
 
