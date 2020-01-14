@@ -152,7 +152,7 @@ end
 
 
 
-n_list = Array{Int64,1}(undef,10)
+n_list = Array{Int64,1}(undef,7)
 for i in range(1,step=1,stop=7)
     n_list[i] = Integer(3)^(i)
 end
@@ -438,7 +438,7 @@ M_RT = (-H_tilde*(D2_x + D2_y)
         + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
         + H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
-#M_zero = sparse(zeros(N_one_third*N_one_third,N_one_third*N_one_third))
+M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
 
 # M = vcat(
 #  hcat(M_LB,n_hcat(8,M_zero)),
@@ -574,7 +574,8 @@ F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero));
 
  F = F_T'
 
-
+ F = sparse(F)
+ F_T = sparse(F_T)
 
 
 # b_LB_W here defines the opeartor to be multiplied
@@ -696,13 +697,16 @@ b = vcat(g_bar,g_bar_delta)
 # one way is to use lu(), but we cannot write it in this way
 # need some time to figure out
 # M_LU = lu(M)
-F = sparse(F)
-F_T = sparse(F_T)
+
 # lambda = (D - F_T*(M_LU.U\(M_LU.L\F[M_LU.p])))\(g_bar_delta - F_T*(M_LU.U\(M_LU.L\g_bar[M_LU.p])))
 # lambda_1 = D - F_T*sparse((M_LU.U\(sparse(M_LU.L\F[M_LU.p,:]))))
-lambda_1 = D - F_T*sparse((M\Matrix(F)))
+
+lambda_2 = g_bar_delta - F_T*(M\g_bar)
+
+lambda_1 = D - F_T*sparse(M\Matrix(F))
+
 # lambda_2 = g_bar_delta - F_T*(M_LU.U\sparse(M_LU.L\g_bar[M_LU.p]))
-lambda_2 = g_bar_delta - F_T*sparse((M\g_bar))
+
 lambda = lambda_1\lambda_2 # not correct
 
 
