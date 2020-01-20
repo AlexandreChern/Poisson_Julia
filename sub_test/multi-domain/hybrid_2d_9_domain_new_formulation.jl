@@ -165,7 +165,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 4
+i = j = 5
 
 h = h_list[i]
 
@@ -326,6 +326,7 @@ g_W = analy_sol(0,span)  # Boundary conditions on the west side
 g_E = analy_sol(1,span) # Boundary conditions on the east side
 
 g_S = -u_y(span',0) # add negative sing because of normal vectors # Boundary conditions on the south side
+
 g_N = u_y(span',1) # Bondary conditions on the north side
 
 g_LB_W = g_W[1:N_one_third]
@@ -450,7 +451,7 @@ M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
 #  hcat(n_hcat(7,M_zero),M_RM, n_hcat(1,M_zero)),
 #  hcat(n_hcat(8,M_zero),M_RT));
 
-M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT)
+M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT);
 
 
  # We form F_T in the same order
@@ -482,7 +483,7 @@ M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT)
          F_T_LB_LM_RB,F_T_LB_LM_RM,F_T_LB_LM_LT)
 
 
-F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero))
+F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero));
 
 
  # Constructing Interface 2: LM_LT
@@ -492,7 +493,9 @@ F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero))
  F_T_LM_LT_LT = (-τ*LS + β*LS*BS_y)*H_x
  F_T_LM_LT_MB = F_T_zero
  # ... Trivial Terms
- F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero))
+ F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero));
+
+
 
 
 
@@ -504,6 +507,8 @@ F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero))
  F_T_LB_MB_MT = F_T_zero
  # ... Trivial Terms
  F_T_LB_MB = hcat(F_T_LB_MB_LB,n_hcat(2,F_T_zero),F_T_LB_MB_MB,n_hcat(5,F_T_zero))
+
+
 
  # Constructing Interface 4: LM_MM
  F_T_LM_MM_LM = (-τ*LE + β*LE*BS_x)*H_y
@@ -569,7 +574,8 @@ F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero))
 
  F = F_T'
 
-
+ F = sparse(F)
+ F_T = sparse(F_T)
 
 
 # b_LB_W here defines the opeartor to be multiplied
@@ -636,7 +642,7 @@ b_RT_N = H_x*(β*LN' - 1/τ*BS_y'*LN')
 # The first component is g_LB, refering to the boundary conditions for
 # block LB (Left-Bottom)
 
-b_zero = zeros(N_one_third*N_one_third)
+b_zero = sparse(zeros(N_one_third*N_one_third))
 
 # Forming g terms, g terms are the combination of source functions and boundary conditions
 # each g component refers to each block, starting from block LB
@@ -686,13 +692,50 @@ b = vcat(g_bar,g_bar_delta)
 
 
 
-lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar)) # still out of memory
+# lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar)) # still out of memory
 # \ will use LU!(), it does not support sparse Matrix
 # one way is to use lu(), but we cannot write it in this way
 # need some time to figure out
-M_LU = lu(M)
-lambda = (D - F_T*(M_LU.U\(M_LU.L\F[M_LU.p])))\(g_bar_delta - F_T*(M_LU.U\(M_LU.L\g_bar[M_LU.p])))
-num_sol = M_LU.U\(M_LU.L\(g_bar - F*lambda)[M_LU.p])
+# M_LU = lu(M)
+
+# lambda = (D - F_T*(M_LU.U\(M_LU.L\F[M_LU.p])))\(g_bar_delta - F_T*(M_LU.U\(M_LU.L\g_bar[M_LU.p])))
+# lambda_1 = D - F_T*sparse((M_LU.U\(sparse(M_LU.L\F[M_LU.p,:]))))
+
+lambda_2 = g_bar_delta - F_T*(M\g_bar)
+
+lambda_1 = D - F_T*sparse(M\Matrix(F))
+
+# lambda_2 = g_bar_delta - F_T*(M_LU.U\sparse(M_LU.L\g_bar[M_LU.p]))
+
+lambda = lambda_1\lambda_2 # not correct
+
+
+# lu(A::SparseMatrixCSC; check = true) -> F::UmfpackLU
+#
+# Compute the LU factorization of a sparse matrix A.
+#
+# For sparse A with real or complex element type, the return type of F is UmfpackLU{Tv, Ti}, with Tv = Float64 or ComplexF64 respectively
+# and Ti is an integer type (Int32 or Int64).
+#
+# When check = true, an error is thrown if the decomposition fails. When check = false, responsibility for checking the decomposition's
+# validity (via issuccess) lies with the user.
+#
+# The individual components of the factorization F can be accessed by indexing:
+#
+# Component Description
+# ––––––––– –––––––––––––––––––––––––––––––
+# L         L (lower triangular) part of LU
+# U         U (upper triangular) part of LU
+# p         right permutation Vector
+# q         left permutation Vector
+# Rs        Vector of scaling factors
+# :         (L,U,p,q,Rs) components
+#
+# The relation between F and A is
+#
+# F.L*F.U == (F.Rs .* A)[F.p, F.q]
+
+
 
 #num_sol = A\b # solving the system directly
 num_sol = M\(g_bar - F*lambda)
@@ -742,16 +785,16 @@ plot(span,span,num_sol_stacked,st=:surface)
 
 
 plot(span_1,span_1,num_sol_LB,st=:surface)
-savefig("./num_sol_LB.png")
+savefig("./sub_test/multi-domain/plots/num_sol_LB.png")
 analy_sol_LB = analy_sol(span_1,span_1')
 plot(span_1,span_1,analy_sol_LB,st=:surface)
-savefig("./analy_sol_LB.png")
+savefig("./sub_test/multi-domain/plots/analy_sol_LB.png")
 
 plot(span_1,span_2,num_sol_LM,st=:surface)
 plot(span_1,span_2,sol_LM,st=:surface)
 
 plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
-savefig("./num_sol_1_isolated.png")
+savefig("./sub_test/multi-domain/plots/num_sol_1_isolated.png")
 
 exact = [sol_LB[:]; sol_LM[:]; sol_LT[:]; sol_MB[:]; sol_MM[:]; sol_MT[:]; sol_RB[:]; sol_RM[:]; sol_RT[:]]
 
