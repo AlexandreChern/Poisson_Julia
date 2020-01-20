@@ -34,18 +34,41 @@ LU_A.Rs .\ LU_A.L*LU_A.U \ F
 #3 LU decomposition form 2
 LU_A.L*LU_A.U \ (LU_A.Rs .* F)
 
+#3.1 LU decomposition another form
+LU_A.U\(LU_A.L\(LU_A.Rs .* F))
+
 #4 similar to form 1 with sparse F,  failed!
 LU_A.Rs .\ LU_A.L*LU_A.U \ F_sparse
 
 #5 similar to form 2 with sparse F, still failed
 LU_A.L*LU_A.U \(LU_A.Rs .* F_sparse)
 
+#6 looks like this works, yep!
+LU_A.U\(LU_A.L\(Diagonal(LU_A.Rs)*F_sparse))
+
+#7 test, also works!
+LU_A.U\(LU_A.L\(LU_A.Rs .* F_sparse))
+
+Diagonal(LU_A.Rs)*F_sparse
+LU_A.Rs .* F_sparse
 
 
 
-# Equivalent form with wrong precedence
+# Correct Form that works with general p and q
+
+X = zeros(eltype(B),size(B))
+X[LU_A.q,:] = LU_A.U\(LU_A.L\((Diagonal(LU_A.Rs) * B)[LU_A.p,:]))
+
+
+
+
+
+
+# Equivalent form with wrong precedence but works
 LU_A.L\F
 LU_A.L\F_sparse
+
+
 
 
 
