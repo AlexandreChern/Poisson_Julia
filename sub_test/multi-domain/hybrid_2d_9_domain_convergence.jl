@@ -697,6 +697,8 @@ tmp1 = similar(F);
 tmp1[LU_M.q,:] = sparse(LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]));
 lambda_1 = D - F_T*tmp1;
 
+lambda_2 = g_bar_delta - F_T*(M\g_bar)
+
 lambda = lambda_1\lambda_2
 
 #num_sol = A\b # solving the system directly
