@@ -117,7 +117,7 @@ EE = zeros(4,)
 
 p = 2
 
-i=1
+i=3
 
 j = i
 h = h_list[i]
@@ -435,10 +435,11 @@ num_sol = M\(g_bar - F*lambda)
 lambda_2 = g_bar_delta - F_T*(M\g_bar)
 
 M =sparse(M)
+F = sparse(F)
 LU_M = lu(M)
 
 tmp1 = similar(F);
-tmp1[LU_M.q,:] = LU_M.U\(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]);
+tmp1[LU_M.q,:] = LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]);
 lambda_1 = D - F_T*tmp1;
 
 lambda_new = lambda_1\lambda_2

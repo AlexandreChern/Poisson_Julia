@@ -687,7 +687,17 @@ b = vcat(g_bar,g_bar_delta)
 
 
 
-lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
+# lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
+
+M =sparse(M)
+F = sparse(F)
+LU_M = lu(M)
+
+tmp1 = similar(F);
+tmp1[LU_M.q,:] = sparse(LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]));
+lambda_1 = D - F_T*tmp1;
+
+lambda = lambda_1\lambda_2
 
 #num_sol = A\b # solving the system directly
 num_sol = M\(g_bar - F*lambda)
