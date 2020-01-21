@@ -117,7 +117,7 @@ EE = zeros(4,)
 
 p = 2
 
-i=5
+i=6
 
 j = i
 h = h_list[i]
@@ -317,7 +317,7 @@ M_RT = (-H_tilde*(D2_x + D2_y)
         + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
         + H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
-M_zero = zeros(N_one_half*N_one_half,N_one_half*N_one_half)
+M_zero = spzeros(N_one_half*N_one_half,N_one_half*N_one_half)
 
 # M = vcat(
 #  hcat(M_LB,n_hcat(3,M_zero)),
@@ -330,8 +330,8 @@ M = blockdiag(M_LB,M_LT,M_RB,M_RT)
 
  # Form F_T
 
- F_zero = zeros(N_one_half*N_one_half,N_one_half)
- F_T_zero = zeros(N_one_half,N_one_half*N_one_half)
+ F_zero = spzeros(N_one_half*N_one_half,N_one_half)
+ F_T_zero = spzeros(N_one_half,N_one_half*N_one_half)
 
  # Constructing Interface 1: LB_LT
  F_T_11 = (-τ*LN + β*LN*BS_y)*H_x
@@ -426,11 +426,11 @@ D = blockdiag(H1y*2τ,H1x*2τ,H1x*2τ,H1y*2τ)
 A = vcat(hcat(M,F),hcat(F_T,D))
 b = vcat(g_bar,g_bar_delta)
 
-lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
+# lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
 
 
 
-num_sol = M\(g_bar - F*lambda)
+# num_sol = M\(g_bar - F*lambda)
 
 
 lambda_2 = g_bar_delta - F_T*(M\g_bar)
@@ -444,6 +444,8 @@ tmp1[LU_M.q,:] = LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]);
 lambda_1 = D - F_T*tmp1;
 
 lambda_new = lambda_1\lambda_2
+
+num_sol = M\(g_bar - F*lambda_new)
 
 num_sol_LB = num_sol[1:N^2];
 num_sol_LB = reshape(num_sol_LB,N,N);
