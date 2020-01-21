@@ -3,11 +3,11 @@
 # Dirichlet Boundary Condition on West and East
 # Neumann (Traction-free)  Boundary Condition on North and South
 # Δu = f(x,y) on (x,y) in [0, 1] x [0, 1]
-# Manufactured Solution we take to be u(x,y) = sin(πx + πy)
-# u(0,y) = sin(πy)                   // Dirichlet Boundary Condition on West Side
-# u(1,y) = sin(π+πy)                 // Dirichlet Boundary Condition on East Side
-# -∂u(x,0)/∂y = -π*cos(π*x)          // Traction-free  Boundary Condition on South Side
-#  ∂u(x,1)/̡∂y = -π*cos(πx + π)      // Traction-free  Boundary Condition on North Side
+# Manufactured Solution we take to be u(x,y) = sin(πx + 2πy)
+# u(0,y) = sin(2πy)                   // Dirichlet Boundary Condition on West Side
+# u(1,y) = sin(π+2πy)                 // Dirichlet Boundary Condition on East Side
+# -∂u(x,0)/∂y = -2π*cos(π*x)          // Traction-free  Boundary Condition on South Side
+#  ∂u(x,1)/̡∂y = -2π*cos(πx + 2π)      // Traction-free  Boundary Condition on North Side
 
 # Using external Julia file
 
@@ -41,13 +41,13 @@
 # 11: RB_RM
 # 12: RM_RT
 
+let
 
 include("diagonal_sbp.jl")
 #using Plots
 using Pkg
-using Plots
 Pkg.add("PyPlot")
-#using PyPlot
+using PyPlot
 
 using LinearAlgebra
 using SparseArrays
@@ -63,23 +63,23 @@ end
 
 
 function analy_sol(x,y) # Defines analytical_solution
-    return  sin.(π*x .+ π*y)
+    return  sin.(π*x .+ 2π*y)
 end
 
 function u_xx(x,y)
-	return -π^2 .* sin.(π*x .+ π*y)
+	return -π^2 .* sin.(π*x .+ 2π*y)
 end
 
 function u_yy(x,y)
-	return -π^2 .* sin.(π*x .+ π*y)
+	return -4π^2 .* sin.(π*x .+ 2π*y)
 end
 
 function u_x(x,y)
-	return π .* cos.(π*x .+ π*y)
+	return π .* cos.(π*x .+ 2π*y)
 end
 
 function u_y(x,y)
-	return π .* cos.(π*x .+ π*y)
+	return 2π .* cos.(π*x .+ 2π*y)
 end
 
 
@@ -115,9 +115,9 @@ EE = zeros(4,)
 # h_list = [0.02, 0.01, 0.005, 0.0025, 0.00125, 0.000625, 0.0003125] # uncomment to use for p = 4, 6, 8
 # n_list = Int(1 ./h_list)
 
-p = 2
+p = 4
 
-i=1
+for i = 3:4
 
 j = i
 h = h_list[i]
@@ -426,22 +426,8 @@ A = vcat(hcat(M,F),hcat(F_T,D))
 b = vcat(g_bar,g_bar_delta)
 
 lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
-
-
-
 num_sol = M\(g_bar - F*lambda)
 
-
-lambda_2 = g_bar_delta - F_T*(M\g_bar)
-
-M =sparse(M)
-LU_M = lu(M)
-
-tmp1 = similar(F);
-tmp1[LU_M.q,:] = LU_M.U\(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]);
-lambda_1 = D - F_T*tmp1;
-
-lambda_new = lambda_1\lambda_2
 
 num_sol_LB = num_sol[1:N^2];
 num_sol_LB = reshape(num_sol_LB,N,N);
@@ -482,10 +468,8 @@ ERR = sqrt(err'*H4*err)
 
 EE[i] = ERR
 
+end
 
 
 @show [log2(EE[1]/EE[2]) log2(EE[2]/EE[3]) log2(EE[3]/EE[4])]
-
-plot(span_1,span_1,sol_LB,st=:surface)
-plot(span_1,span_1,num_sol_LB,st=:surface)
-plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
+end
