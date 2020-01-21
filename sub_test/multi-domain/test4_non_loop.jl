@@ -44,9 +44,9 @@
 
 include("diagonal_sbp.jl")
 #using Plots
-using Pkg
-using Plots
-Pkg.add("PyPlot")
+#using Pkg
+#using Plots
+#Pkg.add("PyPlot")
 #using PyPlot
 
 using LinearAlgebra
@@ -106,18 +106,20 @@ end
 #    n_list[i] = Integer(3)^(i)
 #end
 
-n_list = [2^3 2^4 2^5 2^6 2^7 2^8]
+n_list = [2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10]
 m_list = n_list
 
 h_list = 1 ./ n_list
 
-EE = zeros(4,)
+i_max = 7
+
+EE = zeros(i_max,)
 # h_list = [0.02, 0.01, 0.005, 0.0025, 0.00125, 0.000625, 0.0003125] # uncomment to use for p = 4, 6, 8
 # n_list = Int(1 ./h_list)
 
 p = 2
 
-i=6
+i=8
 
 j = i
 h = h_list[i]
@@ -490,6 +492,6 @@ EE[i] = ERR
 
 @show [log2(EE[1]/EE[2]) log2(EE[2]/EE[3]) log2(EE[3]/EE[4])]
 
-plot(span_1,span_1,sol_LB,st=:surface)
-plot(span_1,span_1,num_sol_LB,st=:surface)
-plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
+#plot(span_1,span_1,sol_LB,st=:surface)
+#plot(span_1,span_1,num_sol_LB,st=:surface)
+#plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
