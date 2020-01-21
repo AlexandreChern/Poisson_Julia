@@ -179,10 +179,10 @@ function Operators_2d(i, j)
     I_Ny = sparse(eyes(N_y_one_half));
 
 
-    LS = kron(I_Ny,e_1x')
-    LN = kron(I_Ny,e_Nx')
-    LW = kron(e_1y',I_Nx)
-    LE = kron(e_Ny',I_Nx)
+    LS = sparse(kron(I_Ny,e_1x'))
+    LN = sparse(kron(I_Ny,e_Nx'))
+    LW = sparse(kron(e_1y',I_Nx))
+    LE = sparse(kron(e_Ny',I_Nx))
 
 
     D1_x = kron(D1x,I_Ny);
