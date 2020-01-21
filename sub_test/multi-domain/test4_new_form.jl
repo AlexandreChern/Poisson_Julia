@@ -106,7 +106,7 @@ end
 #    n_list[i] = Integer(3)^(i)
 #end
 
-n_list = [2^3 2^4 2^5 2^6]
+n_list = [2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10]
 m_list = n_list
 
 h_list = 1 ./ n_list
@@ -117,7 +117,7 @@ EE = zeros(4,)
 
 p = 4
 
-for i = 3:4
+for i = 1:6
 
 j = i
 h = h_list[i]
@@ -179,10 +179,10 @@ function Operators_2d(i, j)
     I_Ny = sparse(eyes(N_y_one_half));
 
 
-    LS = kron(I_Ny,e_1x')
-    LN = kron(I_Ny,e_Nx')
-    LW = kron(e_1y',I_Nx)
-    LE = kron(e_Ny',I_Nx)
+    LS = sparse(kron(I_Ny,e_1x'))
+    LN = sparse(kron(I_Ny,e_Nx'))
+    LW = sparse(kron(e_1y',I_Nx))
+    LE = sparse(kron(e_Ny',I_Nx))
 
 
     D1_x = kron(D1x,I_Ny);
@@ -209,7 +209,6 @@ function Operators_2d(i, j)
 
     HI_tilde = kron(HIx,HIx);
     H_tilde = kron(H1x,H1y);
-
 
     return (D1_x, D1_y, D2_x, D2_y, Ax, Ay, A_tilde, A2_x, A2_y, D2, HI_x, HI_y, H1x, H1y, H_x, H_y , BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, LW, LE, LS, LN)
 end
@@ -319,12 +318,13 @@ M_RT = (-H_tilde*(D2_x + D2_y)
 
 M_zero = zeros(N_one_half*N_one_half,N_one_half*N_one_half)
 
-M = vcat(
- hcat(M_LB,n_hcat(3,M_zero)),
- hcat(n_hcat(1,M_zero),M_LT, n_hcat(2,M_zero)),
- hcat(n_hcat(2,M_zero),M_RB, n_hcat(1,M_zero)),
- hcat(n_hcat(3,M_zero),M_RT))
+# M = vcat(
+#  hcat(M_LB,n_hcat(3,M_zero)),
+#  hcat(n_hcat(1,M_zero),M_LT, n_hcat(2,M_zero)),
+#  hcat(n_hcat(2,M_zero),M_RB, n_hcat(1,M_zero)),
+#  hcat(n_hcat(3,M_zero),M_RT))
 
+M = blockdiag(M_LB,M_LT,M_RB,M_RT)
 
 
  # Form F_T
@@ -425,9 +425,22 @@ D = blockdiag(H1y*2τ,H1x*2τ,H1x*2τ,H1y*2τ)
 A = vcat(hcat(M,F),hcat(F_T,D))
 b = vcat(g_bar,g_bar_delta)
 
-lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
-num_sol = M\(g_bar - F*lambda)
+# lambda = (D - F_T*(Matrix(M)\Matrix(F)))\(g_bar_delta - F_T*(Matrix(M)\g_bar))
+# num_sol = M\(g_bar - F*lambda)
 
+lambda_2 = g_bar_delta - F_T*(M\g_bar)
+
+M =sparse(M)
+F = sparse(F)
+LU_M = lu(M)
+
+tmp1 = similar(F);
+tmp1[LU_M.q,:] = LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]);
+lambda_1 = D - F_T*tmp1;
+
+lambda_new = lambda_1\lambda_2
+
+num_sol = M\(g_bar - F*lambda_new)
 
 num_sol_LB = num_sol[1:N^2];
 num_sol_LB = reshape(num_sol_LB,N,N);
