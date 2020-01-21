@@ -106,7 +106,7 @@ end
 #    n_list[i] = Integer(3)^(i)
 #end
 
-n_list = [2^3 2^4 2^5 2^6]
+n_list = [2^3 2^4 2^5 2^6 2^7 2^8]
 m_list = n_list
 
 h_list = 1 ./ n_list
@@ -117,7 +117,7 @@ EE = zeros(4,)
 
 p = 2
 
-i=3
+i=5
 
 j = i
 h = h_list[i]
@@ -319,11 +319,12 @@ M_RT = (-H_tilde*(D2_x + D2_y)
 
 M_zero = zeros(N_one_half*N_one_half,N_one_half*N_one_half)
 
-M = vcat(
- hcat(M_LB,n_hcat(3,M_zero)),
- hcat(n_hcat(1,M_zero),M_LT, n_hcat(2,M_zero)),
- hcat(n_hcat(2,M_zero),M_RB, n_hcat(1,M_zero)),
- hcat(n_hcat(3,M_zero),M_RT))
+# M = vcat(
+#  hcat(M_LB,n_hcat(3,M_zero)),
+#  hcat(n_hcat(1,M_zero),M_LT, n_hcat(2,M_zero)),
+#  hcat(n_hcat(2,M_zero),M_RB, n_hcat(1,M_zero)),
+#  hcat(n_hcat(3,M_zero),M_RT))
+M = blockdiag(M_LB,M_LT,M_RB,M_RT)
 
 
 
