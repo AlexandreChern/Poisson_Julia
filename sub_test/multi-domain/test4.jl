@@ -46,8 +46,8 @@ let
 include("diagonal_sbp.jl")
 #using Plots
 using Pkg
-Pkg.add("PyPlot")
-using PyPlot
+#Pkg.add("PyPlot")
+#using PyPlot
 
 using LinearAlgebra
 using SparseArrays
@@ -115,9 +115,9 @@ EE = zeros(4,)
 # h_list = [0.02, 0.01, 0.005, 0.0025, 0.00125, 0.000625, 0.0003125] # uncomment to use for p = 4, 6, 8
 # n_list = Int(1 ./h_list)
 
-p = 4
+p = 2
 
-for i = 3:4
+for i = 1:4
 
 j = i
 h = h_list[i]
