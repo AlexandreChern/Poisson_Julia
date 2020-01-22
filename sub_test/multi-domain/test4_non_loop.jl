@@ -117,7 +117,7 @@ EE = zeros(4,)
 
 p = 2
 
-i=6
+i=2
 
 j = i
 h = h_list[i]
@@ -441,6 +441,13 @@ LU_M = lu(M)
 
 tmp1 = similar(F);
 tmp1[LU_M.q,:] = LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]);
+
+
+tmp2 = sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]);
+tmp3 = LU_M.U\tmp2
+tmp4 = similar(F);
+tmp4[LU_M.q,:] = tmp3
+
 lambda_1 = D - F_T*tmp1;
 
 lambda_new = lambda_1\lambda_2
