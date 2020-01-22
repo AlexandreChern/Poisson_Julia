@@ -45,9 +45,9 @@ let
 
 include("diagonal_sbp.jl")
 #using Plots
-using Pkg
-Pkg.add("PyPlot")
-using PyPlot
+#using Pkg
+#Pkg.add("PyPlot")
+#using PyPlot
 
 using LinearAlgebra
 using SparseArrays
@@ -111,13 +111,14 @@ m_list = n_list
 
 h_list = 1 ./ n_list
 
-EE = zeros(4,)
+max_i = 6
+EE = zeros(max_i,)
 # h_list = [0.02, 0.01, 0.005, 0.0025, 0.00125, 0.000625, 0.0003125] # uncomment to use for p = 4, 6, 8
 # n_list = Int(1 ./h_list)
 
 p = 4
 
-for i = 1:6
+for i = 1:max_i
 
 j = i
 h = h_list[i]
@@ -316,7 +317,7 @@ M_RT = (-H_tilde*(D2_x + D2_y)
         + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
         + H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
-M_zero = zeros(N_one_half*N_one_half,N_one_half*N_one_half)
+M_zero = spzeros(N_one_half*N_one_half,N_one_half*N_one_half)
 
 # M = vcat(
 #  hcat(M_LB,n_hcat(3,M_zero)),
@@ -329,8 +330,8 @@ M = blockdiag(M_LB,M_LT,M_RB,M_RT)
 
  # Form F_T
 
- F_zero = zeros(N_one_half*N_one_half,N_one_half)
- F_T_zero = zeros(N_one_half,N_one_half*N_one_half)
+ F_zero = spzeros(N_one_half*N_one_half,N_one_half)
+ F_T_zero = spzeros(N_one_half,N_one_half*N_one_half)
 
  # Constructing Interface 1: LB_LT
  F_T_11 = (-τ*LN + β*LN*BS_y)*H_x
