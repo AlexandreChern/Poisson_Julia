@@ -26,8 +26,8 @@ function Diag(A)
     return Diagonal(A[:])
 end
 
-function Operators_2d(i, j, p=2, h_list_x = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8]),
-			 h_list_y = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8])
+function Operators_2d(i, j, p=2, h_list_x = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11]),
+			 h_list_y = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11])
 			 )
     hx = h_list_x[i];
     hy = h_list_y[j];
@@ -99,13 +99,13 @@ function Operators_2d(i, j, p=2, h_list_x = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7,
     return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
-h_list_x = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8]
-h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8]
+h_list_x = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11]
+h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11]
 
 rel_errs = []
 iter_errs = []
 #for k = 1:4
-k = 2
+k = 9
 println("Value for k:  ", k)
 i = j  = k
 hx = h_list_x[i]
