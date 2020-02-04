@@ -165,7 +165,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 5
+i = j = 4
 
 h = h_list[i]
 
@@ -719,6 +719,9 @@ for i in range(1,stop=size(F)[2])
     # lambda_0[:,i] .= M\Vector(F[:,i])
     lambda_0[:,i] .= ldiv!(lambda_tmp[:,i],M_LU,Vector(F[:,i]));
 end
+
+lambda_0 = sparse(lambda_0)
+
 lambda_1 = D - F_T*lambda_0
 
 # lambda_2 = g_bar_delta - F_T*(M_LU.U\sparse(M_LU.L\g_bar[M_LU.p]))
@@ -835,3 +838,4 @@ I9 = sparse(eyes(9));
 H9 = kron(I9,kron(H1x,H1y))
 
 ERR = sqrt(err'*H9*err)
+log2(ERR)
