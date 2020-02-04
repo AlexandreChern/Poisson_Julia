@@ -783,4 +783,4 @@ ERR = sqrt(err'*H9*err)
 EE[i] = ERR
 
 end
-@show [log2(EE[1]/EE[2]) log2(EE[2]/EE[3]) log2(EE[3]/EE[4])]
+@show [log3(EE[1]/EE[2]) log3(EE[2]/EE[3]) log3(EE[3]/EE[4])]

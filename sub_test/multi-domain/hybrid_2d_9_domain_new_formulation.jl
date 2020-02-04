@@ -838,4 +838,4 @@ I9 = sparse(eyes(9));
 H9 = kron(I9,kron(H1x,H1y))
 
 ERR = sqrt(err'*H9*err)
-log2(ERR)
+log3(ERR)
