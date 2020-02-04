@@ -4,6 +4,9 @@ using LinearAlgebra
 using SparseArrays
 using Plots
 
+using CUDAdrv
+CUDAdrv.CuDevice(0)
+
 using CuArrays, CUDAnative
 using IterativeSolvers
 using BenchmarkTools
