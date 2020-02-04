@@ -594,8 +594,8 @@ b_LM_N = (τ*H_x*LN' - β*H_x*BS_y'*LN')
 
 b_LT_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')
 b_LT_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')
-b_LT_S = (τ*H_x*LS' - β*H_y*BS_y'*LS')
-b_LT_N = (β*H_x*LN' - 1/τ*H_y*BS_y'*LN')
+b_LT_S = (τ*H_x*LS' - β*H_x*BS_y'*LS')
+b_LT_N = (β*H_x*LN' - 1/τ*H_x*BS_y'*LN')
 
 
 b_MB_W = H_y*(τ*LW' - β*BS_x'*LW') # Operators for imposing boundary conditions
@@ -745,14 +745,20 @@ plot(span,span,num_sol,st=:surface)
 num_sol_LB = num_sol[1:N^2];
 num_sol_LB = reshape(num_sol_LB,N,N);
 sol_LB = analy_sol(span_1',span_1)
+diff_LB = num_sol_LB .-sol_LB
+plot(span_1,span_1,diff_LB,st=:surface)
 
 num_sol_LM = num_sol[N^2+1:2*N^2];
 num_sol_LM = reshape(num_sol_LM,N,N);
 sol_LM = analy_sol(span_1',span_2)
+diff_LM = num_sol_LM .- sol_LM
+plot(span_1,span_2,diff_LM,st=:surface)
 
 num_sol_LT = num_sol[2*N^2+1:3*N^2];
 num_sol_LT = reshape(num_sol_LT,N,N);
 sol_LT = analy_sol(span_1',span_3);
+diff_LT = num_sol_LT .- sol_LT
+plot(span_1,span_3,diff_LT,st=:surface)
 
 num_sol_MB = num_sol[3*N^2+1:4*N^2];
 num_sol_MB = reshape(num_sol_MB,N,N);
@@ -782,6 +788,13 @@ num_sol_stacked = vcat(hcat(num_sol_LB',num_sol_MB',num_sol_RB'),
                     hcat(num_sol_LM',num_sol_MM',num_sol_RM'),
                     hcat(num_sol_LT',num_sol_MT',num_sol_RT'));
 plot(span,span,num_sol_stacked,st=:surface)
+
+@assert size(num_sol_stacked) == size(analy_solution)
+
+diff = num_sol_stacked .- analy_solution
+
+plot(span,span,diff,st=:surface)
+
 
 
 plot(span_1,span_1,num_sol_LB,st=:surface)

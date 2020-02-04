@@ -589,8 +589,10 @@ b_LM_N = (τ*H_x*LN' - β*H_x*BS_y'*LN')
 
 b_LT_W = (τ*H_y*LW' - β*H_y*BS_x'*LW')
 b_LT_E = (τ*H_y*LE' - β*H_y*BS_x'*LE')
-b_LT_S = (τ*H_x*LS' - β*H_y*BS_y'*LS')
-b_LT_N = (β*H_x*LN' - 1/τ*H_y*BS_y'*LN')
+# b_LT_S = (τ*H_x*LS' - β*H_y*BS_y'*LS')
+# b_LT_N = (β*H_x*LN' - 1/τ*H_y*BS_y'*LN')
+b_LT_S = (τ*H_x*LS' - β*H_x*BS_y'*LS')
+b_LT_N = (β*H_x*LN' - 1/τ*H_x*BS_y'*LN')
 
 
 b_MB_W = H_y*(τ*LW' - β*BS_x'*LW') # Operators for imposing boundary conditions
