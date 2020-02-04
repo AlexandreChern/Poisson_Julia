@@ -794,6 +794,7 @@ plot(span,span,num_sol_stacked,st=:surface)
 diff = num_sol_stacked .- analy_solution
 
 plot(span,span,diff,st=:surface)
+savefig("./sub_test/multi-domain/plots/diff.png")
 
 
 
