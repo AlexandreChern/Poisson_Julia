@@ -645,7 +645,8 @@ b_RT_N = H_x*(β*LN' - 1/τ*BS_y'*LN')
 # The first component is g_LB, refering to the boundary conditions for
 # block LB (Left-Bottom)
 
-b_zero = sparse(zeros(N_one_third*N_one_third))
+# b_zero = sparse(zeros(N_one_third*N_one_third))
+b_zero = spzeros(N_one_third*N_one_third)
 
 # Forming g terms, g terms are the combination of source functions and boundary conditions
 # each g component refers to each block, starting from block LB
@@ -678,7 +679,7 @@ g_bar_delta = n_vcat(12,2*h*δ_f*(ones(N_one_third)))
 # Formulation D terms
 # D represents 12 interfaces, with each interface being a 28*28 matrix
 # coming from the combination of LW LE LS LN and τ
-D_zero = zeros(N_one_third,N_one_third)
+D_zero = spzeros(N_one_third,N_one_third)
 
 
 #D = Diagonal(ones(N_one_third*12))*2τ  # Need to modify D blocks later
@@ -701,6 +702,9 @@ b = vcat(g_bar,g_bar_delta)
 # need some time to figure out
 # M_LU = lu(M)
 
+
+
+
 # lambda = (D - F_T*(M_LU.U\(M_LU.L\F[M_LU.p])))\(g_bar_delta - F_T*(M_LU.U\(M_LU.L\g_bar[M_LU.p])))
 # lambda_1 = D - F_T*sparse((M_LU.U\(sparse(M_LU.L\F[M_LU.p,:]))))
 M_LU = lu(M)
@@ -709,16 +713,17 @@ lambda_2 = g_bar_delta - F_T*(M\g_bar)
 
 # lambda_1 = D - F_T*sparse(M\Matrix(F))
 
-lambda_0 = similar(F)
+lambda_0 = Matrix(similar(F))
+lambda_tmp = Matrix(similar(F))
 for i in range(1,stop=size(F)[2])
     # lambda_0[:,i] .= M\Vector(F[:,i])
-    ldiv!(lambda_0[:,i],M_LU,F[:,]);
+    lambda_0[:,i] .= ldiv!(lambda_tmp[:,i],M_LU,Vector(F[:,i]));
 end
-lambda_1 == D - F_T*lambda_0
+lambda_1 = D - F_T*lambda_0
 
 # lambda_2 = g_bar_delta - F_T*(M_LU.U\sparse(M_LU.L\g_bar[M_LU.p]))
 
-lambda = lambda_1\lambda_2 # not correct
+lambda = lambda_1\lambda_2
 
 
 # lu(A::SparseMatrixCSC; check = true) -> F::UmfpackLU
