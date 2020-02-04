@@ -459,8 +459,11 @@ M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT);
  # So the first row will be the interfaces of LB with the rest of blocks
  # The first component will be the interface between LB and LM
 
- F_zero = sparse(zeros(N_one_third*N_one_third,N_one_third))
- F_T_zero = sparse(zeros(N_one_third,N_one_third*N_one_third))
+ # F_zero = sparse(zeros(N_one_third*N_one_third,N_one_third))
+ # F_T_zero = sparse(zeros(N_one_third,N_one_third*N_one_third))
+
+ F_zero = spzeros(N_one_third*N_one_third,N_one_third)
+ F_T_zero = spzeros(N_one_third,N_one_third*N_one_third)
 
  # eg: F_T_LB_LM defines the component of LB-LM interface of F_T,
  # refering to the term involving block LB and MB
@@ -700,10 +703,17 @@ b = vcat(g_bar,g_bar_delta)
 
 # lambda = (D - F_T*(M_LU.U\(M_LU.L\F[M_LU.p])))\(g_bar_delta - F_T*(M_LU.U\(M_LU.L\g_bar[M_LU.p])))
 # lambda_1 = D - F_T*sparse((M_LU.U\(sparse(M_LU.L\F[M_LU.p,:]))))
+M_LU = lu(M)
 
 lambda_2 = g_bar_delta - F_T*(M\g_bar)
 
-lambda_1 = D - F_T*sparse(M\Matrix(F))
+# lambda_1 = D - F_T*sparse(M\Matrix(F))
+
+lambda_0 = similar(F)
+for i in range(1,stop=size(F)[2])
+    lambda_0[:,i] .= M\Vector(F[:,i])
+end
+lambda_1 == D - F_T*lambda_0
 
 # lambda_2 = g_bar_delta - F_T*(M_LU.U\sparse(M_LU.L\g_bar[M_LU.p]))
 

@@ -459,8 +459,8 @@ M = vcat(
  # So the first row will be the interfaces of LB with the rest of blocks
  # The first component will be the interface between LB and LM
 
- F_zero = zeros(N_one_third*N_one_third,N_one_third)
- F_T_zero = zeros(N_one_third,N_one_third*N_one_third)
+ F_zero = spzeros(N_one_third*N_one_third,N_one_third)
+ F_T_zero = spzeros(N_one_third,N_one_third*N_one_third)
 
  # eg: F_T_LB_LM defines the component of LB-LM interface of F_T,
  # refering to the term involving block LB and MB
@@ -639,7 +639,7 @@ b_RT_N = H_x*(β*LN' - 1/τ*BS_y'*LN')
 # The first component is g_LB, refering to the boundary conditions for
 # block LB (Left-Bottom)
 
-b_zero = zeros(N_one_third*N_one_third)
+b_zero = spzeros(N_one_third*N_one_third)
 
 # Forming g terms, g terms are the combination of source functions and boundary conditions
 # each g component refers to each block, starting from block LB
@@ -672,7 +672,7 @@ g_bar_delta = n_vcat(12,2*h*δ_f*(ones(N_one_third)))
 # Formulation D terms
 # D represents 12 interfaces, with each interface being a 28*28 matrix
 # coming from the combination of LW LE LS LN and τ
-D_zero = zeros(N_one_third,N_one_third)
+D_zero = spzeros(N_one_third,N_one_third)
 
 
 #D = Diagonal(ones(N_one_third*12))*2τ  # Need to modify D blocks later
