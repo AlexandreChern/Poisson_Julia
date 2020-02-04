@@ -698,8 +698,8 @@ LU_M = lu(M)
 tmp1 = Matrix(similar(F));
 #tmp1[LU_M.q,:] = sparse(LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]));
 
-for i in range(1,stop=size(F)[2])
-    ldiv!(tmp1[:,i],LU_M,Vector(F[:,i]))
+for i in range(1,step=1,stop=size(F)[2])
+    tmp1[:,i] = ldiv!(tmp1[:,i],LU_M,Vector(F[:,i]))
 end
 
 
