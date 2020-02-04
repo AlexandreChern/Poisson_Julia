@@ -696,12 +696,15 @@ F = sparse(F)
 LU_M = lu(M)
 
 tmp1 = Matrix(similar(F));
+tmp2 = Matrix(similar(F));
 #tmp1[LU_M.q,:] = sparse(LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]));
 
+
 for i in range(1,step=1,stop=size(F)[2])
-    tmp1[:,i] = ldiv!(tmp1[:,i],LU_M,Vector(F[:,i]))
+    tmp1[:,i] .= ldiv!(tmp2[:,i],LU_M,Vector(F[:,i]))
 end
 
+tmp1 = sparse(tmp1)
 
 lambda_1 = D - F_T*tmp1;
 
