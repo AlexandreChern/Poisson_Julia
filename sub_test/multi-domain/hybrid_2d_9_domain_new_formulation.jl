@@ -711,7 +711,8 @@ lambda_2 = g_bar_delta - F_T*(M\g_bar)
 
 lambda_0 = similar(F)
 for i in range(1,stop=size(F)[2])
-    lambda_0[:,i] .= M\Vector(F[:,i])
+    # lambda_0[:,i] .= M\Vector(F[:,i])
+    ldiv!(lambda_0[:,i],M_LU,F[:,]);
 end
 lambda_1 == D - F_T*lambda_0
 
