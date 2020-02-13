@@ -167,7 +167,7 @@ p = 2
 
 EE = zeros(4,)
 
-for i = 1:4
+for i = 1:3
 j = i
 
 h = h_list[i]

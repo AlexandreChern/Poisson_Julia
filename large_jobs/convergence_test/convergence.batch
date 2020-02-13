@@ -10,4 +10,4 @@
 #SBATCH --ntasks-per-node=1     ### number of tasks to launch per node
 #SBATCH --cpus-per-task=1       ### number of cores for each task
  
-julia ../../sub_test/multi-domain/hybrid_2d_9_domain_convergence.jl
+julia ../../sub_test/multi-domain/hybrid_2d_9_domain_convergence_modified.jl
