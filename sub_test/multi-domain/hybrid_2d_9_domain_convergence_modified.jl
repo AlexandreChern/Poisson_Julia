@@ -167,7 +167,7 @@ p = 2
 
 EE = zeros(4,)
 
-for i = 1:3
+for i = 1:4
 j = i
 
 h = h_list[i]
@@ -714,7 +714,7 @@ function backslash_for_sparse_v1(lu_A,F)
     return output
 end
 
-lambda_0 = backslash_for_sparse_v1(M_LU,F)
+lambda_0 = backslash_for_sparse_v1(LU_M,F)
 
 lambda_1 = D - F_T*lambda_0;
 
@@ -796,4 +796,9 @@ ERR = sqrt(err'*H9*err)
 EE[i] = ERR
 
 end
+
+function log3(x)
+    return log(3,x)
+end
+
 @show [log3(EE[1]/EE[2]) log3(EE[2]/EE[3]) log3(EE[3]/EE[4])]
