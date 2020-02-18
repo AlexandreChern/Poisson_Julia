@@ -165,9 +165,10 @@ h_list = 1 ./ n_list
 
 p = 2
 
-EE = zeros(4,)
+num_of_grid_size = 5
+EE = zeros(num_of_grid_size,)
 
-for i = 1:4
+for i = 1:num_of_grid_size
 j = i
 
 h = h_list[i]
@@ -176,6 +177,96 @@ n = Integer(n_list[i])
 n_one_third = Integer(n)
 N = n + 1
 N_one_third = n_one_third + 1
+
+# function Operators_2d(i, j)
+#     h_list_x = h_list;
+#     h_list_y = h_list;
+#
+#     hx = h_list_x[i];
+#     hy = h_list_y[j];
+#
+#     n_x = Integer(n_list[i])
+#     n_y = Integer(m_list[j])
+#
+#     # Matrix Size
+#     # n_x = Integer(m_list[i]);
+#     # n_y = Integer(n_list[j]);
+#
+#     N_x = n_x + 1
+#     N_y = n_y + 1
+#
+#     n_x_one_third = n_x      # Integer(n_x)
+#     n_y_one_third = n_y      # Integer(n_y)
+#
+#     N_x_one_third = n_x_one_third + 1
+#     N_y_one_third = n_x_one_third + 1
+#
+#     (D1x, HIx, H1x, r1x) = diagonal_sbp_D1(p,n_x_one_third,xc=(0,1/3));
+#     (D2x, S0x, SNx, HI2x, H2x, r2x) = diagonal_sbp_D2(p,n_y_one_third,xc=(0,1/3));
+#
+#
+#     (D1y, HIy, H1y, r1y) = diagonal_sbp_D1(p,n_x_one_third,xc=(0,1/3));
+#     (D2y, S0y, SNy, HI2y, H2y, r2y) = diagonal_sbp_D2(p,n_y_one_third,xc=(0,1/3));
+#
+#     BSx = sparse(SNx - S0x);
+#     BSy = sparse(SNy - S0y);
+#
+#     Ax = BSx - H1x*D2x;
+#     Ay = BSy - H1y*D2y;
+#
+#     A_tilde = kron(Ax,H1y) + kron(H1x,Ay);
+#
+#
+#
+#
+#     # Forming 2d Operators
+#     e_1x = sparse(e(1,N_x_one_third));
+#     e_Nx = sparse(e(N_x_one_third,N_y_one_third));
+#     e_1y = sparse(e(1,N_y_one_third));
+#     e_Ny = sparse(e(N_y_one_third,N_y_one_third));
+#
+#
+#     I_Nx = sparse(eyes(N_x_one_third));
+#     I_Ny = sparse(eyes(N_y_one_third));
+#
+#     LW = kron(e_1y',I_Ny)
+#     LE = kron(e_Ny',I_Ny)
+#     LS = kron(I_Nx,e_1x')
+#     LN = kron(I_Nx,e_Nx')
+#
+#
+#
+#
+#     D1_x = kron(D1x,I_Ny);
+#     D1_y = kron(I_Nx,D1y);
+#
+#
+#     D2_x = kron(D2x,I_Ny);
+#     D2_y = kron(I_Nx,D2y);
+#     D2 = D2_x + D2_y
+#
+#
+#
+#
+#     HI_x = kron(HIx,I_Ny);
+#     HI_y = kron(I_Nx,HIy);
+#
+#     H_x = kron(H1x,I_Ny);
+#     H_y = kron(I_Nx,H1y);
+#
+#     A2_x = H_x*(kron(Ax,I_Ny));
+#     A2_y = H_y*(kron(I_Nx,Ay));
+#
+#     BS_x = kron(BSx,I_Ny);
+#     BS_y = kron(I_Nx,BSy);
+#
+#
+#     HI_tilde = kron(HIx,HIx);
+#     H_tilde = kron(H1x,H1y);
+#
+#
+#     return (D1_x, D1_y, D2_x, D2_y, Ax, Ay, A_tilde, A2_x, A2_y, D2, HI_x, HI_y, H1x, H1y, H_x, H_y , BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, LW, LE, LS, LN)
+# end
 
 function Operators_2d(i, j)
     h_list_x = h_list;
@@ -228,40 +319,40 @@ function Operators_2d(i, j)
     I_Nx = sparse(eyes(N_x_one_third));
     I_Ny = sparse(eyes(N_y_one_third));
 
-    LW = kron(e_1y',I_Ny)
-    LE = kron(e_Ny',I_Ny)
-    LS = kron(I_Nx,e_1x')
-    LN = kron(I_Nx,e_Nx')
+    LW = sparse(kron(e_1y',I_Ny))
+    LE = sparse(kron(e_Ny',I_Ny))
+    LS = sparse(kron(I_Nx,e_1x'))
+    LN = sparse(kron(I_Nx,e_Nx'))
 
 
 
 
-    D1_x = kron(D1x,I_Ny);
-    D1_y = kron(I_Nx,D1y);
+    D1_x = sparse(kron(D1x,I_Ny));
+    D1_y = sparse(kron(I_Nx,D1y));
 
 
-    D2_x = kron(D2x,I_Ny);
-    D2_y = kron(I_Nx,D2y);
+    D2_x = sparse(kron(D2x,I_Ny));
+    D2_y = sparse(kron(I_Nx,D2y));
     D2 = D2_x + D2_y
 
 
 
 
-    HI_x = kron(HIx,I_Ny);
-    HI_y = kron(I_Nx,HIy);
+    HI_x = sparse(kron(HIx,I_Ny));
+    HI_y = sparse(kron(I_Nx,HIy));
 
-    H_x = kron(H1x,I_Ny);
-    H_y = kron(I_Nx,H1y);
+    H_x = sparse(kron(H1x,I_Ny));
+    H_y = sparse(kron(I_Nx,H1y));
 
-    A2_x = H_x*(kron(Ax,I_Ny));
-    A2_y = H_y*(kron(I_Nx,Ay));
+    A2_x = sparse(H_x*(kron(Ax,I_Ny)));
+    A2_y = sparse(H_y*(kron(I_Nx,Ay)));
 
-    BS_x = kron(BSx,I_Ny);
-    BS_y = kron(I_Nx,BSy);
+    BS_x = sparse(kron(BSx,I_Ny));
+    BS_y = sparse(kron(I_Nx,BSy));
 
 
-    HI_tilde = kron(HIx,HIx);
-    H_tilde = kron(H1x,H1y);
+    HI_tilde = sparse(kron(HIx,HIx));
+    H_tilde = sparse(kron(H1x,H1y));
 
 
     return (D1_x, D1_y, D2_x, D2_y, Ax, Ay, A_tilde, A2_x, A2_y, D2, HI_x, HI_y, H1x, H1y, H_x, H_y , BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, LW, LE, LS, LN)
@@ -442,16 +533,18 @@ M_RT = (-H_tilde*(D2_x + D2_y)
 
 M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
 
-M = vcat(
- hcat(M_LB,n_hcat(8,M_zero)),
- hcat(n_hcat(1,M_zero),M_LM,n_hcat(7,M_zero)),
- hcat(n_hcat(2,M_zero),M_LT, n_hcat(6,M_zero)),
- hcat(n_hcat(3,M_zero),M_MB, n_hcat(5,M_zero)),
- hcat(n_hcat(4,M_zero),M_MM, n_hcat(4,M_zero)),
- hcat(n_hcat(5,M_zero),M_MT, n_hcat(3,M_zero)),
- hcat(n_hcat(6,M_zero),M_RB, n_hcat(2,M_zero)),
- hcat(n_hcat(7,M_zero),M_RM, n_hcat(1,M_zero)),
- hcat(n_hcat(8,M_zero),M_RT))
+# M = vcat(
+#  hcat(M_LB,n_hcat(8,M_zero)),
+#  hcat(n_hcat(1,M_zero),M_LM,n_hcat(7,M_zero)),
+#  hcat(n_hcat(2,M_zero),M_LT, n_hcat(6,M_zero)),
+#  hcat(n_hcat(3,M_zero),M_MB, n_hcat(5,M_zero)),
+#  hcat(n_hcat(4,M_zero),M_MM, n_hcat(4,M_zero)),
+#  hcat(n_hcat(5,M_zero),M_MT, n_hcat(3,M_zero)),
+#  hcat(n_hcat(6,M_zero),M_RB, n_hcat(2,M_zero)),
+#  hcat(n_hcat(7,M_zero),M_RM, n_hcat(1,M_zero)),
+#  hcat(n_hcat(8,M_zero),M_RT))
+
+M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT);
 
 
  # We form F_T in the same order
@@ -801,4 +894,4 @@ function log3(x)
     return log(3,x)
 end
 
-@show [log3(EE[1]/EE[2]) log3(EE[2]/EE[3]) log3(EE[3]/EE[4])]
+@show [log3(EE[1]/EE[2]) log3(EE[2]/EE[3]) log3(EE[3]/EE[4]) log3(EE[4]/EE[5])]

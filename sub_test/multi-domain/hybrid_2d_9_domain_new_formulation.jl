@@ -438,7 +438,7 @@ M_RT = (-H_tilde*(D2_x + D2_y)
         + τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS # Dirichlet boundary condition on the south side
         + H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y) # Neumann condition on the north side
 
-M_zero = zeros(N_one_third*N_one_third,N_one_third*N_one_third)
+M_zero = spzeros(N_one_third*N_one_third,N_one_third*N_one_third)
 
 # M = vcat(
 #  hcat(M_LB,n_hcat(8,M_zero)),
