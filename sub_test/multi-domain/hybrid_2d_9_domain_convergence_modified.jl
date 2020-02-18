@@ -695,18 +695,28 @@ M =sparse(M)
 F = sparse(F)
 LU_M = lu(M)
 
-tmp1 = Matrix(similar(F));
-tmp2 = Matrix(similar(F));
-#tmp1[LU_M.q,:] = sparse(LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]));
+# tmp1 = Matrix(similar(F));
+# tmp2 = Matrix(similar(F));
+# #tmp1[LU_M.q,:] = sparse(LU_M.U\sparse(LU_M.L\(LU_M.Rs .* F)[LU_M.p,:]));
+#
+#
+# for i in range(1,step=1,stop=size(F)[2])
+#     tmp1[:,i] .= ldiv!(tmp2[:,i],LU_M,Vector(F[:,i]))
+# end
+#
+# tmp1 = sparse(tmp1)
 
-
-for i in range(1,step=1,stop=size(F)[2])
-    tmp1[:,i] .= ldiv!(tmp2[:,i],LU_M,Vector(F[:,i]))
+function backslash_for_sparse_v1(lu_A,F)
+    output = similar(F)
+    @inbounds for i=1:size(F,2)
+        output[:,i] = ldiv!(lu_A,Vector(F[:,i]))
+    end
+    return output
 end
 
-tmp1 = sparse(tmp1)
+lambda_0 = backslash_for_sparse_v1(M_LU,F)
 
-lambda_1 = D - F_T*tmp1;
+lambda_1 = D - F_T*lambda_0;
 
 lambda_2 = g_bar_delta - F_T*(M\g_bar)
 

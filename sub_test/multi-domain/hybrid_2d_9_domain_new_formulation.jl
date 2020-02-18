@@ -165,7 +165,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 4
+i = j = 3
 
 h = h_list[i]
 
@@ -713,14 +713,37 @@ lambda_2 = g_bar_delta - F_T*(M\g_bar)
 
 # lambda_1 = D - F_T*sparse(M\Matrix(F))
 
-lambda_0 = Matrix(similar(F))
-lambda_tmp = Matrix(similar(F))
-for i in range(1,stop=size(F)[2])
-    # lambda_0[:,i] .= M\Vector(F[:,i])
-    lambda_0[:,i] .= ldiv!(lambda_tmp[:,i],M_LU,Vector(F[:,i]));
+# lambda_0 = Matrix(similar(F))
+# lambda_tmp = Matrix(similar(F))
+# for i in range(1,stop=size(F)[2])
+#     # lambda_0[:,i] .= M\Vector(F[:,i])
+#     lambda_0[:,i] .= ldiv!(lambda_tmp[:,i],M_LU,Vector(F[:,i]));
+# end
+
+
+function backslash_for_sparse(A,F)   # Self-defined function
+    dim_n = size(F,2)
+    output = similar(F)
+    tmp = similar(F)
+    lu_A = lu(A)
+    @inbounds for i = 1:dim_n
+        tmp[:,i] = @view F[:,i]
+        # output[:,i] = ldiv!(output[:,i],lu_A,Vector(tmp[:,i]))
+        output[:,i] = ldiv!(lu_A,Vector(tmp[:,i]))
+    end
+    return output
 end
 
-lambda_0 = sparse(lambda_0)
+# lu_A = lu(A)
+function backslash_for_sparse_v1(lu_A,F)
+    output = similar(F)
+    @inbounds for i=1:size(F,2)
+        output[:,i] = ldiv!(lu_A,Vector(F[:,i]))
+    end
+    return output
+end
+
+lambda_0 = backslash_for_sparse_v1(M_LU,F)
 
 lambda_1 = D - F_T*lambda_0
 
