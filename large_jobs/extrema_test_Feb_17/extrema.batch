@@ -1,13 +1,14 @@
 #!/bin/bash
 #SBATCH --account=erickson   ### change this to your actual account for charging
 #SBATCH --partition=short      ### queue to submit to
-#SBATCH --job-name=convergence_test    ### job name
-#SBATCH --output=convergence.out   ### file in which to store job stdout
-#SBATCH --error=convergence.err    ### file in which to store job stderr
+#SBATCH --job-name=extrema_test    ### job name
+#SBATCH --output=extrema.out   ### file in which to store job stdout
+#SBATCH --error=extrema.err    ### file in which to store job stderr
 #SBATCH --time=0-12:00:00                ### wall-clock time limit, in minutes
 #SBATCH --mem=128000              ### memory limit per node, in MB
 #SBATCH --nodes=1               ### number of nodes to use
 #SBATCH --ntasks-per-node=1     ### number of tasks to launch per node
 #SBATCH --cpus-per-task=1       ### number of cores for each task
-module load julia 
-julia ../../sub_test/multi-domain/hybrid_2d_9_domain_convergence_modified.jl
+
+module load julia
+julia ../../sub_test/multi-domain/2d_9_domain_no_plots.jl

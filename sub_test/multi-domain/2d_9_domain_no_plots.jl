@@ -90,9 +90,9 @@
 
 
 include("diagonal_sbp.jl")
-using Pkg
-Pkg.add("Plots")
-using Plots
+#using Pkg
+#Pkg.add("Plots")
+#using Plots
 
 using LinearAlgebra
 using SparseArrays
@@ -167,7 +167,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 3
+i = j = 5
 
 h = h_list[i]
 
@@ -276,7 +276,6 @@ span_2 = LinRange(1/3,2/3,N_one_third)
 span_3 = LinRange(2/3,1,N_one_third)
 span= vcat(span_1,span_2,span_3)
 analy_solution = analy_sol(span,span')
-plot(span,span,analy_solution,st=:surface)
 
 
 # e0 = e(1,N_one_third);
@@ -784,25 +783,21 @@ lambda = lambda_1\lambda_2
 #num_sol = A\b # solving the system directly
 num_sol = M\(g_bar - F*lambda)
 #num_sol_tranc = num_sol[1:N^2*9]
-plot(span,span,num_sol,st=:surface)
 
 num_sol_LB = num_sol[1:N^2];
 num_sol_LB = reshape(num_sol_LB,N,N);
 sol_LB = analy_sol(span_1',span_1)
 diff_LB = num_sol_LB .-sol_LB
-plot(span_1,span_1,diff_LB,st=:surface)
 
 num_sol_LM = num_sol[N^2+1:2*N^2];
 num_sol_LM = reshape(num_sol_LM,N,N);
 sol_LM = analy_sol(span_1',span_2)
 diff_LM = num_sol_LM .- sol_LM
-plot(span_1,span_2,diff_LM,st=:surface)
 
 num_sol_LT = num_sol[2*N^2+1:3*N^2];
 num_sol_LT = reshape(num_sol_LT,N,N);
 sol_LT = analy_sol(span_1',span_3);
 diff_LT = num_sol_LT .- sol_LT
-plot(span_1,span_3,diff_LT,st=:surface)
 
 num_sol_MB = num_sol[3*N^2+1:4*N^2];
 num_sol_MB = reshape(num_sol_MB,N,N);
@@ -831,28 +826,17 @@ sol_RT = analy_sol(span_3',span_3);
 num_sol_stacked = vcat(hcat(num_sol_LB',num_sol_MB',num_sol_RB'),
                     hcat(num_sol_LM',num_sol_MM',num_sol_RM'),
                     hcat(num_sol_LT',num_sol_MT',num_sol_RT'));
-plot(span,span,num_sol_stacked,st=:surface)
 
 @assert size(num_sol_stacked) == size(analy_solution)
 
 diff = num_sol_stacked .- analy_solution
 
-plot(span,span,diff,st=:surface)
-savefig("./sub_test/multi-domain/plots/diff.png")
 
 
 
-plot(span_1,span_1,num_sol_LB,st=:surface)
-savefig("./sub_test/multi-domain/plots/num_sol_LB.png")
 analy_sol_LB = analy_sol(span_1,span_1')
-plot(span_1,span_1,analy_sol_LB,st=:surface)
-savefig("./sub_test/multi-domain/plots/analy_sol_LB.png")
 
-plot(span_1,span_2,num_sol_LM,st=:surface)
-plot(span_1,span_2,sol_LM,st=:surface)
 
-plot(span_1,span_1,reshape(M_LB\g_LB,N,N),st=:surface)
-savefig("./sub_test/multi-domain/plots/num_sol_1_isolated.png")
 
 exact = [sol_LB[:]; sol_LM[:]; sol_LT[:]; sol_MB[:]; sol_MM[:]; sol_MT[:]; sol_RB[:]; sol_RM[:]; sol_RT[:]]
 
@@ -862,5 +846,11 @@ err = num - exact
 I9 = sparse(eyes(9));
 H9 = kron(I9,kron(H1x,H1y))
 
+function log3(x)
+    return log(3,x)
+end
+
+
+
 ERR = sqrt(err'*H9*err)
-log3(ERR)
+@show log3(ERR)
