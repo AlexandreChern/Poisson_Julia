@@ -474,21 +474,27 @@ M = blockdiag(M_LB,M_LM,M_LT,M_MB,M_MM,M_MT,M_RB,M_RM,M_RT);
 
  F_T_LB_LM_LB = (-τ*LN + β*LN*BS_y)*H_x # + τ*LE + LE*BS_x
  F_T_LB_LM_LM = (-τ*LS + β*LS*BS_y)*H_x
- F_T_LB_LM_LT = F_T_zero
- F_T_LB_LM_MB = F_T_zero #τ*LW + LW*BS_x
- F_T_LB_LM_MM = F_T_zero
- F_T_LB_LM_MT = F_T_zero
- F_T_LB_LM_RB = F_T_zero
- F_T_LB_LM_RM = F_T_zero
- F_T_LB_LM_RT = F_T_zero
+ # F_T_LB_LM_LT = F_T_zero
+ # F_T_LB_LM_MB = F_T_zero #τ*LW + LW*BS_x
+ # F_T_LB_LM_MM = F_T_zero
+ # F_T_LB_LM_MT = F_T_zero
+ # F_T_LB_LM_RB = F_T_zero
+ # F_T_LB_LM_RM = F_T_zero
+ # F_T_LB_LM_RT = F_T_zero
 
 
- F_T_LB_LM = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,F_T_LB_LM_LT,
-         F_T_LB_LM_MB,F_T_LB_LM_MM,F_T_LB_LM_MT,
-         F_T_LB_LM_RB,F_T_LB_LM_RM,F_T_LB_LM_LT)
 
 
-F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero));
+ # F_T_LB_LM = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,F_T_LB_LM_LT,
+ #         F_T_LB_LM_MB,F_T_LB_LM_MM,F_T_LB_LM_MT,
+ #         F_T_LB_LM_RB,F_T_LB_LM_RM,F_T_LB_LM_LT)
+
+
+F_T_LB_LM = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero));
+F_LB_LM_LB = copy(F_T_LB_LM_LB')
+F_LB_LM_LM = copy(F_T_LB_LM_LM')
+F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
+@assert F_T_LB_LM == F_LB_LM'
 
 
  # Constructing Interface 2: LM_LT
@@ -497,9 +503,13 @@ F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero));
  F_T_LM_LT_LM = (-τ*LN + β*LN*BS_y)*H_x
  F_T_LM_LT_LT = (-τ*LS + β*LS*BS_y)*H_x
  F_T_LM_LT_MB = F_T_zero
- # ... Trivial Terms
- F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero));
+ # ... Trivial Term
 
+ F_T_LM_LT = hcat(F_T_zero,F_T_LM_LT_LM,F_T_LM_LT_LT,n_hcat(6,F_T_zero));
+ F_LM_LT_LM = copy(F_T_LM_LT_LM')
+ F_LM_LT_LT = copy(F_T_LM_LT_LT')
+ F_LM_LT = vcat(F_zero,F_LM_LT_LM,F_LM_LT_LT,n_vcat(6,F_zero))
+ @assert F_LM_LT == F_T_LM_LT'
 
 
 
@@ -513,45 +523,80 @@ F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero));
  # ... Trivial Terms
  F_T_LB_MB = hcat(F_T_LB_MB_LB,n_hcat(2,F_T_zero),F_T_LB_MB_MB,n_hcat(5,F_T_zero))
 
+ F_LB_MB_LB = copy(F_T_LB_MB_LB')
+ F_LB_MB_MB = copy(F_T_LB_MB_MB')
+ F_LB_MB = vcat(F_LB_MB_LB,n_vcat(2,F_zero),F_LB_MB_MB,n_vcat(5,F_zero))
+ @assert F_T_LB_MB == F_LB_MB'
+
+
 
 
  # Constructing Interface 4: LM_MM
  F_T_LM_MM_LM = (-τ*LE + β*LE*BS_x)*H_y
  F_T_LM_MM_MM = (-τ*LW + β*LW*BS_x)*H_y
  F_T_LM_MM = hcat(F_T_zero,F_T_LM_MM_LM,n_hcat(2,F_T_zero),F_T_LM_MM_MM,n_hcat(4,F_T_zero))
-
+ F_LM_MM_LM = copy(F_T_LM_MM_LM')
+ F_LM_MM_MM = copy(F_T_LM_MM_MM')
+ F_LM_MM = vcat(F_zero,F_LM_MM_LM,n_vcat(2,F_zero),F_LM_MM_MM,n_vcat(4,F_zero))
+ @assert F_T_LM_MM == F_LM_MM'
 
  # Constructing Interface 5: LT_MT
  F_T_LT_MT_LT = (-τ*LE + β*LE*BS_x)*H_y
  F_T_LT_MT_MT = (-τ*LW + β*LW*BS_x)*H_y
  F_T_LT_MT = hcat(n_hcat(2,F_T_zero),F_T_LT_MT_LT, n_hcat(2,F_T_zero),F_T_LT_MT_MT,n_hcat(3,F_T_zero))
+ F_LT_MT_LT = copy(F_T_LT_MT_LT')
+ F_LT_MT_MT = copy(F_T_LT_MT_MT')
+ F_LT_MT = vcat(n_vcat(2,F_zero),F_LT_MT_LT,n_vcat(2,F_zero),F_LT_MT_MT,n_vcat(3,F_zero))
+ @assert F_T_LT_MT == F_LT_MT'
 
  # Constructing Interface 6: MB_MM
  F_T_MB_MM_MB = (-τ*LN + β*LN*BS_y)*H_x
  F_T_MB_MM_MM = (-τ*LS + β*LS*BS_y)*H_x
  F_T_MB_MM = hcat(n_hcat(3,F_T_zero),F_T_MB_MM_MB,F_T_MB_MM_MM,n_hcat(4,F_T_zero))
+ F_MB_MM_MB = copy(F_T_MB_MM_MB')
+ F_MB_MM_MM = copy(F_T_MB_MM_MM')
+ F_MB_MM = vcat(n_vcat(3,F_zero),F_MB_MM_MB,F_MB_MM_MM,n_vcat(4,F_zero))
+ @assert F_T_MB_MM == F_MB_MM'
 
  # Constructing Interface 7: MM_MT
  F_T_MM_MT_MM = (-τ*LN + β*LN*BS_y)*H_x
  F_T_MM_MT_MT = (-τ*LS + β*LS*BS_y)*H_x
  F_T_MM_MT = hcat(n_hcat(4,F_T_zero),F_T_MM_MT_MM,F_T_MM_MT_MT,n_hcat(3,F_T_zero))
+ F_MM_MT_MM = copy(F_T_MM_MT_MM')
+ F_MM_MT_MT = copy(F_T_MM_MT_MT')
+ F_MM_MT = vcat(n_vcat(4,F_zero),F_MM_MT_MM,F_MM_MT_MT,n_vcat(3,F_zero))
+ @assert F_T_MM_MT == F_MM_MT'
 
  #
  # Constructing Interface 8: MB_RB
  F_T_MB_RB_MB = (-τ*LE + β*LE*BS_x)*H_y
  F_T_MB_RB_RB = (-τ*LW + β*LW*BS_x)*H_y
  F_T_MB_RB = hcat(n_hcat(3,F_T_zero),F_T_MB_RB_MB,n_hcat(2,F_T_zero),F_T_MB_RB_RB,n_hcat(2,F_T_zero))
+ F_MB_RB_MB = copy(F_T_MB_RB_MB')
+ F_MB_RB_RB = copy(F_T_MB_RB_RB')
+ F_MB_RB = vcat(n_vcat(3,F_zero),F_MB_RB_MB,n_vcat(2,F_zero),F_MB_RB_RB,n_vcat(2,F_zero))
+ @assert F_T_MB_RB == F_MB_RB'
+
 
  # Constructing Interface 9: MM_RM
  F_T_MM_RM_MM = (-τ*LE + β*LE*BS_x)*H_y
  F_T_MM_RM_RM = (-τ*LW + β*LW*BS_x)*H_y
  F_T_MM_RM = hcat(n_hcat(4,F_T_zero),F_T_MM_RM_MM,n_hcat(2,F_T_zero),F_T_MM_RM_RM,n_hcat(1,F_T_zero))
+ F_MM_RM_MM = copy(F_T_MM_RM_MM')
+ F_MM_RM_RM = copy(F_T_MM_RM_RM')
+ F_MM_RM = vcat(n_vcat(4,F_zero),F_MM_RM_MM,n_vcat(2,F_zero),F_MM_RM_RM,n_vcat(1,F_zero))
+ @assert F_T_MM_RM == F_MM_RM'
+
 
 
  # Constructing Interface 10: MT_RT
  F_T_MT_RT_MT = (-τ*LE + β*LE*BS_x)*H_y
  F_T_MT_RT_RT = (-τ*LW + β*LW*BS_x)*H_y
  F_T_MT_RT = hcat(n_hcat(5,F_T_zero),F_T_MT_RT_MT,n_hcat(2,F_T_zero),F_T_MT_RT_RT)
+ F_MT_RT_MT = copy(F_T_MT_RT_MT')
+ F_MT_RT_RT = copy(F_T_MT_RT_RT')
+ F_MT_RT = vcat(n_vcat(5,F_zero),F_MT_RT_MT,n_vcat(2,F_zero),F_MT_RT_RT)
+ @assert F_T_MT_RT == F_MT_RT'
  #
 
 
@@ -559,12 +604,20 @@ F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero));
  F_T_RB_RM_RB = (-τ*LN + β*LN*BS_y)*H_x
  F_T_RB_RM_RM = (-τ*LS + β*LS*BS_y)*H_x
  F_T_RB_RM = hcat(n_hcat(6,F_T_zero),F_T_RB_RM_RB,F_T_RB_RM_RM,n_hcat(1,F_T_zero))
+ F_RB_RM_RB = copy(F_T_RB_RM_RB')
+ F_RB_RM_RM = copy(F_T_RB_RM_RM')
+ F_RB_RM = vcat(n_vcat(6,F_zero),F_RB_RM_RB,F_RB_RM_RM,n_vcat(1,F_zero))
+ @assert F_T_RB_RM == F_RB_RM'
 
  #
  # Constructing Interface 12: RM_RT
  F_T_RM_RT_RM = (-τ*LN + β*LN*BS_y)*H_x
  F_T_RM_RT_RT = (-τ*LS + β*LS*BS_y)*H_x
  F_T_RM_RT = hcat(n_hcat(7,F_T_zero),F_T_RM_RT_RM,F_T_RM_RT_RT)
+ F_RM_RT_RM = copy(F_T_RM_RT_RM')
+ F_RM_RT_RT = copy(F_T_RM_RT_RT')
+ F_RM_RT = vcat(n_vcat(7,F_zero),F_RM_RT_RM,F_RM_RT_RT)
+ @assert F_T_RM_RT == F_RM_RT'
 
 
  # Construting Final Matrix F_T, vertical catenation of all 12 interfaces
@@ -577,10 +630,10 @@ F_T_LB_LM_test = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero));
 
  # For simplification We construct F by taking the inverse of F_T
 
- F = F_T'
-
- F = sparse(F)
- F_T = sparse(F_T)
+ F = hcat(F_LB_LM,F_LM_LT,F_LB_MB,F_LM_MM,F_LT_MT,F_MB_MM,F_MM_MT,F_MB_RB,F_MM_RM,F_MT_RT,F_RB_RM,F_RM_RT)
+@assert F_T == F'
+ # F = sparse(F)
+ # F_T = sparse(F_T)
 
 
 # b_LB_W here defines the opeartor to be multiplied
@@ -709,9 +762,87 @@ b = vcat(g_bar,g_bar_delta)
 
 # lambda = (D - F_T*(M_LU.U\(M_LU.L\F[M_LU.p])))\(g_bar_delta - F_T*(M_LU.U\(M_LU.L\g_bar[M_LU.p])))
 # lambda_1 = D - F_T*sparse((M_LU.U\(sparse(M_LU.L\F[M_LU.p,:]))))
-M_LU = lu(M)
 
 lambda_2 = g_bar_delta - F_T*(M\g_bar)
+
+M_LU = lu(M)
+
+lu_M_LB = lu(M_LB)
+lu_M_LM = lu(M_LM)
+lu_M_LT = lu(M_LT)
+lu_M_MB = lu(M_MB)
+lu_M_MM = lu(M_MM)
+lu_M_MT = lu(M_MT)
+lu_M_RB = lu(M_RB)
+lu_M_RM = lu(M_RM)
+lu_M_RT = lu(M_RT)
+
+
+lambda_zero = F_zero
+
+lambda_LB_LM_LB = ldiv!(lu_M_LB,Matrix(F_LB_LM_LB))
+lambda_LB_LM_LM = ldiv!(lu_M_LM,Matrix(F_LB_LM_LM))
+
+lambda_LB_LM = vcat(lambda_LB_LM_LB,lambda_LB_LM_LM,n_vcat(7,lambda_zero))
+# @assert isapprox(lambda_LB_LM,lambda_0[:,1:10])
+lambda_LM_LT_LM = ldiv!(lu_M_LM,Matrix(F_LM_LT_LM))
+lambda_LM_LT_LT = ldiv!(lu_M_LT,Matrix(F_LM_LT_LT))
+lambda_LM_LT = vcat(lambda_zero,lambda_LM_LT_LM,lambda_LM_LT_LT,n_vcat(6,lambda_zero))
+# @assert isapprox(lambda_LM_LT,lambda_0[:,11:20])
+
+lambda_LB_MB_LB = ldiv!(lu_M_LB,Matrix(F_LB_MB_LB))
+lambda_LB_MB_MB = ldiv!(lu_M_MB,Matrix(F_LB_MB_MB))
+lambda_LB_MB = vcat(lambda_LB_MB_LB,n_vcat(2,lambda_zero),lambda_LB_MB_MB,n_vcat(5,lambda_zero))
+# @assert isapprox(lambda_LB_MB,lambda_0[:,21:30])
+
+lambda_LM_MM_LM = ldiv!(lu_M_LM,Matrix(F_LM_MM_LM))
+lambda_LM_MM_MM = ldiv!(lu_M_MM,Matrix(F_LM_MM_MM))
+lambda_LM_MM = vcat(lambda_zero,lambda_LM_MM_LM,n_vcat(2,lambda_zero),lambda_LM_MM_MM,n_vcat(4,lambda_zero))
+# @assert isapprox(lambda_LM_MM,lambda_0[:,31:40])
+lambda_LT_MT_LT = ldiv!(lu_M_LT,Matrix(F_LT_MT_LT))
+lambda_LT_MT_MT = ldiv!(lu_M_MT,Matrix(F_LT_MT_MT))
+lambda_LT_MT = vcat(n_vcat(2,lambda_zero),lambda_LT_MT_LT,n_vcat(2,lambda_zero),lambda_LT_MT_MT,n_vcat(3,lambda_zero))
+# @assert isapprox(lambda_LT_MT, lambda_0[:,41:50])
+
+lambda_MB_MM_MB = ldiv!(lu_M_MB,Matrix(F_MB_MM_MB))
+lambda_MB_MM_MM = ldiv!(lu_M_MM,Matrix(F_MB_MM_MM))
+lambda_MB_MM = vcat(n_vcat(3,lambda_zero),lambda_MB_MM_MB,lambda_MB_MM_MM,n_vcat(4,lambda_zero))
+# @assert isapprox(lambda_MB_MM,lambda_0[:,51:60])
+
+lambda_MM_MT_MM = ldiv!(lu_M_MM,Matrix(F_MM_MT_MM))
+lambda_MM_MT_MT = ldiv!(lu_M_MT,Matrix(F_MM_MT_MT))
+lambda_MM_MT = vcat(n_vcat(4,lambda_zero),lambda_MM_MT_MM,lambda_MM_MT_MT,n_vcat(3,lambda_zero))
+# @assert isapprox(lambda_MM_MT,lambda_0[:,61:70])
+
+
+lambda_MB_RB_MB = ldiv!(lu_M_MB,Matrix(F_MB_RB_MB))
+lambda_MB_RB_RB = ldiv!(lu_M_RB,Matrix(F_MB_RB_RB))
+lambda_MB_RB = vcat(n_vcat(3,lambda_zero),lambda_MB_RB_MB,n_vcat(2,lambda_zero),lambda_MB_RB_RB,n_vcat(2,lambda_zero))
+# @assert isapprox(lambda_MB_RB,lambda_0[:,71:80])
+
+lambda_MM_RM_MM = ldiv!(lu_M_MM,Matrix(F_MM_RM_MM))
+lambda_MM_RM_RM = ldiv!(lu_M_RM,Matrix(F_MM_RM_RM))
+lambda_MM_RM = vcat(n_vcat(4,lambda_zero),lambda_MM_RM_MM,n_vcat(2,lambda_zero),lambda_MM_RM_RM,lambda_zero)
+# @assert isapprox(lambda_MM_RM,lambda_0[:,81:90])
+
+lambda_MT_RT_MT = ldiv!(lu_M_MT,Matrix(F_MT_RT_MT))
+lambda_MT_RT_RT = ldiv!(lu_M_RT,Matrix(F_MT_RT_RT))
+lambda_MT_RT = vcat(n_vcat(5,lambda_zero),lambda_MT_RT_MT,n_vcat(2,lambda_zero),lambda_MT_RT_RT)
+# @assert isapprox(lambda_MT_RT,lambda_0[:,91:100])
+
+lambda_RB_RM_RB = ldiv!(lu_M_RB,Matrix(F_RB_RM_RB))
+lambda_RB_RM_RM = ldiv!(lu_M_RM,Matrix(F_RB_RM_RM))
+lambda_RB_RM = vcat(n_vcat(6,lambda_zero),lambda_RB_RM_RB,lambda_RB_RM_RM,lambda_zero)
+# @assert isapprox(lambda_RB_RM,lambda_0[:,101:110])
+
+lambda_RM_RT_RM = ldiv!(lu_M_RM,Matrix(F_RM_RT_RM))
+lambda_RM_RT_RT = ldiv!(lu_M_RT,Matrix(F_RM_RT_RT))
+lambda_RM_RT = vcat(n_vcat(7,lambda_zero),lambda_RM_RT_RM,lambda_RM_RT_RT)
+# @assert isapprox(lambda_RM_RT,lambda_0[:,111:120])
+
+lambda_0= hcat(lambda_LB_LM,lambda_LM_LT,lambda_LB_MB,lambda_LM_MM,lambda_LT_MT,lambda_MB_MM,lambda_MM_MT,lambda_MB_RB,lambda_MM_RM,lambda_MT_RT,lambda_RB_RM,lambda_RM_RT)
+
+# extrema(lambda_0_new - lambda_0)
 
 # lambda_1 = D - F_T*sparse(M\Matrix(F))
 
@@ -723,29 +854,29 @@ lambda_2 = g_bar_delta - F_T*(M\g_bar)
 # end
 
 
-function backslash_for_sparse(A,F)   # Self-defined function
-    dim_n = size(F,2)
-    output = similar(F)
-    tmp = similar(F)
-    lu_A = lu(A)
-    @inbounds for i = 1:dim_n
-        tmp[:,i] = @view F[:,i]
-        # output[:,i] = ldiv!(output[:,i],lu_A,Vector(tmp[:,i]))
-        output[:,i] = ldiv!(lu_A,Vector(tmp[:,i]))
-    end
-    return output
-end
+# function backslash_for_sparse(A,F)   # Self-defined function
+#     dim_n = size(F,2)
+#     output = similar(F)
+#     tmp = similar(F)
+#     lu_A = lu(A)
+#     @inbounds for i = 1:dim_n
+#         tmp[:,i] = @view F[:,i]
+#         # output[:,i] = ldiv!(output[:,i],lu_A,Vector(tmp[:,i]))
+#         output[:,i] = ldiv!(lu_A,Vector(tmp[:,i]))
+#     end
+#     return output
+# end
+#
+# # lu_A = lu(A)
+# function backslash_for_sparse_v1(lu_A,F)
+#     output = similar(F)
+#     @inbounds for i=1:size(F,2)
+#         output[:,i] = ldiv!(lu_A,Vector(F[:,i]))
+#     end
+#     return output
+# end
 
-# lu_A = lu(A)
-function backslash_for_sparse_v1(lu_A,F)
-    output = similar(F)
-    @inbounds for i=1:size(F,2)
-        output[:,i] = ldiv!(lu_A,Vector(F[:,i]))
-    end
-    return output
-end
-
-lambda_0 = backslash_for_sparse_v1(M_LU,F)
+# lambda_0 = backslash_for_sparse_v1(M_LU,F)
 
 lambda_1 = D - F_T*lambda_0
 
