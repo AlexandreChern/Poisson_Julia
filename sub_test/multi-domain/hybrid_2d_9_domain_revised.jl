@@ -167,7 +167,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 5
+i = j = 6
 
 h = h_list[i]
 
