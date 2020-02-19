@@ -167,7 +167,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 3
+i = j = 5
 
 h = h_list[i]
 
@@ -494,7 +494,7 @@ F_T_LB_LM = hcat(F_T_LB_LM_LB,F_T_LB_LM_LM,n_hcat(7,F_T_zero));
 F_LB_LM_LB = copy(F_T_LB_LM_LB')
 F_LB_LM_LM = copy(F_T_LB_LM_LM')
 F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
-@assert F_T_LB_LM == F_LB_LM'
+# @assert F_T_LB_LM == F_LB_LM'
 
 
  # Constructing Interface 2: LM_LT
@@ -509,7 +509,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_LM_LT_LM = copy(F_T_LM_LT_LM')
  F_LM_LT_LT = copy(F_T_LM_LT_LT')
  F_LM_LT = vcat(F_zero,F_LM_LT_LM,F_LM_LT_LT,n_vcat(6,F_zero))
- @assert F_LM_LT == F_T_LM_LT'
+ # @assert F_LM_LT == F_T_LM_LT'
 
 
 
@@ -526,7 +526,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_LB_MB_LB = copy(F_T_LB_MB_LB')
  F_LB_MB_MB = copy(F_T_LB_MB_MB')
  F_LB_MB = vcat(F_LB_MB_LB,n_vcat(2,F_zero),F_LB_MB_MB,n_vcat(5,F_zero))
- @assert F_T_LB_MB == F_LB_MB'
+ # @assert F_T_LB_MB == F_LB_MB'
 
 
 
@@ -538,7 +538,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_LM_MM_LM = copy(F_T_LM_MM_LM')
  F_LM_MM_MM = copy(F_T_LM_MM_MM')
  F_LM_MM = vcat(F_zero,F_LM_MM_LM,n_vcat(2,F_zero),F_LM_MM_MM,n_vcat(4,F_zero))
- @assert F_T_LM_MM == F_LM_MM'
+ # @assert F_T_LM_MM == F_LM_MM'
 
  # Constructing Interface 5: LT_MT
  F_T_LT_MT_LT = (-τ*LE + β*LE*BS_x)*H_y
@@ -547,7 +547,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_LT_MT_LT = copy(F_T_LT_MT_LT')
  F_LT_MT_MT = copy(F_T_LT_MT_MT')
  F_LT_MT = vcat(n_vcat(2,F_zero),F_LT_MT_LT,n_vcat(2,F_zero),F_LT_MT_MT,n_vcat(3,F_zero))
- @assert F_T_LT_MT == F_LT_MT'
+ # @assert F_T_LT_MT == F_LT_MT'
 
  # Constructing Interface 6: MB_MM
  F_T_MB_MM_MB = (-τ*LN + β*LN*BS_y)*H_x
@@ -556,7 +556,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_MB_MM_MB = copy(F_T_MB_MM_MB')
  F_MB_MM_MM = copy(F_T_MB_MM_MM')
  F_MB_MM = vcat(n_vcat(3,F_zero),F_MB_MM_MB,F_MB_MM_MM,n_vcat(4,F_zero))
- @assert F_T_MB_MM == F_MB_MM'
+ # @assert F_T_MB_MM == F_MB_MM'
 
  # Constructing Interface 7: MM_MT
  F_T_MM_MT_MM = (-τ*LN + β*LN*BS_y)*H_x
@@ -565,7 +565,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_MM_MT_MM = copy(F_T_MM_MT_MM')
  F_MM_MT_MT = copy(F_T_MM_MT_MT')
  F_MM_MT = vcat(n_vcat(4,F_zero),F_MM_MT_MM,F_MM_MT_MT,n_vcat(3,F_zero))
- @assert F_T_MM_MT == F_MM_MT'
+ # @assert F_T_MM_MT == F_MM_MT'
 
  #
  # Constructing Interface 8: MB_RB
@@ -575,7 +575,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_MB_RB_MB = copy(F_T_MB_RB_MB')
  F_MB_RB_RB = copy(F_T_MB_RB_RB')
  F_MB_RB = vcat(n_vcat(3,F_zero),F_MB_RB_MB,n_vcat(2,F_zero),F_MB_RB_RB,n_vcat(2,F_zero))
- @assert F_T_MB_RB == F_MB_RB'
+ # @assert F_T_MB_RB == F_MB_RB'
 
 
  # Constructing Interface 9: MM_RM
@@ -585,7 +585,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_MM_RM_MM = copy(F_T_MM_RM_MM')
  F_MM_RM_RM = copy(F_T_MM_RM_RM')
  F_MM_RM = vcat(n_vcat(4,F_zero),F_MM_RM_MM,n_vcat(2,F_zero),F_MM_RM_RM,n_vcat(1,F_zero))
- @assert F_T_MM_RM == F_MM_RM'
+ # @assert F_T_MM_RM == F_MM_RM'
 
 
 
@@ -596,7 +596,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_MT_RT_MT = copy(F_T_MT_RT_MT')
  F_MT_RT_RT = copy(F_T_MT_RT_RT')
  F_MT_RT = vcat(n_vcat(5,F_zero),F_MT_RT_MT,n_vcat(2,F_zero),F_MT_RT_RT)
- @assert F_T_MT_RT == F_MT_RT'
+ # @assert F_T_MT_RT == F_MT_RT'
  #
 
 
@@ -607,7 +607,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_RB_RM_RB = copy(F_T_RB_RM_RB')
  F_RB_RM_RM = copy(F_T_RB_RM_RM')
  F_RB_RM = vcat(n_vcat(6,F_zero),F_RB_RM_RB,F_RB_RM_RM,n_vcat(1,F_zero))
- @assert F_T_RB_RM == F_RB_RM'
+ # @assert F_T_RB_RM == F_RB_RM'
 
  #
  # Constructing Interface 12: RM_RT
@@ -617,7 +617,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  F_RM_RT_RM = copy(F_T_RM_RT_RM')
  F_RM_RT_RT = copy(F_T_RM_RT_RT')
  F_RM_RT = vcat(n_vcat(7,F_zero),F_RM_RT_RM,F_RM_RT_RT)
- @assert F_T_RM_RT == F_RM_RT'
+ # @assert F_T_RM_RT == F_RM_RT'
 
 
  # Construting Final Matrix F_T, vertical catenation of all 12 interfaces
@@ -631,7 +631,7 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
  # For simplification We construct F by taking the inverse of F_T
 
  F = hcat(F_LB_LM,F_LM_LT,F_LB_MB,F_LM_MM,F_LT_MT,F_MB_MM,F_MM_MT,F_MB_RB,F_MM_RM,F_MT_RT,F_RB_RM,F_RM_RT)
-@assert F_T == F'
+# @assert F_T == F'
  # F = sparse(F)
  # F_T = sparse(F_T)
 
