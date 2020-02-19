@@ -868,13 +868,13 @@ lambda_0= hcat(lambda_LB_LM,lambda_LM_LT,lambda_LB_MB,lambda_LM_MM,lambda_LT_MT,
 # end
 #
 # # lu_A = lu(A)
-# function backslash_for_sparse_v1(lu_A,F)
-#     output = similar(F)
-#     @inbounds for i=1:size(F,2)
-#         output[:,i] = ldiv!(lu_A,Vector(F[:,i]))
-#     end
-#     return output
-# end
+function backslash_for_sparse_v1(lu_A,F)
+    output = similar(F)
+    @inbounds for i=1:size(F,2)
+        output[:,i] .= ldiv!(lu_A,Vector(F[:,i]))
+    end
+    return output
+end
 
 # lambda_0 = backslash_for_sparse_v1(M_LU,F)
 
