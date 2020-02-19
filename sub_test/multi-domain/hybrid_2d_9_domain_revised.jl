@@ -276,7 +276,7 @@ span_2 = LinRange(1/3,2/3,N_one_third)
 span_3 = LinRange(2/3,1,N_one_third)
 span= vcat(span_1,span_2,span_3)
 analy_solution = analy_sol(span,span')
-plot(span,span,analy_solution,st=:surface)
+# plot(span,span,analy_solution,st=:surface)
 
 
 # e0 = e(1,N_one_third);
@@ -915,7 +915,7 @@ lambda = lambda_1\lambda_2
 #num_sol = A\b # solving the system directly
 num_sol = M\(g_bar - F*lambda)
 #num_sol_tranc = num_sol[1:N^2*9]
-plot(span,span,num_sol,st=:surface)
+# plot(span,span,num_sol,st=:surface)
 
 num_sol_LB = num_sol[1:N^2];
 num_sol_LB = reshape(num_sol_LB,N,N);
