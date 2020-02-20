@@ -167,7 +167,7 @@ h_list = 1 ./ n_list
 # n_list = Int(1 ./h_list)
 
 p = 2
-i = j = 6
+i = j = 3
 
 h = h_list[i]
 
@@ -626,6 +626,39 @@ F_LB_LM = vcat(F_LB_LM_LB,F_LB_LM_LM,n_vcat(7,F_zero))
      F_T_MB_MM, F_T_MM_MT,               # Next 2 interfaces
      F_T_MB_RB, F_T_MM_RM, F_T_MT_RT,    # Next 3 interfaces
      F_T_RB_RM, F_T_RM_RT)                # Next 2 interfaces
+
+
+function generate_matrix_relation()
+    F_T_matrix_relation = spzeros(12,9)
+    F_T_matrix_relation[1,1] = 1;
+    F_T_matrix_relation[1,2] = 1;
+    F_T_matrix_relation[2,2] = 1;
+    F_T_matrix_relation[2,3] = 1;
+    F_T_matrix_relation[3,1] = 1;
+    F_T_matrix_relation[3,4] = 1;
+    F_T_matrix_relation[4,2] = 1;
+    F_T_matrix_relation[4,5] = 1;
+    F_T_matrix_relation[5,3] = 1;
+    F_T_matrix_relation[5,6] = 1;
+    F_T_matrix_relation[6,4] = 1;
+    F_T_matrix_relation[6,5] = 1;
+    F_T_matrix_relation[7,5] = 1;
+    F_T_matrix_relation[7,6] = 1;
+    F_T_matrix_relation[8,4] = 1;
+    F_T_matrix_relation[8,7] = 1;
+    F_T_matrix_relation[9,5] = 1;
+    F_T_matrix_relation[9,8] = 1;
+    F_T_matrix_relation[10,6] = 1;
+    F_T_matrix_relation[10,9] = 1;
+    F_T_matrix_relation[11,7] = 1;
+    F_T_matrix_relation[11,8] = 1;
+    F_T_matrix_relation[12,8] = 1;
+    F_T_matrix_relation[12,9] = 1;
+
+    F_matrix_relation = F_T_matrix_relation'
+    return F_matrix_relation, F_T_matrix_relation
+end
+
 
 
  # For simplification We construct F by taking the inverse of F_T
