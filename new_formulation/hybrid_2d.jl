@@ -432,7 +432,8 @@ get_local_boundary(3,3)
 
 
 
-function get_SAT_operator(local_boundary::Vector{Int64})
+function get_block_LHS(local_boundary::Vector{Int64})
+    # This function generate LHS for block namely M
     M_OP = - H_tilde * (D2_x + D2_y)
     # M_W = Array{Float64,2}(undef,N^2,N^2)
     # M_E = Array{Float64,2}(undef,N^2,N^2)
@@ -471,40 +472,35 @@ function get_SAT_operator(local_boundary::Vector{Int64})
 end
 
 
-local_operator_LB = get_local_boundary(1,1)
-M_LB_test = get_SAT_operator(local_operator_LB)
 
-local_operator_LM = get_local_boundary(1,2)
-M_LM_test = get_SAT_operator(local_operator_LM)
+#= Generate Operators
+# @assert test all confirmed
 
-isapprox(M_LB,M_LB_test)
-isapprox(M_LM,M_LM_test)
-
-local_operator_MM = get_local_boundary(2,2)
-M_MM_test = get_SAT_operator(local_operator_MM)
-isapprox(M_MM,M_MM_test)
-
-
-for i in 1:n_block
-    for j in 1:n_block
-        local_boundary = get_local_boundary(i,j)
-        block_id = j + (i-1) * n_block
-         @eval $(Symbol("M_$block_id")) = $ (get_SAT_operator(local_boundary))
-        println(local_boundary)
-    end
-end
-
-@assert isapprox(M_1,M_LB)
-@assert isapprox(M_2,M_LM)
-@assert isapprox(M_3,M_LT)
-@assert isapprox(M_4,M_MB)
+# local_operator_LB = get_local_boundary(1,1)
+# M_LB_test = get_SAT_operator(local_operator_LB)
+#
+# local_operator_LM = get_local_boundary(1,2)
+# M_LM_test = get_SAT_operator(local_operator_LM)
+#
+# isapprox(M_LB,M_LB_test)
+# isapprox(M_LM,M_LM_test)
+#
+# local_operator_MM = get_local_boundary(2,2)
+# M_MM_test = get_SAT_operator(local_operator_MM)
+# isapprox(M_MM,M_MM_test)
 
 
-@assert isapprox(M_5,M_MM)
-@assert isapprox(M_6,M_MT)
-@assert isapprox(M_7,M_RB)
-@assert isapprox(M_8,M_RM)
-@assert isapprox(M_9,M_RT)
+# @assert isapprox(M_1,M_LB)
+# @assert isapprox(M_2,M_LM)
+# @assert isapprox(M_3,M_LT)
+# @assert isapprox(M_4,M_MB)
+#
+#
+# @assert isapprox(M_5,M_MM)
+# @assert isapprox(M_6,M_MT)
+# @assert isapprox(M_7,M_RB)
+# @assert isapprox(M_8,M_RM)
+# @assert isapprox(M_9,M_RT)
 
 
 # M_LB_test[1] == τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW
@@ -517,9 +513,67 @@ end
 # n_block = 3
 
 
-function assemble_M(Block_idx, Block_idy)
-    boundary_numbers = get_boundary_numbers(Block_idx, Block_idy)
-    for i=1:length(boundary_numbers)
-        boundary_type = determine_boundary_type(boundary_numbers[i])
+=#
 
+for i in 1:n_block
+    for j in 1:n_block
+        local_boundary = get_local_boundary(i,j)
+        block_id = j + (i-1) * n_block
+         @eval $(Symbol("M_$block_id")) = $ (get_block_LHS(local_boundary))
+        println(local_boundary)
+    end
+end
+
+function generate_M() # This is faster
+    M = M_1 # This is a nasty way to do M = blockdiag(***)
+    for i in 2:n_block^2
+        block_i = @eval $(Symbol("M_$i"))
+        M = blockdiag(M,block_i)
+        # M = copy(tmp)
+    end
+    return M
+end
+#
+# function generate_M_v1()
+#     M = M_1 # This is a nasty way to do M = blockdiag(***)
+#     for i in 2:n_block^2
+#         block_i = @eval $(Symbol("M_$i"))
+#         tmp = blockdiag(M,block_i)
+#         M = copy(tmp)
+#     end
+#     return M
+# end
+
+M = generate_M()
+# M_test = generate_M()
+# isapprox(M_test,M)
+
+
+
+
+function get_block_RHS(local_boundary::Vector{Int64})
+    b_W = spzeros(N^N,N)
+    b_E = spzeros(N^N,N)
+    b_S = spzeros(N^N,N)
+    b_N = spzeros(N^N,N)
+
+end
+
+
+function get_boundary_condition()
+# To be completed
+end
+
+function get_local_F()
+# To be completed
+end
+
+
+function get_local_lambda()
+# To be completed
+end
+
+
+function assembly_lambda()
+# To be completed
 end
