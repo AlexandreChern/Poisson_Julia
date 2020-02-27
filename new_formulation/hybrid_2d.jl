@@ -560,7 +560,33 @@ function get_block_RHS(local_boundary::Vector{Int64})
 end
 
 
-function get_boundary_condition()
+function generate_boundary_data(TYPE_WEST,TYPE_EAST,TYPE_SOUTH,TYPE_NORTH,n_block)
+    # This function will generate boundary for the big block
+    g_W = analy_sol(0,span)
+    g_E = analy_sol(1,span)
+    g_S = -u_y(span',0)
+    g_N = u_y(span',0)
+
+    return (g_W,g_E,g_S,g_N)
+end
+
+function get_local_boundary_data(Block_idx,Block_idy)
+    # This function will get boundary condition for a particular block
+    g_W = spzeros(N)
+    g_E = spzeros(N)
+    g_S = spzeros(N)
+    g_N = spzeros(N)
+    if !(has_boundary(Block_idx,Block_idy))
+        return [g_W,g_E,g_S,g_N]
+    else
+        local_boundary = get_local_boundary(Block_idx,Block_idy)
+        for i = 1:2
+            # TO DO
+        end
+        return [g_W,g_E,g_S,g_N]
+    end
+end
+
 # To be completed
 end
 
