@@ -428,6 +428,52 @@ end
 
 get_local_boundary(3,3)
 
+
+
+function get_SAT_operator(local_boundary::Vector{Int64})
+    M_OP = - H_tilde * (D2_x + D2_y)
+    # M_W = Array{Float64,2}(undef,N^2,N^2)
+    # M_E = Array{Float64,2}(undef,N^2,N^2)
+    # M_S = Array{Float64,2}(undef,N^2,N^2)
+    # M_N = Array{Float64,2}(undef,N^2,N^2)
+    M_W = spzeros(N^2,N^2)
+    M_E = spzeros(N^2,N^2)
+    M_S = spzeros(N^2,N^2)
+    M_N = spzeros(N^2,N^2)
+    if (local_boundary[1] == 0 || local_boundary[1] == 2)
+        M_W .= τ*H_y*LW'*LW .- β*H_y*BS_x'*LW'*LW;
+    elseif (local_boundary[1] == 2) # Interior boundary condition
+        println("Neumann West Not implemented yet")
+    end
+
+    if (local_boundary[2] == 0 || local_boundary[1] == 2)
+        M_E .= τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE
+    elseif (local_boundary[2] == 1) # Interior boundary condition
+        println("Neumann West Not implemented yet")
+    end
+
+    if (local_boundary[3] == 1)
+        M_S .= H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y
+    elseif (local_boundary[3] == 2 || local_boundary[3] == 0)
+        M_S = τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS
+    end
+
+    if (local_boundary[4] == 1)
+        M_N .= H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y
+    elseif (local_boundary[4] == 2 || local_boundary[4] == 0)
+        M_N .= τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN
+    end
+    M_OP .+= M_W .+ M_E .+ M_S .+ M_N
+    return (M_W, M_E, M_S, M_N)
+end
+
+
+local_operator_LB = get_local_boundary(1,1)
+M_LB_test = get_SAT_operator(local_operator_LB)
+
+M_LB_test
+M_LB_test[1] == τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW
+M_LB_test[2] == τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE
 #
 # determine_block_type(1,2)
 #
