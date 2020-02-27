@@ -417,9 +417,11 @@ function get_local_boundary(Block_idx, Block_idy)
                 local_boundary[4] = TYPE_NORTH;
             end
         elseif (Block_idy == 1)
-            local_boundary[3] == TYPE_SOUTH;
+            local_boundary[3] = TYPE_SOUTH;
+            println("yo ho")
         elseif (Block_idy == n_block)
             local_boundary[4] = TYPE_NORTH;
+            println("yo ho")
         end
         return local_boundary
     end
@@ -446,8 +448,8 @@ function get_SAT_operator(local_boundary::Vector{Int64})
         println("Neumann West Not implemented yet")
     end
 
-    if (local_boundary[2] == 0 || local_boundary[1] == 2)
-        M_E .= τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE
+    if (local_boundary[2] == 0 || local_boundary[2] == 2)
+        M_E = τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE
     elseif (local_boundary[2] == 1) # Interior boundary condition
         println("Neumann West Not implemented yet")
     end
@@ -464,16 +466,51 @@ function get_SAT_operator(local_boundary::Vector{Int64})
         M_N .= τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN
     end
     M_OP .+= M_W .+ M_E .+ M_S .+ M_N
-    return (M_W, M_E, M_S, M_N)
+    # return (M_W, M_E, M_S, M_N)
+    return M_OP
 end
 
 
 local_operator_LB = get_local_boundary(1,1)
 M_LB_test = get_SAT_operator(local_operator_LB)
 
-M_LB_test
-M_LB_test[1] == τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW
-M_LB_test[2] == τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE
+local_operator_LM = get_local_boundary(1,2)
+M_LM_test = get_SAT_operator(local_operator_LM)
+
+isapprox(M_LB,M_LB_test)
+isapprox(M_LM,M_LM_test)
+
+local_operator_MM = get_local_boundary(2,2)
+M_MM_test = get_SAT_operator(local_operator_MM)
+isapprox(M_MM,M_MM_test)
+
+
+for i in 1:n_block
+    for j in 1:n_block
+        local_boundary = get_local_boundary(i,j)
+        block_id = j + (i-1) * n_block
+         @eval $(Symbol("M_$block_id")) = $ (get_SAT_operator(local_boundary))
+        println(local_boundary)
+    end
+end
+
+@assert isapprox(M_1,M_LB)
+@assert isapprox(M_2,M_LM)
+@assert isapprox(M_3,M_LT)
+@assert isapprox(M_4,M_MB)
+
+
+@assert isapprox(M_5,M_MM)
+@assert isapprox(M_6,M_MT)
+@assert isapprox(M_7,M_RB)
+@assert isapprox(M_8,M_RM)
+@assert isapprox(M_9,M_RT)
+
+
+# M_LB_test[1] == τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW
+# M_LB_test[2] == τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE
+# M_LB_test[3] == H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y
+# M_LB_test[4] == τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN
 #
 # determine_block_type(1,2)
 #
