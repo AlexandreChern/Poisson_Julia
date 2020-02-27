@@ -304,6 +304,11 @@ function determine_block_type(Block_idx, Block_idy)
 end
 
 
+# Define BC TYPES:
+# 0: Dirichlet Boundary Condition
+# 1: Neumann Boundary Condition
+# 2: Interior Boundary Condition    # Equivalent to Dirichlet
+
 TYPE_DIRICHLET = 0
 TYPE_NEUMANN = 1
 
@@ -332,6 +337,18 @@ NEUMANN_EAST = 5
 
 NEUMANN_SOUTH = 6
 NEUMANN_NORTH = 7
+
+
+# Type of boundary
+# 0: Dirichlet BC
+# 1: Neumann BC
+# 2: Interface
+
+
+TYPE_WEST = 0
+TYPE_EAST = 0
+TYPE_SOUTH = 1
+TYPE_NORTH = 1
 
 
 function determine_boundary_type(boundary_number)
@@ -374,7 +391,42 @@ function get_boundary_numbers(Block_idx,Block_idy)
     end
 end
 
+
 get_boundary_numbers(2,1)
+
+
+
+function get_local_boundary(Block_idx, Block_idy)
+    local_boundary = [2,2,2,2] # Default: All boundaries are interior boundaries
+    if !(has_boundary(Block_idx,Block_idy))
+        # local_boundary = [2,2,2,2]  # Order: W->E->S->N  # 2
+        return local_boundary
+    else
+        if (Block_idx == 1)
+            local_boundary[1] = TYPE_WEST;
+            if (Block_idy == 1)
+                local_boundary[3] = TYPE_SOUTH;
+            elseif (Block_idy == n_block)
+                local_boundary[4] = TYPE_NORTH;
+            end
+        elseif (Block_idx == n_block)
+            local_boundary[2] = TYPE_EAST;
+            if (Block_idy == 1)
+                local_boundary[3] = TYPE_SOUTH;
+            elseif (Block_idy == n_block)
+                local_boundary[4] = TYPE_NORTH;
+            end
+        elseif (Block_idy == 1)
+            local_boundary[3] == TYPE_SOUTH;
+        elseif (Block_idy == n_block)
+            local_boundary[4] = TYPE_NORTH;
+        end
+        return local_boundary
+    end
+end
+
+
+get_local_boundary(3,3)
 
 #
 # determine_block_type(1,2)
@@ -386,5 +438,5 @@ function assemble_M(Block_idx, Block_idy)
     boundary_numbers = get_boundary_numbers(Block_idx, Block_idy)
     for i=1:length(boundary_numbers)
         boundary_type = determine_boundary_type(boundary_numbers[i])
-        
+
 end
