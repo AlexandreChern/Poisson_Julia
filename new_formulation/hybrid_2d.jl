@@ -181,8 +181,10 @@ end
 # span_old = vcat(span_1_old,span_2_old,span_3_old)
 =#
 
+
+n_block = 3
 for span_index in 1:n_block
-    @eval $ (Symbol("span_$span_index")) = $LinRange($(span_index-1)*1/3,$(span_index)*1/3,N)
+    @eval $ (Symbol("span_$span_index")) = $LinRange($(span_index-1)*1/n_block,$(span_index)*1/n_block,N)
 end
 
 #=
@@ -580,8 +582,8 @@ function get_local_boundary_data(Block_idx,Block_idy)
         return [g_W,g_E,g_S,g_N]
     else
         local_boundary = get_local_boundary(Block_idx,Block_idy)
-        for i = 1:2
-            # TO DO
+        for boundary_condition = 0:1 # Find boundaries
+            # TO DO FIND boundary
         end
         return [g_W,g_E,g_S,g_N]
     end
