@@ -181,6 +181,8 @@ end
 # span_old = vcat(span_1_old,span_2_old,span_3_old)
 =#
 
+normal_operators = [LW,LE,LS,LN];
+
 
 n_block = 3
 for span_index in 1:n_block
