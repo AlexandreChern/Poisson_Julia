@@ -368,37 +368,53 @@ end
 determine_boundary_type(1)
 
 
-function get_boundary_numbers(Block_idx,Block_idy)
-    if !(has_boundary(Block_idx,Block_idy))
-        return Int[];
-    else
-        block_type = determine_block_type(Block_idx,Block_idy)
-        if (block_type == 1)
-            return [Block_idy, 2*n_block + Block_idx]
-        elseif (block_type == 2)
-            return [n_block, 3*n_block + Block_idx]
-        elseif (block_type == 3)
-            return [n_block + Block_idy, 3*n_block]
-        elseif (block_type == 4)
-            return [2*n_block, 4*n_block]
-        elseif (block_type == 5)
-            return [Block_idy]
-        elseif (block_type == 6)
-            return [n_block + Block_idy]
-        elseif (block_type == 7)
-            return [2*n_block + Block_idx]
-        elseif (block_type == 8)
-            return [3*n_block + Block_idx]
-        end
-    end
+# function get_boundary_numbers(Block_idx,Block_idy)
+#     if !(has_boundary(Block_idx,Block_idy))
+#         return Int[0,0,0,0];
+#     else
+#         block_type = determine_block_type(Block_idx,Block_idy)
+#         if (block_type == 1)
+#             return [Block_idy, 2*n_block + Block_idx]
+#         elseif (block_type == 2)
+#             return [n_block, 3*n_block + Block_idx]
+#         elseif (block_type == 3)
+#             return [n_block + Block_idy, 3*n_block]
+#         elseif (block_type == 4)
+#             return [2*n_block, 4*n_block]
+#         elseif (block_type == 5)
+#             return [Block_idy]
+#         elseif (block_type == 6)
+#             return [n_block + Block_idy]
+#         elseif (block_type == 7)
+#             return [2*n_block + Block_idx]
+#         elseif (block_type == 8)
+#             return [3*n_block + Block_idx]
+#         end
+#     end
+# end
+
+function get_global_boundary(Block_idx, Block_idy, n_block)
+    # We treat global interior interface the same as global boundary
+    # returning global_number of [W,E,S,N]
+    return Int[Block_idy + n_block*(Block_idx-1), Block_idy + n_block*Block_idx, n_block*(n_block+1) + Block_idx + n_block*(Block_idy-1), n_block*(n_block+1) + Block_idx + n_block*Block_idy]
 end
 
+# ########### Test global boundary ################
+# n_block = 2
+# for i = 1:n_block
+#     for j = 1:n_block
+#         @show get_global_boundary(i,j,n_block)
+#     end
+# end
+# ################################################
 
-get_boundary_numbers(2,1)
+
+
+# get_boundary_numbers(2,2)
 
 
 
-function get_local_boundary(Block_idx, Block_idy)
+function get_local_boundary(Block_idx, Block_idy,n_block)
     local_boundary = [2,2,2,2] # Default: All boundaries are interior boundaries
     if !(has_boundary(Block_idx,Block_idy))
         # local_boundary = [2,2,2,2]  # Order: W->E->S->N  # 2
@@ -430,7 +446,15 @@ function get_local_boundary(Block_idx, Block_idy)
 end
 
 
-get_local_boundary(3,3)
+get_local_boundary(3,3,3)
+get_global_boundary(3,3,3)
+
+function assemble_F(Block_idx,Block_idy,n_block)
+    local_boundary = get_global_boundary(Block_idx,Block_idy,n_block)
+    global_boundary = get_global_boundary(Block_idx,Block_idy,n_block)
+    for i in 1:length(local_boundary)
+        if (local_boundary[i] == )
+end
 
 
 
