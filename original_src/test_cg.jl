@@ -26,11 +26,9 @@ function Diag(A)
     return Diagonal(A[:])
 end
 
-function Operators_2d(i, j, p=2, h_list_x = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8]),
-			 h_list_y = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8])
-			 )
-    hx = h_list_x[i];
-    hy = h_list_y[j];
+function Operators_2d(i, j, hx,hy, p=2)
+    # hx = h_list_x[i];
+    # hy = h_list_y[j];
 
     x = range(0,step=hx,1);
     y = range(0,step=hy,1);
@@ -121,7 +119,7 @@ for k = 1:length(h_list_x)
     N_y = Integer(n_list[j])
 
     # 2D operators
-    (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
+    (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j,hx,hy)
 
 
 
