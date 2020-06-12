@@ -104,7 +104,8 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2
 
 rel_errs = []
 iter_errs = []
-for k in 1:length(h_list_x)
+for k in 1:length(h_list_x)-5
+    println("k=", k)
     i = j  = k
     hx = h_list_x[i]
     hy = h_list_y[j]
@@ -162,7 +163,7 @@ for k in 1:length(h_list_x)
     #A_d = cu(A)
     #b_d = cu(b)
     #init_guess = cu(rand(length(b)));
-    
+
     ns = A\b;
     num_sol = reshape(ns,N_y+1,N_x+1)
     #cu_sol = reshape(cg!(init_guess,A_d,b_d),N_y+1,N_x+1)

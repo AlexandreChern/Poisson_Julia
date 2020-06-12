@@ -109,6 +109,7 @@ rel_errs = []
 iter_errs = []
 for k in 1:length(h_list_x)
     i = j  = k
+    println("k = ", k)
     hx = h_list_x[i]
     hy = h_list_y[j]
 
@@ -162,12 +163,18 @@ for k in 1:length(h_list_x)
 
     b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
 
-    A_d = cu(A)
-    b_d = cu(b)
-    init_guess = cu(rand(length(b)));
+    # A_d = cu(A)
+    # b_d = cu(b)
+    # init_guess = cu(rand(length(b)));
+
+
+    A_d = CuArrays.CUSPARSE.CuSparseMatrixCSC(A);
+    b_d = CuArray(b);
+    init_guess = CuArray(randn(length(b)))
 
     num_sol = reshape(A\b,N_y+1,N_x+1)
     cu_sol = reshape(cg!(init_guess,A_d,b_d),N_y+1,N_x+1)
+    cu_sol = collect(cu_sol)
     err = (num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:])
     iter_err = (cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:])
     rel_err = √err
