@@ -181,8 +181,12 @@ end
 # span_old = vcat(span_1_old,span_2_old,span_3_old)
 =#
 
+normal_operators = [LW,LE,LS,LN];
+
+
+n_block = 3
 for span_index in 1:n_block
-    @eval $ (Symbol("span_$span_index")) = $LinRange($(span_index-1)*1/3,$(span_index)*1/3,N)
+    @eval $ (Symbol("span_$span_index")) = $LinRange($(span_index-1)*1/n_block,$(span_index)*1/n_block,N)
 end
 
 #=
@@ -269,7 +273,7 @@ end
 
 # Generate Boundary Conditions
 
-function has_boundary(Block_idx, Block_idy)
+function has_boundary(Block_idx, Block_idy,n_block)
     if (Block_idx == 1) || (Block_idx == n_block) || (Block_idy == 1) || (Block_idy == n_block)
         return true
     else
@@ -279,8 +283,8 @@ end
 
 
 
-function determine_block_type(Block_idx, Block_idy)
-    if !(has_boundary(Block_idx,Block_idy))
+function determine_block_type(Block_idx, Block_idy,n_block)
+    if !(has_boundary(Block_idx,Block_idy,n_block))
         return 0    # Internal Block
     else
         if (Block_idx == 1 && Block_idy == 1)
@@ -303,6 +307,11 @@ function determine_block_type(Block_idx, Block_idy)
     end
 end
 
+
+# Define BC TYPES:
+# 0: Dirichlet Boundary Condition
+# 1: Neumann Boundary Condition
+# 2: Interior Boundary Condition    # Equivalent to Dirichlet
 
 TYPE_DIRICHLET = 0
 TYPE_NEUMANN = 1
@@ -334,7 +343,20 @@ NEUMANN_SOUTH = 6
 NEUMANN_NORTH = 7
 
 
+# Type of boundary
+# 0: Dirichlet BC
+# 1: Neumann BC
+# 2: Interface
+
+
+TYPE_WEST = 0
+TYPE_EAST = 0
+TYPE_SOUTH = 1
+TYPE_NORTH = 1
+
+
 function determine_boundary_type(boundary_number)
+    # Need to be modified
     if (1 <= boundary_number <= n_block)
         return 0
     elseif (n_block + 1 <= boundary_number <= 2*n_block)
@@ -349,42 +371,291 @@ end
 determine_boundary_type(1)
 
 
-function get_boundary_numbers(Block_idx,Block_idy)
-    if !(has_boundary(Block_idx,Block_idy))
-        return Int[];
+# function get_boundary_numbers(Block_idx,Block_idy)
+#     if !(has_boundary(Block_idx,Block_idy))
+#         return Int[0,0,0,0];
+#     else
+#         block_type = determine_block_type(Block_idx,Block_idy)
+#         if (block_type == 1)
+#             return [Block_idy, 2*n_block + Block_idx]
+#         elseif (block_type == 2)
+#             return [n_block, 3*n_block + Block_idx]
+#         elseif (block_type == 3)
+#             return [n_block + Block_idy, 3*n_block]
+#         elseif (block_type == 4)
+#             return [2*n_block, 4*n_block]
+#         elseif (block_type == 5)
+#             return [Block_idy]
+#         elseif (block_type == 6)
+#             return [n_block + Block_idy]
+#         elseif (block_type == 7)
+#             return [2*n_block + Block_idx]
+#         elseif (block_type == 8)
+#             return [3*n_block + Block_idx]
+#         end
+#     end
+# end
+
+function get_global_boundary(Block_idx, Block_idy, n_block)
+    # We treat global interior interface the same as global boundary
+    # returning global_number of [W,E,S,N]
+    @assert Block_idx <= n_block
+    @assert Block_idy <= n_block
+    return Int[Block_idy + n_block*(Block_idx-1), Block_idy + n_block*Block_idx, n_block*(n_block+1) + Block_idx + n_block*(Block_idy-1), n_block*(n_block+1) + Block_idx + n_block*Block_idy]
+end
+
+# ########### Test global boundary ################
+# n_block = 2
+# for i = 1:n_block
+#     for j = 1:n_block
+#         @show get_global_boundary(i,j,n_block)
+#     end
+# end
+# ################################################
+
+
+
+# get_boundary_numbers(2,2)
+
+
+
+function get_local_boundary(Block_idx, Block_idy,n_block)
+    @assert Block_idx <= n_block
+    @assert Block_idy <= n_block
+    local_boundary = [2,2,2,2] # Default: All boundaries are interior boundaries
+    if !(has_boundary(Block_idx,Block_idy,n_block))
+        # local_boundary = [2,2,2,2]  # Order: W->E->S->N  # 2
+        return local_boundary
     else
-        block_type = determine_block_type(Block_idx,Block_idy)
-        if (block_type == 1)
-            return [Block_idy, 2*n_block + Block_idx]
-        elseif (block_type == 2)
-            return [n_block, 3*n_block + Block_idx]
-        elseif (block_type == 3)
-            return [n_block + Block_idy, 3*n_block]
-        elseif (block_type == 4)
-            return [2*n_block, 4*n_block]
-        elseif (block_type == 5)
-            return [Block_idy]
-        elseif (block_type == 6)
-            return [n_block + Block_idy]
-        elseif (block_type == 7)
-            return [2*n_block + Block_idx]
-        elseif (block_type == 8)
-            return [3*n_block + Block_idx]
+        if (Block_idx == 1)
+            local_boundary[1] = TYPE_WEST;
+            if (Block_idy == 1)
+                local_boundary[3] = TYPE_SOUTH;
+            elseif (Block_idy == n_block)
+                local_boundary[4] = TYPE_NORTH;
+            end
+        elseif (Block_idx == n_block)
+            local_boundary[2] = TYPE_EAST;
+            if (Block_idy == 1)
+                local_boundary[3] = TYPE_SOUTH;
+            elseif (Block_idy == n_block)
+                local_boundary[4] = TYPE_NORTH;
+            end
+        elseif (Block_idy == 1)
+            local_boundary[3] = TYPE_SOUTH;
+            println("yo ho")
+        elseif (Block_idy == n_block)
+            local_boundary[4] = TYPE_NORTH;
+            println("yo ho")
         end
+        return local_boundary
     end
 end
 
-get_boundary_numbers(2,1)
 
+get_local_boundary(3,3,3)
+get_global_boundary(3,3,3)
+
+function assemble_F(Block_idx,Block_idy,n_block)
+    local_boundary = get_global_boundary(Block_idx,Block_idy,n_block)
+    global_boundary = get_global_boundary(Block_idx,Block_idy,n_block)
+    for i in 1:length(local_boundary)
+        if (local_boundary[i] == )
+end
+
+
+function get_all_interfaces(n_block)
+    # This function returns all interfaces for n_block by n_block block
+    interfaces = Int[];
+    for i = 1:n_block
+        for j = 1:n_block
+            local_boundary = get_local_boundary(i,j,n_block);
+            global_boundary = get_global_boundary(i,j,n_block);
+            for k in 1:4
+                if local_boundary[k] == 2
+                    if (! (global_boundary[k] ∈ interfaces))
+                        append!(interfaces,global_boundary[k])
+                    end
+                end
+            end
+        end
+    end
+    @assert length(interfaces) == 2*n_block*(n_block-1) # Total Number of Interfaces
+    return interfaces
+end
+
+# get_all_interfaces(3)
+#
+# get_local_boundary(2,2,2)
+
+function get_block_LHS(local_boundary::Vector{Int64})
+    # This function generate LHS for block namely M
+    M_OP = - H_tilde * (D2_x + D2_y)
+    # M_W = Array{Float64,2}(undef,N^2,N^2)
+    # M_E = Array{Float64,2}(undef,N^2,N^2)
+    # M_S = Array{Float64,2}(undef,N^2,N^2)
+    # M_N = Array{Float64,2}(undef,N^2,N^2)
+    M_W = spzeros(N^2,N^2)
+    M_E = spzeros(N^2,N^2)
+    M_S = spzeros(N^2,N^2)
+    M_N = spzeros(N^2,N^2)
+    if (local_boundary[1] == 0 || local_boundary[1] == 2)
+        M_W .= τ*H_y*LW'*LW .- β*H_y*BS_x'*LW'*LW;
+    elseif (local_boundary[1] == 2) # Interior boundary condition
+        println("Neumann West Not implemented yet")
+    end
+
+    if (local_boundary[2] == 0 || local_boundary[2] == 2)
+        M_E = τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE
+    elseif (local_boundary[2] == 1) # Interior boundary condition
+        println("Neumann West Not implemented yet")
+    end
+
+    if (local_boundary[3] == 1)
+        M_S .= H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y
+    elseif (local_boundary[3] == 2 || local_boundary[3] == 0)
+        M_S = τ*H_x*LS'*LS - β*H_x*BS_y'*LS'*LS
+    end
+
+    if (local_boundary[4] == 1)
+        M_N .= H_x*LN'*LN*BS_y - 1/τ*H_x*BS_y'*LN'*LN*BS_y
+    elseif (local_boundary[4] == 2 || local_boundary[4] == 0)
+        M_N .= τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN
+    end
+    M_OP .+= M_W .+ M_E .+ M_S .+ M_N
+    # return (M_W, M_E, M_S, M_N)
+    return M_OP
+end
+
+
+
+#= Generate Operators
+# @assert test all confirmed
+
+# local_operator_LB = get_local_boundary(1,1)
+# M_LB_test = get_SAT_operator(local_operator_LB)
+#
+# local_operator_LM = get_local_boundary(1,2)
+# M_LM_test = get_SAT_operator(local_operator_LM)
+#
+# isapprox(M_LB,M_LB_test)
+# isapprox(M_LM,M_LM_test)
+#
+# local_operator_MM = get_local_boundary(2,2)
+# M_MM_test = get_SAT_operator(local_operator_MM)
+# isapprox(M_MM,M_MM_test)
+
+
+# @assert isapprox(M_1,M_LB)
+# @assert isapprox(M_2,M_LM)
+# @assert isapprox(M_3,M_LT)
+# @assert isapprox(M_4,M_MB)
+#
+#
+# @assert isapprox(M_5,M_MM)
+# @assert isapprox(M_6,M_MT)
+# @assert isapprox(M_7,M_RB)
+# @assert isapprox(M_8,M_RM)
+# @assert isapprox(M_9,M_RT)
+
+
+# M_LB_test[1] == τ*H_y*LW'*LW - β*H_y*BS_x'*LW'*LW
+# M_LB_test[2] == τ*H_y*LE'*LE - β*H_y*BS_x'*LE'*LE
+# M_LB_test[3] == H_x*LS'*LS*BS_y - 1/τ*H_x*BS_y'*LS'*LS*BS_y
+# M_LB_test[4] == τ*H_x*LN'*LN - β*H_x*BS_y'*LN'*LN
 #
 # determine_block_type(1,2)
 #
 # n_block = 3
 
 
-function assemble_M(Block_idx, Block_idy)
-    boundary_numbers = get_boundary_numbers(Block_idx, Block_idy)
-    for i=1:length(boundary_numbers)
-        boundary_type = determine_boundary_type(boundary_numbers[i])
-        
+=#
+
+for i in 1:n_block
+    for j in 1:n_block
+        local_boundary = get_local_boundary(i,j)
+        block_id = j + (i-1) * n_block
+         @eval $(Symbol("M_$block_id")) = $ (get_block_LHS(local_boundary))
+        println(local_boundary)
+    end
+end
+
+function generate_M() # This is faster
+    M = M_1 # This is a nasty way to do M = blockdiag(***)
+    for i in 2:n_block^2
+        block_i = @eval $(Symbol("M_$i"))
+        M = blockdiag(M,block_i)
+        # M = copy(tmp)
+    end
+    return M
+end
+#
+# function generate_M_v1()
+#     M = M_1 # This is a nasty way to do M = blockdiag(***)
+#     for i in 2:n_block^2
+#         block_i = @eval $(Symbol("M_$i"))
+#         tmp = blockdiag(M,block_i)
+#         M = copy(tmp)
+#     end
+#     return M
+# end
+
+M = generate_M()
+# M_test = generate_M()
+# isapprox(M_test,M)
+
+
+
+
+function get_block_RHS(local_boundary::Vector{Int64})
+    b_W = spzeros(N^N,N)
+    b_E = spzeros(N^N,N)
+    b_S = spzeros(N^N,N)
+    b_N = spzeros(N^N,N)
+
+end
+
+
+function generate_boundary_data(TYPE_WEST,TYPE_EAST,TYPE_SOUTH,TYPE_NORTH,n_block)
+    # This function will generate boundary for the big block
+    g_W = analy_sol(0,span)
+    g_E = analy_sol(1,span)
+    g_S = -u_y(span',0)
+    g_N = u_y(span',0)
+
+    return (g_W,g_E,g_S,g_N)
+end
+
+function get_local_boundary_data(Block_idx,Block_idy)
+    # This function will get boundary condition for a particular block
+    g_W = spzeros(N)
+    g_E = spzeros(N)
+    g_S = spzeros(N)
+    g_N = spzeros(N)
+    if !(has_boundary(Block_idx,Block_idy))
+        return [g_W,g_E,g_S,g_N]
+    else
+        local_boundary = get_local_boundary(Block_idx,Block_idy)
+        for boundary_condition = 0:1 # Find boundaries
+            # TO DO FIND boundary
+        end
+        return [g_W,g_E,g_S,g_N]
+    end
+end
+
+# To be completed
+end
+
+function get_local_F()
+# To be completed
+end
+
+
+function get_local_lambda()
+# To be completed
+end
+
+
+function assembly_lambda()
+# To be completed
 end
