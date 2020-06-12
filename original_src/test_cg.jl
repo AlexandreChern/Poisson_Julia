@@ -104,7 +104,8 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
 
 rel_errs = []
 iter_errs = []
-for k = 1:4
+
+for k = 1:length(h_list_x)
     println("Value for k:  ", k)
     i = j  = k
     hx = h_list_x[i]
@@ -169,6 +170,8 @@ for k = 1:4
     A = D2 + SAT_W + SAT_E + SAT_S + SAT_N
     b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
 
+    @show size(A)
+
 
     A = H_tilde*A;
     b = H_tilde*b;
@@ -193,7 +196,8 @@ for k = 1:4
 
     # Numerical Solutions
 
-    result_1 = @benchmark A\b
+
+    result_1 = @benchmark $A\$b
 
     num_sol = A\b
     num_sol = reshape(num_sol, N_y+1, N_x + 1)
@@ -203,7 +207,7 @@ for k = 1:4
     ## Iterative Solutions
     ## GPU
 
-    result_2 = @benchmark cg!(init_guess,A_d,b_d)
+    result_2 = @benchmark cg!($init_guess,$A_d,$b_d)
     #result_2 = @benchmark cg(A_d,b_d)
     cu_sol = cg!(init_guess,A_d,b_d)
     #cu_sol = cg(A_d,b_d)
@@ -213,7 +217,7 @@ for k = 1:4
     log_iter_GPU_err = log2.(iter_GPU_err)
 
     ## CPU  using BLAS
-    result_3 = @benchmark cg!(init_guess_copy,A,b)
+    result_3 = @benchmark cg!($init_guess_copy,$A,$b)
     #result_3 = @benchmark cg(A,b)
     iter_sol = cg!(init_guess_copy,A,b)
     #iter_sol = cg(A,b)
