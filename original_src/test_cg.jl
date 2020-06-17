@@ -97,8 +97,8 @@ function Operators_2d(i, j, hx,hy, p=2)
     return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
-h_list_x = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
-h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
+h_list_x = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12]
+h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12]
 
 rel_errs = []
 iter_errs = []
@@ -184,6 +184,11 @@ for k = 1:length(h_list_x)
     # A_d = sparse(CuArray{Float64}(A))
     # b_d = sparse(CuArray{Float64}(b))
 
+
+    # println("For CPU LU Decomposition:")
+    # display(result_1)
+    # println()
+
     A_d = CuArrays.CUSPARSE.CuSparseMatrixCSC(A);
     b_d = CuArray(b);
 
@@ -192,15 +197,15 @@ for k = 1:length(h_list_x)
     init_guess_copy = init_guess;
     init_guess = CuArray{Float64}(init_guess);
 
-    # Numerical Solutions
+    # Numerical Direct Solutions
 
-
-    result_1 = @benchmark $A\$b
-
-    num_sol = A\b
-    num_sol = reshape(num_sol, N_y+1, N_x + 1)
-    num_err = sqrt((num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:]))
-    log_num_err = log2.(num_err)
+    #
+    # result_1 = @benchmark $A\$b
+    #
+    # num_sol = A\b
+    # num_sol = reshape(num_sol, N_y+1, N_x + 1)
+    # num_err = sqrt((num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:]))
+    # log_num_err = log2.(num_err)
 
     ## Iterative Solutions
     ## GPU
@@ -230,12 +235,9 @@ for k = 1:length(h_list_x)
 
     #push!(rel_errs,rel_err)
     #push!(iter_errs,iter_err)
+    #
+    # println("k = ", k)
 
-    println("k = ", k)
-
-    println("For CPU LU Decomposition:")
-    display(result_1)
-    println()
 
 
     println("For GPU Iterative:")
@@ -248,10 +250,10 @@ for k = 1:length(h_list_x)
     println()
 
     println("Error Comparisons")
-    println("For CPU LU Decomposition:")
-    println(num_err)
-    println(log_num_err)
-    println()
+    # println("For CPU LU Decomposition:")
+    # println(num_err)
+    # println(log_num_err)
+    # println()
 
     println("For GPU Iterative:")
     println(iter_GPU_err)
