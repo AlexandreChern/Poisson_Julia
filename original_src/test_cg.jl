@@ -8,13 +8,30 @@ using CuArrays, CUDAnative
 using IterativeSolvers
 using BenchmarkTools
 
+using Dates
+
+## Initializing Functions
 function e(i,n)
     A = Matrix{Float64}(I,n,n)
     return A[:,i]
 end
 
+function se(i,n)    # Sparse formulation of e(i,n)
+    A = spzeros(n)
+    A[i] = 1
+    return A
+end
+
 function eyes(n)
     return Matrix{Float64}(I,n,n)
+end
+
+function speyes(n)    # Sparse formulation of eyes(n)
+    A = spzeros(n,n)
+    for i in 1:n
+        A[i,i] = 1
+    end
+    return A
 end
 
 function u(x,y)
@@ -24,6 +41,28 @@ function u(x,y)
 function Diag(A)
     # Self defined function that is similar to Matlab Diag
     return Diagonal(A[:])
+end
+
+function sparse_E(i,N)
+    A = spzeros(N,N)
+    A[i,i] = 1
+    return A
+end
+
+
+function test_cg!(A_d,b_d)
+    init_guess = similar(b_d)
+    return cg!(init_guess,A_d,b_d)
+end
+
+function test_cg!_Pl(A_d,b_d)
+    init_guess = similar(b_d)
+    return cg!(init_guess,A_d,b_d;Pl=Identity())
+end
+
+
+function test_cg!_null(A_d,b_d)
+    init_guess = similar(b_d)
 end
 
 function Operators_2d(i, j, hx,hy, p=2)
@@ -46,19 +85,27 @@ function Operators_2d(i, j, hx,hy, p=2)
     (D1y, HIy, H1y, r1y) = diagonal_sbp_D1(p,N_y,xc=(0,1));
     (D2y, S0y, SNy, HI2y, H2y, r2y) = diagonal_sbp_D2(p,N_y,xc=(0,1));
 
-    BSx = sparse(SNx - S0x);
-    BSy = sparse(SNy - S0y);
+    # BSx = sparse(SNx - S0x);
+    # BSy = sparse(SNy - S0y);
+    BSx = SNx - S0x;
+    BSy = SNy - S0y;
 
 
     # Forming 2d Operators
-    e_1x = sparse(e(1,N_x+1));
-    e_Nx = sparse(e(N_x+1,N_x+1));
-    e_1y = sparse(e(1,N_y+1));
-    e_Ny = sparse(e(N_y+1,N_y+1));
+    # e_1x = sparse(e(1,N_x+1));
+    # e_Nx = sparse(e(N_x+1,N_x+1));
+    # e_1y = sparse(e(1,N_y+1));
+    # e_Ny = sparse(e(N_y+1,N_y+1));
+    e_1x = se(1,N_x+1)
+    e_Nx = se(N_x+1,N_x+1)
+    e_1y = se(1,N_y+1)
+    e_Ny = se(N_y+1,N_y+1)
 
-
-    I_Nx = sparse(eyes(N_x+1));
-    I_Ny = sparse(eyes(N_y+1));
+    #
+    # I_Nx = sparse(eyes(N_x+1));
+    # I_Ny = sparse(eyes(N_y+1));
+    I_Nx = speyes(N_x+1)
+    I_Ny = speyes(N_y+1)
 
 
     e_E = kron(e_Nx,I_Ny);
@@ -66,10 +113,14 @@ function Operators_2d(i, j, hx,hy, p=2)
     e_S = kron(I_Nx,e_1y);
     e_N = kron(I_Nx,e_Ny);
 
-    E_E = kron(sparse(Diag(e_Nx)),I_Ny);   # E_E = e_E * e_E'
-    E_W = kron(sparse(Diag(e_1x)),I_Ny);
-    E_S = kron(I_Nx,sparse(Diag(e_1y)));
-    E_N = sparse(kron(I_Nx,sparse(Diag(e_Ny))));
+    # E_E = kron(sparse(Diag(e_Nx)),I_Ny);   # E_E = e_E * e_E'
+    # E_W = kron(sparse(Diag(e_1x)),I_Ny);
+    # E_S = kron(I_Nx,sparse(Diag(e_1y)));
+    # E_N = sparse(kron(I_Nx,sparse(Diag(e_Ny))));
+    E_E = kron(sparse_E(N_x+1,N_x+1),I_Ny);
+    E_W = kron(sparse_E(1,N_x+1),I_Ny);
+    E_S = kron(I_Nx,sparse_E(1,N_y+1));
+    E_N = kron(I_Nx,sparse_E(N_y+1,N_y+1));
 
 
     D1_x = kron(D1x,I_Ny);
@@ -210,7 +261,8 @@ for k = 1:length(h_list_x)
     ## Iterative Solutions
     ## GPU
 
-    result_2 = @benchmark cg!($init_guess,$A_d,$b_d)
+    # result_2 = @benchmark cg!($init_guess,$A_d,$b_d)
+    result_2 = @benchmark test_cg!($A_d,$b_d)
     #result_2 = @benchmark cg(A_d,b_d)
     cu_sol = cg!(init_guess,A_d,b_d)
     #cu_sol = cg(A_d,b_d)
@@ -220,7 +272,8 @@ for k = 1:length(h_list_x)
     log_iter_GPU_err = log2.(iter_GPU_err)
 
     ## CPU  using BLAS
-    result_3 = @benchmark cg!($init_guess_copy,$A,$b)
+    # result_3 = @benchmark cg!($init_guess_copy,$A,$b)
+    result_3 = @benchmark test_cg!($A, $b)
     #result_3 = @benchmark cg(A,b)
     iter_sol = cg!(init_guess_copy,A,b)
     #iter_sol = cg(A,b)
