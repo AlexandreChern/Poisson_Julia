@@ -305,13 +305,16 @@ A_fac = lu(A)
 
 
 println("Time for factorization:")
-test_lu @benchmark A_fac = lu(A)
+test_lu = @benchmark A_fac = lu(A)
 display(test_lu)
 
 println("Time for direct solve:")
-test_solve @benchmark A_fac \ b
+test_solve = @benchmark A_fac \ b
 display(test_solve)
 
+direct_sol = A_fac \ b
+direct_err = sqrt((direct_sol[:] - analy_sol[:])' * H_tilde * (direct_sol[:] - analy_sol[:]))
+@show direct_err
 
 ## Solving with GPU
 A_d = CuArrays.CUSPARSE.CuSparseMatrixCSC(A)
@@ -422,7 +425,7 @@ function iter_err_by_steps(;div_num=100)
     savefig("plots/log_error_$dim.png")
 end
 
-iter_err_by_steps(div_num=100)
+# iter_err_by_steps(div_num=100)
 
 ## CPU  using BLAS
 #result_3 = @benchmark cg!(init_guess_copy,A,b)

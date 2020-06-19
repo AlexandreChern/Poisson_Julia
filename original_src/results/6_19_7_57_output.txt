@@ -1,0 +1,21 @@
+Value for k:  1
+Value for N_x and N_y: 8, 8 
+For GPU Iterative:
+Value for k:  2
+Value for N_x and N_y: 16, 16 
+For GPU Iterative:
+Value for k:  3
+Value for N_x and N_y: 32, 32 
+For GPU Iterative:
+Value for k:  4
+Value for N_x and N_y: 64, 64 
+For GPU Iterative:
+Value for k:  5
+Value for N_x and N_y: 128, 128 
+For GPU Iterative:
+Value for k:  6
+Value for N_x and N_y: 256, 256 
+For GPU Iterative:
+Value for k:  7
+Value for N_x and N_y: 512, 512 
+For GPU Iterative:

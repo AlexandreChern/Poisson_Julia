@@ -183,7 +183,7 @@ function iter_err_by_steps(;div_num=100)
 end
 
 
-for k = 1:length(h_list_x)
+for k = 1:length(h_list_x)-4
     println("Value for k:  ", k)
     write(file_io,"Value for k:  $k\n")
 
@@ -282,13 +282,21 @@ for k = 1:length(h_list_x)
 
     # Numerical Direct Solutions
 
-    #
+    println("Time for factorization:")
+    test_lu = @benchmark A_fac = lu($A)
+    display(test_lu)
+
+    A_fac = lu(A)
+    println("Time for direct solve:")
+    test_solve = @benchmark $A_fac \ $b
+    display(test_solve)
+
     # result_1 = @benchmark $A\$b
-    #
-    # num_sol = A\b
-    # num_sol = reshape(num_sol, N_y+1, N_x + 1)
-    # num_err = sqrt((num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:]))
-    # log_num_err = log2.(num_err)
+
+    num_sol = A_fac \ b
+    num_sol = reshape(num_sol, N_y+1, N_x + 1)
+    num_err = sqrt((num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:]))
+    log_num_err = log2.(num_err)
 
     ## Iterative Solutions
     ## GPU
@@ -338,10 +346,10 @@ for k = 1:length(h_list_x)
     println()
 
     println("Error Comparisons")
-    # println("For CPU LU Decomposition:")
-    # println(num_err)
-    # println(log_num_err)
-    # println()
+    println("For CPU LU Decomposition:")
+    println(num_err)
+    println(log_num_err)
+    println()
 
     println("For GPU Iterative:")
     println(iter_GPU_err)
