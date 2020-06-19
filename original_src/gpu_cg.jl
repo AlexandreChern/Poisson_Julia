@@ -172,7 +172,7 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2
 rel_errs = []
 iter_errs = []
 #for k = 1:4
-k = 6
+k = 7
 println("Value for k:  ", k)
 i = j  = k
 hx = h_list_x[i]
@@ -305,10 +305,10 @@ A_fac = lu(A)
 
 
 println("Time for factorization:")
-@benchmark A_fac = lu(A)
+@show @benchmark A_fac = lu(A)
 
 println("Time for direct solve:")
-@benchmark A_fac \ b
+@show @benchmark A_fac \ b
 
 
 
@@ -346,6 +346,34 @@ cu_sol = reshape(cu_sol, N_y + 1, N_x + 1)
 iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:]))
 
 
+function calculate_cg_err(A_d,b_d,maxiter_num)
+    cu_sol = cg(A_d,b_d;maxiter=maxiter_num)
+    cu_sol = collect(cu_sol)
+    iter_GPU_err = sqrt((cu_sol - analy_sol[:])' * H_tilde * (cu_sol - analy_sol[:]))
+    return iter_GPU_err
+end
+
+
+# calculate_cg_err(A_d,b_d,100)
+# calculate_cg_err(A_d,b_d,200)
+# calculate_cg_err(A_d,b_d,300)
+# calculate_cg_err(A_d,b_d,400)
+# calculate_cg_err(A_d,b_d,500)
+# calculate_cg_err(A_d,b_d,600)
+# calculate_cg_err(A_d,b_d,700)
+# calculate_cg_err(A_d,b_d,800)
+# calculate_cg_err(A_d,b_d,900)
+# calculate_cg_err(A_d,b_d,1000)
+# calculate_cg_err(A_d,b_d,1100)
+# calculate_cg_err(A_d,b_d,1200)
+# calculate_cg_err(A_d,b_d,1300)
+# calculate_cg_err(A_d,b_d,1400)
+# calculate_cg_err(A_d,b_d,1500)
+# calculate_cg_err(A_d,b_d,1600)
+# calculate_cg_err(A_d,b_d,1700)
+# calculate_cg_err(A_d,b_d,1800)
+# calculate_cg_err(A_d,b_d,1900)
+# calculate_cg_err(A_d,b_d,2000)
 
 
 # b_d_2 = CuArray(b)
@@ -357,7 +385,7 @@ iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_s
 # log_iter_GPU_err = log2.(iter_GPU_err)
 # log_iter_GPU_err_v2 = log2.(iter_GPU_err_v2)
 
-@benchmark test_cg!(A_d,b_d)
+result_2 = @benchmark test_cg!(A_d,b_d)
 
 @benchmark test_cg!_Pl(A_d,b_d)
 
@@ -365,6 +393,7 @@ iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_s
 
 cu_sol - analy_sol
 # cu_sol_v2 - analy_sol
+
 
 
 
@@ -387,7 +416,9 @@ function iter_err_by_steps(;div_num=100)
     vcat(max_steps, iter_err_lists)
     DataFrame("max_steps"=>max_steps,"iter_err"=>iter_err_lists)
     plot(max_steps,iter_err_lists)
-    savefig("plots/$dim.png")
+    savefig("plots/error_$dim.png")
+    plot(max_steps,log.(iter_err_lists))
+    savefig("plots/log_error_$dim.png")
 end
 
 iter_err_by_steps(div_num=100)
@@ -414,10 +445,10 @@ iter_err_by_steps(div_num=100)
 #println()
 
 
-println("For GPU Iterative:")
-write(file_io,"For GPU Iterative: \n")
-display(result_2)
-println()
+# println("For GPU Iterative:")
+# # write(file_io,"For GPU Iterative: \n")
+# display(result_2)
+# println()
 
 
 #println("For CPU Iterative")
@@ -429,15 +460,15 @@ println()
 #println(num_err)
 #println(log_num_err)
 #println()
-
-println("For GPU Iterative:")
-println(iter_GPU_err)
-println(log_iter_GPU_err)
-println()
+#
+# println("For GPU Iterative:")
+# println(iter_GPU_err)
+# println(log_iter_GPU_err)
+# println()
 
 ##println("For CPU Iterative:")
 #println(iter_CPU_err)
 #println(log_iter_CPU_err)
 #println()
-close(file_io)
+# close(file_io)
 #end
