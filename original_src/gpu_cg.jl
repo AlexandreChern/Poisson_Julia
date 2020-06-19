@@ -172,7 +172,7 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2
 rel_errs = []
 iter_errs = []
 #for k = 1:4
-k = 7
+k = 9
 println("Value for k:  ", k)
 i = j  = k
 hx = h_list_x[i]
@@ -305,11 +305,12 @@ A_fac = lu(A)
 
 
 println("Time for factorization:")
-@show @benchmark A_fac = lu(A)
+test_lu @benchmark A_fac = lu(A)
+display(test_lu)
 
 println("Time for direct solve:")
-@show @benchmark A_fac \ b
-
+test_solve @benchmark A_fac \ b
+display(test_solve)
 
 
 ## Solving with GPU
