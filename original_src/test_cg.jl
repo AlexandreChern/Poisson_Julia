@@ -10,6 +10,12 @@ using BenchmarkTools
 
 using Dates
 
+current_time = now()
+string_time =  String((Symbol(Dates.month(current_time),'_',Dates.day(current_time),'_',Dates.hour(current_time),'_',Dates.minute(current_time))))
+output_file_name = String(Symbol(string_time , "_output.txt"))
+
+file_io = open("results/" * output_file_name,"w")
+
 ## Initializing Functions
 function e(i,n)
     A = Matrix{Float64}(I,n,n)
@@ -148,14 +154,16 @@ function Operators_2d(i, j, hx,hy, p=2)
     return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
-h_list_x = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12]
-h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12]
+h_list_x = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
+h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
 
 rel_errs = []
 iter_errs = []
 
 for k = 1:length(h_list_x)
     println("Value for k:  ", k)
+    write(file_io,"Value for k:  $k\n")
+
     i = j  = k
     hx = h_list_x[i]
     hy = h_list_y[j]
@@ -168,6 +176,7 @@ for k = 1:length(h_list_x)
     # Matrix Size
     N_x = Integer(m_list[i])
     N_y = Integer(n_list[j])
+    write(file_io,"Value for N_x and N_y: $N_x, $N_y \n")
 
     # 2D operators
     (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j,hx,hy)
@@ -270,6 +279,8 @@ for k = 1:length(h_list_x)
     cu_sol = reshape(cu_sol, N_y + 1, N_x + 1)
     iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:]))
     log_iter_GPU_err = log2.(iter_GPU_err)
+    # write(file_io,result_2)
+    # write("\n")
 
     ## CPU  using BLAS
     # result_3 = @benchmark cg!($init_guess_copy,$A,$b)
@@ -294,6 +305,7 @@ for k = 1:length(h_list_x)
 
 
     println("For GPU Iterative:")
+    write(file_io, "For GPU Iterative:\n")
     display(result_2)
     println()
 
@@ -318,3 +330,5 @@ for k = 1:length(h_list_x)
     println(log_iter_CPU_err)
     println()
 end
+
+close(file_io)

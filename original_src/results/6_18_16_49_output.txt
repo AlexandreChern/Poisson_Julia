@@ -1,0 +1,4 @@
+Value for k:  1
+For GPU Iterative:
+Value for k:  2
+For GPU Iterative:

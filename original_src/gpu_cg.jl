@@ -11,6 +11,11 @@ using BenchmarkTools
 
 using Dates
 
+current_time = now()
+string_time =  String((Symbol(Dates.month(current_time),'_',Dates.day(current_time),'_',Dates.hour(current_time),'_',Dates.minute(current_time))))
+output_file_name = String(Symbol(string_time,".txt"))
+
+# fileio = open("results/" * output_file_name,"w")
 
 ## Initializing Functions
 function e(i,n)
@@ -355,7 +360,7 @@ log_iter_GPU_err_v2 = log2.(iter_GPU_err_v2)
 
 @benchmark test_cg!_Pl(A_d,b_d)
 
-
+result = @benchmark test_cg!(A_d,b_d)
 
 cu_sol - analy_sol
 cu_sol_v2 - analy_sol
@@ -385,6 +390,7 @@ cu_sol_v2 - analy_sol
 
 
 println("For GPU Iterative:")
+write(file_io,"For GPU Iterative: \n")
 display(result_2)
 println()
 
@@ -408,5 +414,5 @@ println()
 #println(iter_CPU_err)
 #println(log_iter_CPU_err)
 #println()
-
+close(file_io)
 #end
