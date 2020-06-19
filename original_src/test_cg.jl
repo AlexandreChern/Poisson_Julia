@@ -160,6 +160,29 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2
 rel_errs = []
 iter_errs = []
 
+function iter_err_by_steps(;div_num=100)
+    iter_err_lists = []
+
+    dim = size(A)[1]
+
+    div(dim,div_num)
+    max_steps = [div(i*dim,div_num) for i in 1:div_num]
+    for step in max_steps
+        @show step
+        cu_sol = cg(A_d,b_d;maxiter=step)
+        cu_sol = collect(cu_sol)
+        cu_sol = reshape(cu_sol, N_y + 1, N_x + 1)
+        iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:]))
+        push!(iter_err_lists,iter_GPU_err)
+    end
+    iter_err_lists
+    vcat(max_steps, iter_err_lists)
+    DataFrame("max_steps"=>max_steps,"iter_err"=>iter_err_lists)
+    plot(max_steps,iter_err_lists)
+    savefig("plots/$dim.png")
+end
+
+
 for k = 1:length(h_list_x)
     println("Value for k:  ", k)
     write(file_io,"Value for k:  $k\n")
