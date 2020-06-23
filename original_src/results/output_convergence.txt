@@ -1,0 +1,427 @@
+julia> include("test_cg.jl")
+Value for k:  1
+size(A) = (81, 81)
+Time for factorization:
+BenchmarkTools.Trial: 
+  memory estimate:  154.57 KiB
+  allocs estimate:  63
+  --------------
+  minimum time:     138.599 μs (0.00% GC)
+  median time:      147.900 μs (0.00% GC)
+  mean time:        157.470 μs (1.34% GC)
+  maximum time:     3.377 ms (25.03% GC) 
+  --------------
+  samples:          10000
+  evals/sample:     1    
+Time for direct solve:   
+BenchmarkTools.Trial: 
+  memory estimate:  5.27 KiB
+  allocs estimate:  4
+  --------------
+  minimum time:     5.800 μs (0.00% GC)   
+  median time:      5.900 μs (0.00% GC)   
+  mean time:        6.179 μs (0.52% GC)   
+  maximum time:     121.100 μs (92.44% GC)
+  --------------
+  samples:          10000
+  evals/sample:     6
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.56 KiB
+  allocs estimate:  173
+  --------------
+  minimum time:     239.700 μs (0.00% GC) 
+  median time:      5.700 ms (0.00% GC)   
+  mean time:        4.775 ms (0.31% GC)   
+  maximum time:     15.813 ms (50.98% GC) 
+  --------------
+  samples:          1046
+  evals/sample:     1
+
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  3.66 KiB
+  allocs estimate:  12
+  --------------
+  minimum time:     1.060 μs (0.00% GC)   
+  median time:      12.260 μs (0.00% GC)  
+  mean time:        10.355 μs (1.89% GC)  
+  maximum time:     373.540 μs (96.05% GC)
+  --------------
+  samples:          10000
+  evals/sample:     10
+
+Error Comparisons
+For GPU Iterative:
+0.0070865454182937335
+-7.140701777435347
+
+For CPU Iterative:
+0.00708654541829389
+-7.140701777435315
+
+Value for k:  2
+size(A) = (289, 289)
+Time for factorization:
+BenchmarkTools.Trial: 
+  memory estimate:  434.44 KiB
+  allocs estimate:  63
+  --------------
+  minimum time:     501.400 μs (0.00% GC)
+  median time:      525.500 μs (0.00% GC)
+  mean time:        542.755 μs (0.93% GC)
+  maximum time:     3.465 ms (22.95% GC)
+  --------------
+  samples:          9165
+  evals/sample:     1
+Time for direct solve:
+BenchmarkTools.Trial: 
+  memory estimate:  18.45 KiB
+  allocs estimate:  4
+  --------------
+  minimum time:     22.999 μs (0.00% GC)
+  median time:      23.600 μs (0.00% GC)
+  mean time:        24.287 μs (0.00% GC)
+  maximum time:     134.400 μs (0.00% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.58 KiB
+  allocs estimate:  174
+  --------------
+  minimum time:     259.700 μs (0.00% GC)
+  median time:      12.287 ms (0.00% GC)
+  mean time:        9.570 ms (0.32% GC)
+  maximum time:     22.041 ms (37.31% GC)
+  --------------
+  samples:          523
+  evals/sample:     1
+
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  10.53 KiB
+  allocs estimate:  12
+  --------------
+  minimum time:     2.400 μs (0.00% GC)
+  median time:      77.700 μs (0.00% GC)
+  mean time:        85.438 μs (1.18% GC)
+  maximum time:     16.662 ms (0.00% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+
+Error Comparisons
+For GPU Iterative:
+0.001735015122791431
+-9.17083604694148
+
+For CPU Iterative:
+0.0017350151227028643
+-9.170836047015124
+
+Value for k:  3
+size(A) = (1089, 1089)
+Time for factorization:
+BenchmarkTools.Trial: 
+  memory estimate:  1.53 MiB
+  allocs estimate:  65
+  --------------
+  minimum time:     2.151 ms (0.00% GC)
+  median time:      2.884 ms (0.00% GC)
+  mean time:        2.896 ms (0.57% GC)
+  maximum time:     7.125 ms (10.45% GC)
+  --------------
+  samples:          1723
+  evals/sample:     1
+Time for direct solve:
+BenchmarkTools.Trial: 
+  memory estimate:  68.45 KiB
+  allocs estimate:  4
+  --------------
+  minimum time:     106.500 μs (0.00% GC)
+  median time:      110.001 μs (0.00% GC)
+  mean time:        114.967 μs (0.26% GC)
+  maximum time:     1.171 ms (87.21% GC)
+  --------------
+  samples:          10000
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.89 KiB
+  allocs estimate:  194
+  --------------
+  minimum time:     264.700 μs (0.00% GC)
+  median time:      22.735 ms (0.00% GC)
+  mean time:        17.032 ms (0.31% GC)
+  maximum time:     38.962 ms (0.00% GC)
+  --------------
+  samples:          294
+  evals/sample:     1
+
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  35.53 KiB
+  allocs estimate:  12
+  --------------
+  minimum time:     7.500 μs (0.00% GC)
+  median time:      529.100 μs (0.00% GC)
+  mean time:        515.636 μs (0.28% GC)
+  maximum time:     244.944 ms (0.00% GC)
+  --------------
+  samples:          9653
+  evals/sample:     1
+
+Error Comparisons
+For GPU Iterative:
+0.0004318783918714255
+-11.17708724341615
+
+For CPU Iterative:
+0.00043187800312044185
+-11.177088542044142
+
+Value for k:  4
+size(A) = (4225, 4225)
+Time for factorization:
+BenchmarkTools.Trial: 
+  memory estimate:  5.65 MiB
+  allocs estimate:  66
+  --------------
+  minimum time:     11.136 ms (0.00% GC)
+  median time:      13.541 ms (0.00% GC)
+  mean time:        13.635 ms (0.39% GC)
+  maximum time:     18.367 ms (3.83% GC)
+  --------------
+  samples:          367
+  evals/sample:     1
+Time for direct solve:
+BenchmarkTools.Trial: 
+  memory estimate:  264.36 KiB
+  allocs estimate:  6
+  --------------
+  minimum time:     473.600 μs (0.00% GC)
+  median time:      514.000 μs (0.00% GC)
+  mean time:        524.060 μs (0.31% GC)
+  maximum time:     3.237 ms (79.50% GC)
+  --------------
+  samples:          9400
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.89 KiB
+  allocs estimate:  194
+  --------------
+  minimum time:     272.300 μs (0.00% GC)
+  median time:      45.427 ms (0.00% GC)
+  mean time:        36.603 ms (0.32% GC)
+  maximum time:     53.133 ms (0.00% GC)
+  --------------
+  samples:          137
+  evals/sample:     1
+
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  133.34 KiB
+  allocs estimate:  16
+  --------------
+  minimum time:     31.699 μs (0.00% GC)
+  median time:      33.499 μs (0.00% GC)
+  mean time:        52.139 ms (0.00% GC)
+  maximum time:     3.514 s (0.00% GC)
+  --------------
+  samples:          136
+  evals/sample:     1
+
+Error Comparisons
+For GPU Iterative:
+0.00010786903308417423
+-13.178431622490159
+
+For CPU Iterative:
+0.00010786902301215187
+-13.17843175719849
+
+Value for k:  5
+size(A) = (16641, 16641)
+Time for factorization:
+BenchmarkTools.Trial: 
+  memory estimate:  21.61 MiB
+  allocs estimate:  65
+  --------------
+  minimum time:     43.247 ms (0.00% GC)
+  median time:      48.223 ms (0.00% GC)
+  mean time:        48.265 ms (0.31% GC)
+  maximum time:     55.935 ms (1.51% GC)
+  --------------
+  samples:          104
+  evals/sample:     1
+Time for direct solve:
+BenchmarkTools.Trial: 
+  memory estimate:  1.02 MiB
+  allocs estimate:  6
+  --------------
+  minimum time:     2.546 ms (0.00% GC)
+  median time:      2.763 ms (0.00% GC)
+  mean time:        2.853 ms (0.02% GC)
+  maximum time:     9.133 ms (0.00% GC)
+  --------------
+  samples:          1739
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.89 KiB
+  allocs estimate:  194
+  --------------
+  minimum time:     292.301 μs (0.00% GC)
+  median time:      95.993 ms (0.00% GC)
+  mean time:        70.193 ms (0.20% GC)
+  maximum time:     109.055 ms (9.43% GC)
+  --------------
+  samples:          72
+  evals/sample:     1
+
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  521.34 KiB
+  allocs estimate:  16
+  --------------
+  minimum time:     263.601 μs (0.00% GC)
+  median time:      46.487 ms (0.00% GC)
+  mean time:        47.035 ms (0.00% GC)
+  maximum time:     60.066 ms (0.00% GC)
+  --------------
+  samples:          107
+  evals/sample:     1
+
+Error Comparisons
+For GPU Iterative:
+2.6967119755637598e-5
+-15.178439032809758
+
+For CPU Iterative:
+2.6967115498716915e-5
+-15.178439260547792
+
+Value for k:  6
+size(A) = (66049, 66049)
+Time for factorization:
+BenchmarkTools.Trial: 
+  memory estimate:  98.75 MiB
+  allocs estimate:  65
+  --------------
+  minimum time:     205.284 ms (0.00% GC)
+  median time:      220.428 ms (0.00% GC)
+  mean time:        221.536 ms (0.31% GC)
+  maximum time:     251.671 ms (0.00% GC)
+  --------------
+  samples:          23
+  evals/sample:     1
+Time for direct solve:
+BenchmarkTools.Trial: 
+  memory estimate:  4.03 MiB
+  allocs estimate:  6
+  --------------
+  minimum time:     15.127 ms (0.00% GC)
+  median time:      15.679 ms (0.00% GC)
+  mean time:        15.866 ms (0.00% GC)
+  maximum time:     19.818 ms (0.00% GC)
+  --------------
+  samples:          314
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.89 KiB
+  allocs estimate:  194
+  --------------
+  minimum time:     412.900 μs (0.00% GC)
+  median time:      254.849 ms (0.00% GC)
+  mean time:        204.660 ms (0.00% GC)
+  maximum time:     263.745 ms (0.00% GC)
+  --------------
+  samples:          25
+  evals/sample:     1
+
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  2.02 MiB
+  allocs estimate:  16
+  --------------
+  minimum time:     747.400 μs (0.00% GC)
+  median time:      409.492 ms (0.00% GC)
+  mean time:        382.045 ms (0.00% GC)
+  maximum time:     436.437 ms (0.00% GC)
+  --------------
+  samples:          14
+  evals/sample:     1
+
+Error Comparisons
+For GPU Iterative:
+6.7526000085058154e-6
+-17.17612546758409
+
+For CPU Iterative:
+6.753780857783837e-6
+-17.175873200834225
+
+Value for k:  7
+size(A) = (263169, 263169)
+Time for factorization:
+BenchmarkTools.Trial:
+  memory estimate:  457.64 MiB
+  allocs estimate:  65
+  --------------
+  minimum time:     1.252 s (0.00% GC)
+  median time:      1.277 s (0.06% GC)
+  mean time:        1.282 s (0.05% GC)
+  maximum time:     1.322 s (0.07% GC)
+  --------------
+  samples:          4
+  evals/sample:     1
+Time for direct solve:
+BenchmarkTools.Trial:
+  memory estimate:  16.06 MiB
+  allocs estimate:  6
+  --------------
+  minimum time:     75.699 ms (0.00% GC)
+  median time:      77.118 ms (0.00% GC)
+  mean time:        82.240 ms (0.00% GC)
+  maximum time:     113.557 ms (0.00% GC)
+  --------------
+  samples:          61
+  evals/sample:     1
+For GPU Iterative:
+BenchmarkTools.Trial:
+  memory estimate:  5.89 KiB
+  allocs estimate:  194
+  --------------
+  minimum time:     809.200 μs (0.00% GC)
+  median time:      989.750 ms (0.00% GC)
+  mean time:        744.594 ms (0.00% GC)
+  maximum time:     999.642 ms (0.00% GC)
+  --------------
+  samples:          8
+  evals/sample:     1
+
+For CPU Iterative
+BenchmarkTools.Trial:
+  memory estimate:  8.03 MiB
+  allocs estimate:  16
+  --------------
+  minimum time:     3.748 s (0.00% GC)
+  median time:      3.851 s (0.00% GC)
+  mean time:        3.851 s (0.00% GC)
+  maximum time:     3.953 s (0.00% GC)
+  --------------
+  samples:          2
+  evals/sample:     1
+
+Error Comparisons
+For GPU Iterative:
+2.1214060018095757e-6
+-18.846547814206033
+
+For CPU Iterative:
+2.156189356396896e-6
+-18.82308468829362
