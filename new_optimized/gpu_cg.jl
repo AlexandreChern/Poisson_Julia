@@ -13,6 +13,9 @@ using BenchmarkTools
 using Dates
 using DataFrames
 
+
+using AlgebraicMultigrid
+
 current_time = now()
 string_time =  String((Symbol(Dates.month(current_time),'_',Dates.day(current_time),'_',Dates.hour(current_time),'_',Dates.minute(current_time))))
 output_file_name = String(Symbol(string_time,".txt"))
@@ -173,7 +176,7 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2
 rel_errs = []
 iter_errs = []
 #for k = 1:4
-k = 8
+k = 9
 println("Value for k:  ", k)
 i = j  = k
 hx = h_list_x[i]
@@ -301,7 +304,6 @@ b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N;
 
 A = H_tilde*A;
 b = H_tilde*b;
-A_op = LinearOperator(A)
 
 A_fac = lu(A)
 
@@ -431,36 +433,7 @@ end
 
 ## CPU  using BLAS
 #result_3 = @benchmark cg!(init_guess_copy,A,b)
-result_3 = @benchmark cg(A,b)
-
-
-@benchmark cg(A_op,b)
-
-
-## Using Algebraic Multigrid Method
-ml = ruge_stuben(A)
-
-sol_ruge_stuben = solve(ml,b)
-ruge_stuben_err = sqrt((sol_ruge_stuben[:] - analy_sol[:])'* H_tilde * (sol_ruge_stuben[:] - analy_sol[:]))
-
-
-@benchmark solve(ml,b)
-
-
-## Using Algebraic Multigrid as Preconditioner
-@benchmark ml = ruge_stuben(A)
-@benchmark p = aspreconditioner(ml)
-
-@benchmark cg(A,b,Pl=p)
-
-
-
-@benchmark A_lldl = lldl(A)
-A_lldl = lldl(A)
-@benchmark A_lldl \ b
-
-ldiv!(A_lldl[1],b)
-lldl(A)
+##result_3 = @benchmark cg(A,b)
 #iter_sol = cg!(init_guess_copy,A,b)
 #iter_sol = cg(A,b)
 #iter_sol = reshape(iter_sol,N_y+1, N_x+1)
