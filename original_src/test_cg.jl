@@ -199,7 +199,7 @@ for k = 1:length(h_list_x)-4
     # Matrix Size
     N_x = Integer(m_list[i])
     N_y = Integer(n_list[j])
-    write(file_io,"Value for N_x and N_y: $N_x, $N_y \n")
+    # write(file_io,"Value for N_x and N_y: $N_x, $N_y \n")
 
     # 2D operators
     (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j,hx,hy)
@@ -297,6 +297,8 @@ for k = 1:length(h_list_x)-4
     num_sol = reshape(num_sol, N_y+1, N_x + 1)
     num_err = sqrt((num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:]))
     log_num_err = log2.(num_err)
+    println("Error for Direct Solve: $log_num_err")
+    write(file_io,"Error for Direct Solve: $log_num_err\n")
 
     ## Iterative Solutions
     ## GPU
@@ -310,6 +312,8 @@ for k = 1:length(h_list_x)-4
     cu_sol = reshape(cu_sol, N_y + 1, N_x + 1)
     iter_GPU_err = sqrt((cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:]))
     log_iter_GPU_err = log2.(iter_GPU_err)
+    println("Error for GPU CG $log_iter_GPU_err")
+    write(file_io,"Error for GPU CG $log_iter_GPU_err\n")
     # write(file_io,result_2)
     # write("\n")
 
@@ -322,6 +326,8 @@ for k = 1:length(h_list_x)-4
     iter_sol = reshape(iter_sol,N_y+1, N_x+1)
     iter_CPU_err = sqrt((iter_sol[:] - analy_sol[:])' * H_tilde * (iter_sol[:] - analy_sol[:]))
     log_iter_CPU_err = log2.(iter_CPU_err)
+    println("Error for CPU CG $log_iter_CPU_err")
+    write(file_io,"Error for CPU CG $log_iter_CPU_err\n")
 
     #rel_err = sqrt(err)
     #rel_iter_err = sqrt(iter_err)
