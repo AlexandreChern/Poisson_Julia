@@ -1,0 +1,35 @@
+Value for k:  1
+Error for Direct Solve: -7.140701430166181
+Error for GPU CG -7.14070096935171
+Error for CPU CG -7.140700969351689
+For GPU Iterative:
+Value for k:  2
+Error for Direct Solve: -9.17083624280667
+Error for GPU CG -9.170836859129485
+Error for CPU CG -9.170836859114132
+For GPU Iterative:
+Value for k:  3
+Error for Direct Solve: -11.177089988262003
+Error for GPU CG -11.177093358844353
+Error for CPU CG -11.17709323064864
+For GPU Iterative:
+Value for k:  4
+Error for Direct Solve: -13.178418314503046
+Error for GPU CG -13.178470408982587
+Error for CPU CG -13.178470449353858
+For GPU Iterative:
+Value for k:  5
+Error for Direct Solve: -15.178715077626022
+Error for GPU CG -15.178591555088595
+Error for CPU CG -15.17859187151157
+For GPU Iterative:
+Value for k:  6
+Error for Direct Solve: -17.178784406868
+Error for GPU CG -17.17225001348194
+Error for CPU CG -17.172252783020806
+For GPU Iterative:
+Value for k:  7
+Error for Direct Solve: -19.178801085953584
+Error for GPU CG -18.97678386897999
+Error for CPU CG -18.97682901321684
+For GPU Iterative:
