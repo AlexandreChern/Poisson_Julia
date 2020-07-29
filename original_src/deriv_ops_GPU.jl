@@ -187,8 +187,6 @@ function tester_D2y(Nx)
 
 	ty = time_ns()
 	for i in 1:rep_times
-
-
 		y = D2x(u,Nx,Ny,h)
 	end
 	ty_end = time_ns()
@@ -360,16 +358,26 @@ function D2y_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	end
 	sync_threads()
 
+	# tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
 	tb = tidx * Ny
 	if 1 <= tb <= N
 		d_y[tb] = (d_u[tb] - 2d_u[tb - 1] + d_u[tb - 2]) / h^2
 	end
 	sync_threads()
+	# if 1 <= tidx <= Ny
+	# 	d_y[tidx*Ny] = (d_u[tidx*Ny] - 2d_u[tidx*Ny - 1] + d_u[tidx*Ny - 2]) / h^2
+	# 	d_y[(tidx-1)*Ny+1] = (d_u[(tidx-1)*Ny+1] - 2d_u[(tidx-1)*Ny + 2] + d_u[(tidx-1)*Ny + 3]) / h^2
+	# end
+	# sync_threads()
 
+	# tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
 	te = (tidx-1) * Ny + 1
 	if 1 <= te <= N
 		d_y[te] = (d_u[te] - 2d_u[te + 1] + d_u[te + 2]) / h^2
 	end
+	# if 1 <= tidx <= Ny
+	# 	d_y[(tidx-1)*Ny+1] = (d_u[(tidx-1)*Ny+1] - 2d_u[(tidx-1)*Ny + 2] + d_u[(tidx-1)*Ny + 3]) / h^2
+	# end
 	sync_threads()
 	nothing
 end
