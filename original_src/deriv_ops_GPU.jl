@@ -25,7 +25,7 @@
 #BxSx_tran and BySy_tran are the transposes of BxSx and BySy
 
 
-include("deriv_ops.jl")
+# include("deriv_ops.jl")
 
 using DataFrames
 using CUDA
@@ -163,6 +163,7 @@ function tester_D2y(Nx)
 	u = randn(Nx * Ny)
 	d_u = CuArray(u)
 	d_y = similar(d_u)
+	d_y2 = similar(d_u)
 	h = 1/Nx
 	TILE_DIM=32
 	t1 = 0
@@ -177,13 +178,17 @@ function tester_D2y(Nx)
 	y = D2y(u,Nx,Ny,h)
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
 	y_gpu = collect(d_y)
-	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v2(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
-	y_gpu_2 = collect(d_y)
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v4(d_u,d_y2,Nx,Ny,h,Val(TILE_DIM))
+	y_gpu_2 = collect(d_y2)
 	@show y ≈ y_gpu
 	@show y ≈ y_gpu_2
+	# @show y_gpu - y
+	# @show y_gpu_2 - y
 
 	ty = time_ns()
 	for i in 1:rep_times
+
+
 		y = D2x(u,Nx,Ny,h)
 	end
 	ty_end = time_ns()
@@ -199,7 +204,7 @@ function tester_D2y(Nx)
 
 	t_dy_v2 = time_ns()
 	for i in 1:rep_times
-		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v2(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
+		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v4(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
 	end
 	synchronize()
 	# sync_threads()
@@ -329,6 +334,46 @@ function D2y_GPU_v2(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 
 	nothing
 end
+
+
+
+function D2y_GPU_v3(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
+	tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	N = Nx*Ny
+	if 1 <= tidx <= N
+		d_y[tidx] = (d_u[tidx] - 2d_u[tidx+1] + d_u[tidx + 2]) / h^2
+	elseif mod(tidx,Ny) == 0
+		d_y[tidx] = (d_u[tidx] - 2d_u[tidx-1] + d_u[tidx - 2]) / h^2
+	else
+		d_y[tidx] = (d_u[tidx-1] - 2d_u[tidx] + d_u[tidx + 1]) / h^2
+	end
+	nothing
+
+end
+
+
+function D2y_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
+	tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	N = Nx*Ny
+	if 2 <= tidx <= N-1
+		d_y[tidx] = (d_u[tidx-1] - 2d_u[tidx] + d_u[tidx + 1]) / h^2
+	end
+	sync_threads()
+
+	tb = tidx * Ny
+	if 1 <= tb <= N
+		d_y[tb] = (d_u[tb] - 2d_u[tb - 1] + d_u[tb - 2]) / h^2
+	end
+	sync_threads()
+
+	te = (tidx-1) * Ny + 1
+	if 1 <= te <= N
+		d_y[te] = (d_u[te] - 2d_u[te + 1] + d_u[te + 2]) / h^2
+	end
+	sync_threads()
+	nothing
+end
+
 
 function Dx(u, Nx, Ny, h)
 	N = Nx*Ny
