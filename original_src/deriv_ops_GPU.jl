@@ -157,102 +157,7 @@ function tester_D2x(Nx)
 	return Float64(t1), Float64(t2), Float64(t3)
 end
 
-function tester_D2y(Nx)
-	# Nx = Ny = 1000;
-	Ny = Nx
-	u = randn(Nx * Ny)
-	d_u = CuArray(u)
-	d_y = similar(d_u)
-	d_y2 = similar(d_u)
-	h = 1/Nx
-	TILE_DIM=32
-	t1 = 0
-	t2 = 0
-	t3 = 0
 
-	rep_times = 10
-
-	THREAD_NUM = 32
-	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
-
-	y = D2y(u,Nx,Ny,h)
-	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
-	y_gpu = collect(d_y)
-	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v4(d_u,d_y2,Nx,Ny,h,Val(TILE_DIM))
-	y_gpu_2 = collect(d_y2)
-	@show y ≈ y_gpu
-	@show y ≈ y_gpu_2
-	# @show y_gpu - y
-	# @show y_gpu_2 - y
-
-	ty = time_ns()
-	for i in 1:rep_times
-		y = D2x(u,Nx,Ny,h)
-	end
-	ty_end = time_ns()
-	t1 = ty_end - ty
-	t_dy = time_ns()
-	for i in 1:rep_times
-		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
-	end
-	synchronize()
-	# sync_threads()
-	t_dy_end = time_ns()
-	t2 = t_dy_end - t_dy
-
-	t_dy_v2 = time_ns()
-	for i in 1:rep_times
-		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v4(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
-	end
-	synchronize()
-	# sync_threads()
-	t_dy_v2_end = time_ns()
-	t3 = t_dy_v2_end - t_dy_v2
-
-	@show Float64(t1)
-	@show Float64(t2)
-	@show Float64(t3)
-
-	@show t1/t2
-	@show t1/t3
-
-	memsize = length(u) * sizeof(eltype(u))
-	@printf("CPU Through-put %20.2f\n", 2 * memsize * rep_times / t1)
-	@printf("GPU Through-put %20.2f\n", 2 * memsize * rep_times / t2)
-	@printf("GPU (v2) Through-put %20.2f\n", 2 * memsize * rep_times / t3)
-
-	return Float64(t1), Float64(t2), Float64(t3)
-end
-
-
-function tester_d2x_d2y(Nx)
-	Ny = Nx
-	u = randn(Nx * Ny)
-	d_u = CuArray(u)
-	d_y = similar(d_u)
-	d_y_new = similar(d_y)
-	u_reordered = reshape(u,Nx,Ny)
-	u_reordered_tranposed = u_reordered'
-	u_reordered_transposed_aligned = u_reordered_tranposed[:]
-	d_u_reordered_transposed_aligned = CuArray(u_reordered_transposed_aligned)
-	h = 1/Nx
-	TILE_DIM=32
-	t1 = 0
-	t2 = 0
-	t3 = 0
-
-	THREAD_NUM = 32
-	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
-
-	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
-	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU(d_u_reordered_transposed_aligned,d_y_new,Nx,Ny,h,Val(TILE_DIM))
-
-	y1 = collect(d_y)
-	y2 = collect(d_y_new)
-
-	@show y1
-	@show y2
-end
 
 function D2y(u, Nx, Ny, h)
 	N = Nx*Ny
@@ -359,20 +264,22 @@ function D2y_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	sync_threads()
 
 	# tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
-	tb = tidx * Ny
-	if 1 <= tb <= N
+	# tb = tidx * Ny
+	tb = tidx
+	if 1 <= tb <= N && mod(tb,Ny) == 0
 		d_y[tb] = (d_u[tb] - 2d_u[tb - 1] + d_u[tb - 2]) / h^2
 	end
-	sync_threads()
+	# sync_threads()
 	# if 1 <= tidx <= Ny
 	# 	d_y[tidx*Ny] = (d_u[tidx*Ny] - 2d_u[tidx*Ny - 1] + d_u[tidx*Ny - 2]) / h^2
 	# 	d_y[(tidx-1)*Ny+1] = (d_u[(tidx-1)*Ny+1] - 2d_u[(tidx-1)*Ny + 2] + d_u[(tidx-1)*Ny + 3]) / h^2
 	# end
-	# sync_threads()
+	sync_threads()
 
 	# tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
-	te = (tidx-1) * Ny + 1
-	if 1 <= te <= N
+	# te = (tidx-1) * Ny + 1
+	te = tidx
+	if 1 <= te <= N && mod(te,Ny) == 1
 		d_y[te] = (d_u[te] - 2d_u[te + 1] + d_u[te + 2]) / h^2
 	end
 	# if 1 <= tidx <= Ny
@@ -382,6 +289,105 @@ function D2y_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	nothing
 end
 
+
+function tester_D2y(Nx)
+	# Nx = Ny = 1000;
+	Ny = Nx
+	u = randn(Nx * Ny)
+	d_u = CuArray(u)
+	d_y = similar(d_u)
+	d_y2 = similar(d_u)
+	h = 1/Nx
+	TILE_DIM=32
+	t1 = 0
+	t2 = 0
+	t3 = 0
+
+	rep_times = 10
+
+	THREAD_NUM = 32
+	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
+
+	y = D2y(u,Nx,Ny,h)
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
+	y_gpu = collect(d_y)
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v4(d_u,d_y2,Nx,Ny,h,Val(TILE_DIM))
+	synchronize()
+	y_gpu_2 = collect(d_y2)
+	# @show y_gpu - y
+	# @show y_gpu_2 - y
+	@show y ≈ y_gpu
+	@show y ≈ y_gpu_2
+
+
+	ty = time_ns()
+	for i in 1:rep_times
+		y = D2x(u,Nx,Ny,h)
+	end
+	ty_end = time_ns()
+	t1 = ty_end - ty
+	t_dy = time_ns()
+	for i in 1:rep_times
+		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
+	end
+	synchronize()
+	# sync_threads()
+	t_dy_end = time_ns()
+	t2 = t_dy_end - t_dy
+
+	t_dy_v2 = time_ns()
+	for i in 1:rep_times
+		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v4(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
+	end
+	synchronize()
+	# sync_threads()
+	t_dy_v2_end = time_ns()
+	t3 = t_dy_v2_end - t_dy_v2
+
+	@show Float64(t1)
+	@show Float64(t2)
+	@show Float64(t3)
+
+	@show t1/t2
+	@show t1/t3
+
+	memsize = length(u) * sizeof(eltype(u))
+	@printf("CPU Through-put %20.2f\n", 2 * memsize * rep_times / t1)
+	@printf("GPU Through-put %20.2f\n", 2 * memsize * rep_times / t2)
+	@printf("GPU (v2) Through-put %20.2f\n", 2 * memsize * rep_times / t3)
+
+	return Float64(t1), Float64(t2), Float64(t3)
+end
+
+
+function tester_d2x_d2y(Nx)
+	Ny = Nx
+	u = randn(Nx * Ny)
+	d_u = CuArray(u)
+	d_y = similar(d_u)
+	d_y_new = similar(d_y)
+	u_reordered = reshape(u,Nx,Ny)
+	u_reordered_tranposed = u_reordered'
+	u_reordered_transposed_aligned = u_reordered_tranposed[:]
+	d_u_reordered_transposed_aligned = CuArray(u_reordered_transposed_aligned)
+	h = 1/Nx
+	TILE_DIM=32
+	t1 = 0
+	t2 = 0
+	t3 = 0
+
+	THREAD_NUM = 32
+	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
+
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU(d_u_reordered_transposed_aligned,d_y_new,Nx,Ny,h,Val(TILE_DIM))
+
+	y1 = collect(d_y)
+	y2 = collect(d_y_new)
+
+	@show y1
+	@show y2
+end
 
 function Dx(u, Nx, Ny, h)
 	N = Nx*Ny
