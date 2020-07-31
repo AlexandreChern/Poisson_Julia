@@ -92,6 +92,28 @@ function D2x_GPU_v2(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	nothing
 end
 
+function D2x_GPU_v3(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
+	tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	N = Nx*Ny
+	# d_y = zeros(N)
+	if tidx <= Ny
+		d_y[tidx] = (d_u[tidx] - 2 * d_u[Ny + tidx] + d_u[2*Ny + tidx]) / h^2
+	end
+
+	if Ny+1 <= tidx <= N-Ny
+		d_y[tidx] = (d_u[tidx - Ny] - 2 .* d_u[tidx] + d_u[tidx + Ny]) / h^2
+	end
+
+
+	if N-Ny+1 <= tidx <= N
+		d_y[tidx] = (d_u[tidx - 2*Ny] -2 * d_u[tidx - Ny] + d_u[tidx]) / h^2
+	end
+
+	sync_threads()
+
+	nothing
+end
+
 
 function tester_D2x(Nx)
 	# Nx = Ny = 1000;
@@ -289,6 +311,46 @@ function D2y_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	nothing
 end
 
+function D2y_GPU_v5(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
+	tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	N = Nx*Ny
+	if 2 <= tidx <= N-1
+		d_y[tidx] = (d_u[tidx-1] - 2d_u[tidx] + d_u[tidx + 1]) / h^2
+	end
+
+
+	if 1 <= tidx <= N && mod(tidx,Ny) == 0
+		d_y[tidx] = (d_u[tidx] - 2d_u[tidx - 1] + d_u[tidx - 2]) / h^2
+		d_y[tidx-Ny+1] = (d_u[tidx-Ny+1] - 2d_u[tidx - Ny + 2] + d_u[tidx - Ny + 3]) / h^2
+	end
+
+	# if 1 <= tidx <= N && mod(tidx,Ny) == 1
+	# 	d_y[tidx] = (d_u[tidx] - 2d_u[tidx + 1] + d_u[tidx + 2]) / h^2
+	# end
+	sync_threads()
+	nothing
+end
+
+function D2y_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
+	tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	N = Nx*Ny
+	if 2 <= tidx <= N-1
+		d_y[tidx] = (d_u[tidx-1] - 2d_u[tidx] + d_u[tidx + 1]) / h^2
+	end
+
+
+	if 1 <= tidx <= N && mod(tidx,Ny) == 0
+		d_y[tidx] = (d_u[tidx] - 2d_u[tidx - 1] + d_u[tidx - 2]) / h^2
+	end
+
+	if 1 <= tidx <= N && mod(tidx,Ny) == 1
+		d_y[tidx] = (d_u[tidx] - 2d_u[tidx + 1] + d_u[tidx + 2]) / h^2
+	end
+	sync_threads()
+	nothing
+end
+
+
 
 function tester_D2y(Nx)
 	# Nx = Ny = 1000;
@@ -311,7 +373,7 @@ function tester_D2y(Nx)
 	y = D2y(u,Nx,Ny,h)
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
 	y_gpu = collect(d_y)
-	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v4(d_u,d_y2,Nx,Ny,h,Val(TILE_DIM))
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v5(d_u,d_y2,Nx,Ny,h,Val(TILE_DIM))
 	synchronize()
 	y_gpu_2 = collect(d_y2)
 	# @show y_gpu - y
@@ -337,7 +399,7 @@ function tester_D2y(Nx)
 
 	t_dy_v2 = time_ns()
 	for i in 1:rep_times
-		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v4(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
+		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v5(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
 	end
 	synchronize()
 	# sync_threads()
