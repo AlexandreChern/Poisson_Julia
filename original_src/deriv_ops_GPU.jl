@@ -101,7 +101,7 @@ function D2x_GPU_v3(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	end
 
 	if Ny+1 <= tidx <= N-Ny
-		d_y[tidx] = (d_u[tidx - Ny] - 2 .* d_u[tidx] + d_u[tidx + Ny]) / h^2
+		d_y[tidx] = (d_u[tidx - Ny] - 2 * d_u[tidx] + d_u[tidx + Ny]) / h^2
 	end
 
 
@@ -113,6 +113,127 @@ function D2x_GPU_v3(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 
 	nothing
 end
+
+# function D2x_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}, ::Val{BLOCK_ROWS1}, ::Val{BLOCK_ROWS2}) where {TILE_DIM1, TILE_DIM2, BLOCK_ROWS1, BLOCK_ROWS2}
+function D2x_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+	tidx = threadIdx().x
+	tidy = threadIdx().y
+
+	i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+	j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+	global_index = i + (j-1)*Ny
+
+	# i = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1,TILE_DIM2+4))
+
+	k = tidx
+	l = tidy
+
+	# @unroll for k = 0:BLOCK_ROWS1:TILE_DIM1-1
+	# 	for l = 0:BLOCK_ROWS2:TILE_DIM2-1
+	# 		@inbounds tile[tidx, ] # unroll function not complete
+	# 	end
+	# end
+	# for k = 1:TILE_DIM1
+	# 	for l = 1:TILE_DIM2
+	# 		if global_index <= Nx*Ny
+	# 			tile[k,l] = d_u[global_index]
+	# 		end
+	# 	end
+	# end
+
+	# if k <= TILE_DIM1 && l <= TILE_DIM2+4 && global_index <= Nx*Ny
+	# 	tile[k,l] = d_u[global_index]
+	# end
+
+	if k <= TILE_DIM1 && l <= TILE_DIM2+2 && global_index <= Nx*Ny
+		tile[k,l+2] = d_u[global_index]
+	end
+
+	sync_threads()
+
+
+	# Periodically fill in overlapping region within shared memory
+	if k <= TILE_DIM1 && l <= 2 && 2*Ny+1 <= global_index <= (Nx+2)*Ny
+		# tile[k,l] = tile[k,l+TILE_DIM2+2]
+		tile[k,l] = d_u[global_index - 2*Ny]
+	end
+
+	sync_threads()
+
+	# for k = 1:TILE_DIM1
+	# 	for l = 1:TILE_DIM2
+
+	# 		if global_index <= Nx*Ny
+	# 			d_y[global_index] = (tile[k,l] - 2*tile[k,l+1])
+	# 		end
+	# 	end
+	# end
+
+	# if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
+	# 	d_y[global_index] = tile[k,l]
+	# end
+
+	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && global_index <= Ny
+		d_y[global_index] = (tile[k,l + 2] - 2*tile[k,l+3] + tile[k,l+4]) / h^2
+	end
+
+	if k <= TILE_DIM1 &&  l + 2 <= TILE_DIM2 + 4 && Ny+1 <= global_index <= (Nx-1)*Ny
+		d_y[global_index] = (tile[k,l + 1] - 2*tile[k, l + 2] + tile[k,l+3]) / h^2
+	end
+
+	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
+		d_y[global_index] = (tile[k,l+2] - 2*tile[k,l + 1] + tile[k,l]) / h^2
+	end
+
+	sync_threads()
+
+
+	# N = Nx*Ny
+	# # d_y = zeros(N)
+	# if tidx <= Ny
+	# 	d_y[tidx] = (d_u[tidx] - 2 * d_u[Ny + tidx] + d_u[2*Ny + tidx]) / h^2
+	# end
+	#
+	# if Ny+1 <= tidx <= N-Ny
+	# 	d_y[tidx] = (d_u[tidx - Ny] - 2 * d_u[tidx] + d_u[tidx + Ny]) / h^2
+	# end
+	#
+	#
+	# if N-Ny+1 <= tidx <= N
+	# 	d_y[tidx] = (d_u[tidx - 2*Ny] -2 * d_u[tidx - Ny] + d_u[tidx]) / h^2
+	# end
+	#
+	# sync_threads()
+
+	nothing
+end
+
+function tester_D2x_v4(Nx)
+	Ny = Nx
+	h = 1/Nx
+	TILE_DIM_1 = 2
+	TILE_DIM_2 = 8
+
+	d_u = CuArray(randn(Nx*Ny))
+	d_y = similar(d_u)
+	d_y2 = similar(d_u)
+
+	griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+	blockdim = (TILE_DIM_1,TILE_DIM_2)
+
+	TILE_DIM = 32
+	THREAD_NUM = 32
+	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
+
+	@cuda threads=blockdim blocks=griddim D2x_GPU_v4(d_u,d_y,Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU_v2(d_u, d_y2, Nx, Ny, h, Val(TILE_DIM))
+	# @show Array(d_u) ≈ Array(d_y)
+	@show Array((d_y - d_y2))
+	return nothing
+end
+
 
 
 function tester_D2x(Nx)
@@ -265,7 +386,7 @@ end
 function D2y_GPU_v3(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
 	N = Nx*Ny
-	if 1 <= tidx <= N
+	if 1 <= tidx <= N && 1 <= tidx <= N
 		d_y[tidx] = (d_u[tidx] - 2d_u[tidx+1] + d_u[tidx + 2]) / h^2
 	elseif mod(tidx,Ny) == 0
 		d_y[tidx] = (d_u[tidx] - 2d_u[tidx-1] + d_u[tidx - 2]) / h^2
@@ -373,7 +494,7 @@ function tester_D2y(Nx)
 	y = D2y(u,Nx,Ny,h)
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
 	y_gpu = collect(d_y)
-	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v5(d_u,d_y2,Nx,Ny,h,Val(TILE_DIM))
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v3(d_u,d_y2,Nx,Ny,h,Val(TILE_DIM))
 	synchronize()
 	y_gpu_2 = collect(d_y2)
 	# @show y_gpu - y
@@ -399,7 +520,7 @@ function tester_D2y(Nx)
 
 	t_dy_v2 = time_ns()
 	for i in 1:rep_times
-		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v5(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
+		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v3(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
 	end
 	synchronize()
 	# sync_threads()
