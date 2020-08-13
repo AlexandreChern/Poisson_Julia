@@ -147,7 +147,7 @@ function D2x_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	# 	tile[k,l] = d_u[global_index]
 	# end
 
-	if k <= TILE_DIM1 && l <= TILE_DIM2+2 && global_index <= Nx*Ny
+	if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
 		tile[k,l+2] = d_u[global_index]
 	end
 
@@ -161,6 +161,13 @@ function D2x_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	end
 
 	sync_threads()
+
+	if k <= TILE_DIM1 && l >= TILE_DIM2 - 2 && 2*Ny+1 <= global_index <= (Nx-2)*Ny
+		tile[k,l+4] = d_u[global_index + 2*Ny]
+	end
+
+	sync_threads()
+
 
 	# for k = 1:TILE_DIM1
 	# 	for l = 1:TILE_DIM2
@@ -184,7 +191,7 @@ function D2x_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	end
 
 	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
-		d_y[global_index] = (tile[k,l+2] - 2*tile[k,l + 1] + tile[k,l]) / h^2
+		d_y[global_index] = (tile[k,l] - 2*tile[k,l + 1] + tile[k,l+2]) / h^2
 	end
 
 	sync_threads()
@@ -210,7 +217,67 @@ function D2x_GPU_v4(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	nothing
 end
 
-function tester_D2x_v4(Nx)
+
+
+function D2x_GPU_v5(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+	tidx = threadIdx().x
+	tidy = threadIdx().y
+
+	i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+	j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+	global_index = i + (j-1)*Ny
+
+	# i = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1,TILE_DIM2+4))
+
+	k = tidx
+	l = tidy
+
+	# Writing pencil-shaped shared memory
+
+	# for tile itself
+	if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
+		tile[k,l+2] = d_u[global_index]
+	end
+
+	sync_threads()
+
+	# for left halo
+	if k <= TILE_DIM1 && l <= 2 && 2*Ny+1 <= global_index <= (Nx+2)*Ny
+		tile[k,l] = d_u[global_index - 2*Ny]
+	end
+
+	sync_threads()
+
+
+	# for right halo
+	if k <= TILE_DIM1 && l >= TILE_DIM2 - 2 && 2*Ny+1 <= global_index <= (Nx-2)*Ny
+		tile[k,l+4] = d_u[global_index + 2*Ny]
+	end
+
+	sync_threads()
+
+	# Finite difference operation starts here
+
+	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && global_index <= Ny
+		d_y[global_index] = (tile[k,l + 2] - 2*tile[k,l+3] + tile[k,l+4]) / h^2
+	end
+
+	if k <= TILE_DIM1 &&  l + 2 <= TILE_DIM2 + 4 && Ny+1 <= global_index <= (Nx-1)*Ny
+		d_y[global_index] = (tile[k,l + 1] - 2*tile[k, l + 2] + tile[k,l+3]) / h^2
+	end
+
+	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
+		d_y[global_index] = (tile[k,l] - 2*tile[k,l + 1] + tile[k,l+2]) / h^2
+	end
+
+	sync_threads()
+
+	nothing
+end
+
+function tester_D2x_v5(Nx)
 	Ny = Nx
 	h = 1/Nx
 	TILE_DIM_1 = 2
@@ -227,10 +294,10 @@ function tester_D2x_v4(Nx)
 	THREAD_NUM = 32
 	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
 
-	@cuda threads=blockdim blocks=griddim D2x_GPU_v4(d_u,d_y,Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
+	@cuda threads=blockdim blocks=griddim D2x_GPU_v5(d_u,d_y,Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU_v2(d_u, d_y2, Nx, Ny, h, Val(TILE_DIM))
-	# @show Array(d_u) ≈ Array(d_y)
-	@show Array((d_y - d_y2))
+	@show Array(d_y) ≈ Array(d_y2)
+	# @show Array((d_y - d_y2))
 	return nothing
 end
 
