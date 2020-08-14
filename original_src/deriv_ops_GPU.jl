@@ -277,6 +277,66 @@ function D2x_GPU_v5(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	nothing
 end
 
+
+# Incorrect implementations. Trying to see if I can optimize writing to shared memory
+function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+	tidx = threadIdx().x
+	tidy = threadIdx().y
+
+	i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+	j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+	global_index = i + (j-1)*Ny
+
+	# i = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1,TILE_DIM2+4))
+
+	k = tidx
+	l = tidy
+
+	# Writing pencil-shaped shared memory
+
+	# for tile itself
+	if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
+		tile[k,l+2] = d_u[global_index]
+	end
+
+	sync_threads()
+
+	# # for left halo
+	# if k <= TILE_DIM1 && l <= 2 && 2*Ny+1 <= global_index <= (Nx+2)*Ny
+	# 	tile[k,l] = d_u[global_index - 2*Ny]
+	# end
+
+	# sync_threads()
+
+
+	# # for right halo
+	# if k <= TILE_DIM1 && l >= TILE_DIM2 - 2 && 2*Ny+1 <= global_index <= (Nx-2)*Ny
+	# 	tile[k,l+4] = d_u[global_index + 2*Ny]
+	# end
+
+	# sync_threads()
+
+	# Finite difference operation starts here
+
+	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && global_index <= Ny
+		d_y[global_index] = (tile[k,l + 2] - 2*tile[k,l+3] + tile[k,l+4]) / h^2
+	end
+
+	if k <= TILE_DIM1 &&  l + 2 <= TILE_DIM2 + 4 && Ny+1 <= global_index <= (Nx-1)*Ny
+		d_y[global_index] = (tile[k,l + 1] - 2*tile[k, l + 2] + tile[k,l+3]) / h^2
+	end
+
+	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
+		d_y[global_index] = (tile[k,l] - 2*tile[k,l + 1] + tile[k,l+2]) / h^2
+	end
+
+	sync_threads()
+
+	nothing
+end
+
 function tester_D2x_v5(Nx)
 	Ny = Nx
 	h = 1/Nx
@@ -309,24 +369,34 @@ function tester_D2x(Nx)
 	u = randn(Nx * Ny)
 	d_u = CuArray(u)
 	d_y = similar(d_u)
+	d_y5 = similar(d_u)
 	h = 1/Nx
 	TILE_DIM=32
 	t1 = 0
 	t2 = 0
 	t3 = 0
 
+	TILE_DIM_1 = 1
+	TILE_DIM_2 = 1024
+
 	rep_times = 10
 
 	THREAD_NUM = 32
 	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
+
+	griddim = (div(Nx,TILE_DIM_1)+1,div(Ny,TILE_DIM_2)+1)
+	blockdim = (TILE_DIM_1,TILE_DIM_2)
 
 	y = D2x(u,Nx,Ny,h)
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
 	y_gpu = collect(d_y)
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU_v2(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
 	y_gpu_2 = collect(d_y)
+	@cuda threads=blockdim blocks=griddim D2x_GPU_v5(d_u,d_y5, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+	y_gpu_5 = collect(d_y5)
 	@show y ≈ y_gpu
 	@show y ≈ y_gpu_2
+	@show y ≈ y_gpu_5
 
 	ty = time_ns()
 	for i in 1:rep_times
@@ -334,6 +404,7 @@ function tester_D2x(Nx)
 	end
 	ty_end = time_ns()
 	t1 = ty_end - ty
+
 	t_dy = time_ns()
 	for i in 1:rep_times
 		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
@@ -352,19 +423,30 @@ function tester_D2x(Nx)
 	t_dy_v2_end = time_ns()
 	t3 = t_dy_v2_end - t_dy_v2
 
+	t_dy_v5 = time_ns()
+	for i in 1:rep_times
+		@cuda threads=blockdim blocks=griddim D2x_GPU_v5(d_u,d_y5, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+	end
+	synchronize()
+	t_dy_v5_end = time_ns()
+	t5 = t_dy_v5_end - t_dy_v5
+
 	@show Float64(t1)
 	@show Float64(t2)
 	@show Float64(t3)
+	@show Float64(t5)
 
 	@show t1/t2
 	@show t1/t3
+	@show t1/t5
 
 	memsize = length(u) * sizeof(eltype(u))
 	@printf("CPU Through-put %20.2f\n", 2 * memsize * rep_times / t1)
 	@printf("GPU Through-put %20.2f\n", 2 * memsize * rep_times / t2)
 	@printf("GPU (v2) Through-put %20.2f\n", 2 * memsize * rep_times / t3)
+	@printf("GPU (v5) Through-put %20.2f\n", 2 * memsize * rep_times / t5)
 
-	return Float64(t1), Float64(t2), Float64(t3)
+	return Float64(t1), Float64(t2), Float64(t3), Float64(t5)
 end
 
 
