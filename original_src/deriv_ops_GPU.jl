@@ -76,15 +76,18 @@ function D2x_GPU_v2(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	# d_y = zeros(N)
 	if tidx <= Ny
 		d_y[tidx] = (d_u[tidx] - 2 * d_u[Ny + tidx] + d_u[2*Ny + tidx]) / h^2
+		# (d_u[tidx] - 2 * d_u[Ny + tidx] + d_u[2*Ny + tidx]) / h^2
 	end
 
 	if Ny+1 <= tidx <= N-Ny
 		d_y[tidx] = (d_u[tidx - Ny] - 2 .* d_u[tidx] + d_u[tidx + Ny]) / h^2
+		# (d_u[tidx - Ny] - 2 .* d_u[tidx] + d_u[tidx + Ny]) / h^2
 	end
 
 
 	if N-Ny+1 <= tidx <= N
 		d_y[tidx] = (d_u[tidx - 2*Ny] -2 * d_u[tidx - Ny] + d_u[tidx]) / h^2
+		# (d_u[tidx - 2*Ny] -2 * d_u[tidx - Ny] + d_u[tidx]) / h^2
 	end
 
 	sync_threads()
@@ -262,14 +265,17 @@ function D2x_GPU_v5(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && global_index <= Ny
 		d_y[global_index] = (tile[k,l + 2] - 2*tile[k,l+3] + tile[k,l+4]) / h^2
+		# (tile[k,l + 2] - 2*tile[k,l+3] + tile[k,l+4]) / h^2
 	end
 
 	if k <= TILE_DIM1 &&  l + 2 <= TILE_DIM2 + 4 && Ny+1 <= global_index <= (Nx-1)*Ny
 		d_y[global_index] = (tile[k,l + 1] - 2*tile[k, l + 2] + tile[k,l+3]) / h^2
+		# (tile[k,l + 1] - 2*tile[k, l + 2] + tile[k,l+3]) / h^2
 	end
 
 	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
 		d_y[global_index] = (tile[k,l] - 2*tile[k,l + 1] + tile[k,l+2]) / h^2
+		# (tile[k,l] - 2*tile[k,l + 1] + tile[k,l+2]) / h^2
 	end
 
 	sync_threads()
