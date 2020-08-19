@@ -311,7 +311,7 @@ function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	sync_threads()
 
-	# # for left halo
+	# for left halo
 	if k <= TILE_DIM1 && l <= HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx+HALO_WIDTH)*Ny
 		tile[k,l] = d_u[global_index - HALO_WIDTH*Ny]
 	end
@@ -319,7 +319,7 @@ function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	sync_threads()
 
 
-	# # for right halo
+	# for right halo
 	if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
 		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 	end
@@ -332,11 +332,11 @@ function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 		d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
 	end
 
-	if k <= TILE_DIM1 &&  l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && Ny+1 <= global_index <= (Nx-1)*Ny
+	if k <= TILE_DIM1 &&  l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
 		d_y[global_index] = (tile[k,l + HALO_WIDTH-1] - 2*tile[k, l + HALO_WIDTH] + tile[k,l + HALO_WIDTH + 1]) / h^2
 	end
 
-	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
+	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && (Nx-HALO_WIDTH)*Ny + 1 <= global_index <= Nx*Ny
 		d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
 	end
 
@@ -386,9 +386,9 @@ function tester_D2x(Nx)
 	t3 = 0
 
 	TILE_DIM_1 = 1
-	TILE_DIM_2 = 1024
+	TILE_DIM_2 = 128
 
-	rep_times = 10
+	rep_times = 20
 
 	THREAD_NUM = TILE_DIM
 	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
@@ -627,6 +627,53 @@ function D2y_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	end
 	sync_threads()
 	nothing
+end
+
+
+function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+	tidx = threadIdx().x
+	tidy = threadIdx().y
+
+	i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+	j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+	global_index = i + (j-1)*Ny
+
+	HALO_WIDTH = 1
+	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
+
+	k = tidx
+	l = tidy
+
+	# Writing pencil-shaped shared memory
+
+	# for tile itself
+	if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
+		tile[k+HALO_WIDTH,l] = d_u[global_index]
+	end
+
+	sync_threads()
+
+	# For upper halo
+	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH <= global_index <= Nx*Ny * HALO_WIDTH 
+		tile[k,l] = d_u[global_index - HALO_WIDTH]
+	end
+
+	sync_threads()
+
+	# For lower halo
+	if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 && Nx - HALO_WIDTH <= global_index <= Nx*Ny - HALO_WIDTH
+		tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
+	end
+
+	sync_threads()
+
+
+	# Finite Difference Operations starts here
+
+	if k 
+	
+
 end
 
 
