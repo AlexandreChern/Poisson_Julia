@@ -285,6 +285,7 @@ end
 
 
 # Incorrect implementations. Trying to see if I can optimize writing to shared memory
+# Define arbitrary halo width
 function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
 	tidx = threadIdx().x
 	tidy = threadIdx().y
@@ -294,8 +295,9 @@ function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	global_index = i + (j-1)*Ny
 
+	HALO_WIDTH = 1
 	# i = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
-	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1,TILE_DIM2+4))
+	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1,TILE_DIM2+2*HALO_WIDTH))
 
 	k = tidx
 	l = tidy
@@ -304,38 +306,38 @@ function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	# for tile itself
 	if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
-		tile[k,l+2] = d_u[global_index]
+		tile[k,l+HALO_WIDTH] = d_u[global_index]
 	end
 
 	sync_threads()
 
 	# # for left halo
-	# if k <= TILE_DIM1 && l <= 2 && 2*Ny+1 <= global_index <= (Nx+2)*Ny
-	# 	tile[k,l] = d_u[global_index - 2*Ny]
-	# end
+	if k <= TILE_DIM1 && l <= HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx+HALO_WIDTH)*Ny
+		tile[k,l] = d_u[global_index - HALO_WIDTH*Ny]
+	end
 
-	# sync_threads()
+	sync_threads()
 
 
 	# # for right halo
-	# if k <= TILE_DIM1 && l >= TILE_DIM2 - 2 && 2*Ny+1 <= global_index <= (Nx-2)*Ny
-	# 	tile[k,l+4] = d_u[global_index + 2*Ny]
-	# end
+	if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
+		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
+	end
 
 	# sync_threads()
 
 	# Finite difference operation starts here
 
-	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && global_index <= Ny
-		d_y[global_index] = (tile[k,l + 2] - 2*tile[k,l+3] + tile[k,l+4]) / h^2
+	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && global_index <= Ny
+		d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
 	end
 
-	if k <= TILE_DIM1 &&  l + 2 <= TILE_DIM2 + 4 && Ny+1 <= global_index <= (Nx-1)*Ny
-		d_y[global_index] = (tile[k,l + 1] - 2*tile[k, l + 2] + tile[k,l+3]) / h^2
+	if k <= TILE_DIM1 &&  l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && Ny+1 <= global_index <= (Nx-1)*Ny
+		d_y[global_index] = (tile[k,l + HALO_WIDTH-1] - 2*tile[k, l + HALO_WIDTH] + tile[k,l + HALO_WIDTH + 1]) / h^2
 	end
 
-	if k <= TILE_DIM1 && l + 2 <= TILE_DIM2 + 4 && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
-		d_y[global_index] = (tile[k,l] - 2*tile[k,l + 1] + tile[k,l+2]) / h^2
+	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
+		d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
 	end
 
 	sync_threads()
@@ -360,10 +362,10 @@ function tester_D2x_v5(Nx)
 	THREAD_NUM = 32
 	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
 
-	@cuda threads=blockdim blocks=griddim D2x_GPU_v5(d_u,d_y,Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
+	@cuda threads=blockdim blocks=griddim D2x_GPU_v6(d_u,d_y,Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU_v2(d_u, d_y2, Nx, Ny, h, Val(TILE_DIM))
 	@show Array(d_y) ≈ Array(d_y2)
-	# @show Array((d_y - d_y2))
+	@show Array((d_y - d_y2))
 	return nothing
 end
 
@@ -399,7 +401,7 @@ function tester_D2x(Nx)
 	y_gpu = collect(d_y)
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU_v2(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
 	y_gpu_2 = collect(d_y)
-	@cuda threads=blockdim blocks=griddim D2x_GPU_v5(d_u,d_y5, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+	@cuda threads=blockdim blocks=griddim D2x_GPU_v6(d_u,d_y5, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
 	y_gpu_5 = collect(d_y5)
 	@show y ≈ y_gpu
 	@show y ≈ y_gpu_2
@@ -432,7 +434,7 @@ function tester_D2x(Nx)
 
 	t_dy_v5 = time_ns()
 	for i in 1:rep_times
-		@cuda threads=blockdim blocks=griddim D2x_GPU_v5(d_u,d_y5, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+		@cuda threads=blockdim blocks=griddim D2x_GPU_v6(d_u,d_y5, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
 	end
 	synchronize()
 	t_dy_v5_end = time_ns()
