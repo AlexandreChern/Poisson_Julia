@@ -346,8 +346,8 @@ end
 function tester_D2x_v5(Nx)
 	Ny = Nx
 	h = 1/Nx
-	TILE_DIM_1 = 2
-	TILE_DIM_2 = 8
+	TILE_DIM_1 = 1
+	TILE_DIM_2 = 128
 
 	d_u = CuArray(randn(Nx*Ny))
 	d_y = similar(d_u)
@@ -378,6 +378,7 @@ function tester_D2x(Nx)
 	d_y5 = similar(d_u)
 	h = 1/Nx
 	TILE_DIM=32
+	# TILE_DIM=128
 	t1 = 0
 	t2 = 0
 	t3 = 0
@@ -387,7 +388,7 @@ function tester_D2x(Nx)
 
 	rep_times = 10
 
-	THREAD_NUM = 32
+	THREAD_NUM = TILE_DIM
 	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
 
 	griddim = (div(Nx,TILE_DIM_1)+1,div(Ny,TILE_DIM_2)+1)
