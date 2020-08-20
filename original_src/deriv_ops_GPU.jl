@@ -37,13 +37,13 @@ function D2x(u, Nx, Ny, h)
 	N = Nx*Ny
 	y = zeros(N)
 	idx = 1:Ny
-	y[idx] = (u[idx] - 2 .* u[Ny .+ idx] + u[2*Ny .+ idx]) ./ h^2
+	@inbounds y[idx] = (u[idx] - 2 .* u[Ny .+ idx] + u[2*Ny .+ idx]) ./ h^2
 
 	idx1 = Ny+1:N-Ny
-	y[idx1] = (u[idx1 .- Ny] - 2 .* u[idx1] + u[idx1 .+ Ny]) ./ h^2
+	@inbounds y[idx1] = (u[idx1 .- Ny] - 2 .* u[idx1] + u[idx1 .+ Ny]) ./ h^2
 
 	idx2 = N-Ny+1:N
-	y[idx2] = (u[idx2 .- 2*Ny] -2 .* u[idx2 .- Ny] + u[idx2]) ./ h^2
+	@inbounds y[idx2] = (u[idx2 .- 2*Ny] -2 .* u[idx2 .- Ny] + u[idx2]) ./ h^2
 
 	return y
 end
@@ -75,18 +75,18 @@ function D2x_GPU_v2(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
 	N = Nx*Ny
 	# d_y = zeros(N)
 	if tidx <= Ny
-		d_y[tidx] = (d_u[tidx] - 2 * d_u[Ny + tidx] + d_u[2*Ny + tidx]) / h^2
+		@inbounds d_y[tidx] = (d_u[tidx] - 2 * d_u[Ny + tidx] + d_u[2*Ny + tidx]) / h^2
 		# (d_u[tidx] - 2 * d_u[Ny + tidx] + d_u[2*Ny + tidx]) / h^2
 	end
 
 	if Ny+1 <= tidx <= N-Ny
-		d_y[tidx] = (d_u[tidx - Ny] - 2 .* d_u[tidx] + d_u[tidx + Ny]) / h^2
+		@inbounds d_y[tidx] = (d_u[tidx - Ny] - 2 .* d_u[tidx] + d_u[tidx + Ny]) / h^2
 		# (d_u[tidx - Ny] - 2 .* d_u[tidx] + d_u[tidx + Ny]) / h^2
 	end
 
 
 	if N-Ny+1 <= tidx <= N
-		d_y[tidx] = (d_u[tidx - 2*Ny] -2 * d_u[tidx - Ny] + d_u[tidx]) / h^2
+		@inbounds d_y[tidx] = (d_u[tidx - 2*Ny] -2 * d_u[tidx - Ny] + d_u[tidx]) / h^2
 		# (d_u[tidx - 2*Ny] -2 * d_u[tidx - Ny] + d_u[tidx]) / h^2
 	end
 
@@ -306,14 +306,14 @@ function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	# for tile itself
 	if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
-		tile[k,l+HALO_WIDTH] = d_u[global_index]
+		@inbounds tile[k,l+HALO_WIDTH] = d_u[global_index]
 	end
 
 	sync_threads()
 
 	# for left halo
 	if k <= TILE_DIM1 && l <= HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx+HALO_WIDTH)*Ny
-		tile[k,l] = d_u[global_index - HALO_WIDTH*Ny]
+		@inbounds tile[k,l] = d_u[global_index - HALO_WIDTH*Ny]
 	end
 
 	sync_threads()
@@ -321,7 +321,7 @@ function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	# for right halo
 	if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
-		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
+		@inbounds tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 	end
 
 	# sync_threads()
@@ -329,15 +329,15 @@ function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	# Finite difference operation starts here
 
 	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && global_index <= Ny
-		d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
+		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
 	end
 
 	if k <= TILE_DIM1 &&  l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
-		d_y[global_index] = (tile[k,l + HALO_WIDTH-1] - 2*tile[k, l + HALO_WIDTH] + tile[k,l + HALO_WIDTH + 1]) / h^2
+		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-1] - 2*tile[k, l + HALO_WIDTH] + tile[k,l + HALO_WIDTH + 1]) / h^2
 	end
 
 	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && (Nx-HALO_WIDTH)*Ny + 1 <= global_index <= Nx*Ny
-		d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
+		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
 	end
 
 	sync_threads()
@@ -655,7 +655,7 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	sync_threads()
 
 	# For upper halo
-	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH <= global_index <= Nx*Ny * HALO_WIDTH 
+	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH <= global_index <= Nx*Ny * HALO_WIDTH
 		tile[k,l] = d_u[global_index - HALO_WIDTH]
 	end
 
@@ -671,8 +671,8 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	# Finite Difference Operations starts here
 
-	if k 
-	
+	if k
+
 
 end
 
