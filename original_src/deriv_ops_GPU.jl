@@ -716,7 +716,7 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	i = (blockIdx().x - 1) * TILE_DIM1 + tidx
 	j = (blockIdx().y - 1) * TILE_DIM2 + tidy
 
-	global_index = i + (j-1)*Ny
+	global_index = i + (j-1)*Nx
 
 	HALO_WIDTH = 1
 	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
@@ -734,14 +734,14 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	sync_threads()
 
 	# For upper halo
-	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH <= global_index <= Nx*Ny * HALO_WIDTH
+	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny + HALO_WIDTH
 		tile[k,l] = d_u[global_index - HALO_WIDTH]
 	end
 
 	sync_threads()
 
 	# For lower halo
-	if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 && Nx - HALO_WIDTH <= global_index <= Nx*Ny - HALO_WIDTH
+	if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 &&  1 <= global_index <= Nx*Ny - HALO_WIDTH
 		tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
 	end
 
@@ -750,7 +750,53 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	# Finite Difference Operations starts here
 
+	#Upper Boundary
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && mod(global_index,Nx) == 1 && i == 1 && j <= Ny
+		d_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
+	end
 
+	sync_threads()
+
+	#Center
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && 2 <= i <= Nx-1 && j <= Ny
+		d_y[global_index] = (tile[k+HALO_WIDTH-1,l] - 2*tile[k+HALO_WIDTH,l] + tile[k+HALO_WIDTH+1,l]) / h^2
+	end
+
+	sync_threads()
+
+	#Lower Boundary
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == Nx && j <= Ny
+		d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
+	end
+	
+	sync_threads()
+	
+	nothing
+
+end
+
+function tester_D2y_v7(Nx)
+	Ny = Nx
+	h = 1/Nx
+	TILE_DIM_1 = 32
+	TILE_DIM_2 = 2
+
+	d_u = CuArray(randn(Nx*Ny))
+	d_y = similar(d_u)
+	d_y2 = similar(d_u)
+
+	griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+	blockdim = (TILE_DIM_1,TILE_DIM_2)
+
+	TILE_DIM = 32
+	THREAD_NUM = 32
+	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
+
+	@cuda threads=blockdim blocks=griddim D2y_GPU_v7(d_u,d_y,Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU_v2(d_u, d_y2, Nx, Ny, h, Val(TILE_DIM))
+	@show Array(d_y) ≈ Array(d_y2)
+	@show Array((d_y - d_y2))
+	return nothing
 end
 
 
