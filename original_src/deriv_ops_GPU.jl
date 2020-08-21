@@ -728,21 +728,21 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	# for tile itself
 	if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
-		tile[k+HALO_WIDTH,l] = d_u[global_index]
+		@inbounds tile[k+HALO_WIDTH,l] = d_u[global_index]
 	end
 
 	sync_threads()
 
 	# For upper halo
 	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny + HALO_WIDTH
-		tile[k,l] = d_u[global_index - HALO_WIDTH]
+		@inbounds tile[k,l] = d_u[global_index - HALO_WIDTH]
 	end
 
 	sync_threads()
 
 	# For lower halo
 	if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny - HALO_WIDTH
-		tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
+		@inbounds tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
 	end
 
 	sync_threads()
@@ -752,26 +752,42 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	#Upper Boundary
 	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == 1 && j <= Ny
-		d_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
+		@inbounds d_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
 	end
 
 	sync_threads()
 
 	#Center
 	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && 2 <= i <= Nx-1 && j <= Ny
-		d_y[global_index] = (tile[k+HALO_WIDTH-1,l] - 2*tile[k+HALO_WIDTH,l] + tile[k+HALO_WIDTH+1,l]) / h^2
+		@inbounds d_y[global_index] = (tile[k+HALO_WIDTH-1,l] - 2*tile[k+HALO_WIDTH,l] + tile[k+HALO_WIDTH+1,l]) / h^2
 	end
 
 	sync_threads()
 
 	#Lower Boundary
 	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == Nx && j <= Ny
-		d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
+		@inbounds d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
 	end
 	
 	# if global_index <= Nx*Ny
 	# 	d_y[global_index] = tile[k+HALO_WIDTH,l]
 	# end # Check if copying data to tile is correct, checked
+
+	# UNROLL_NUM = TILE_DIM2 - 2
+
+	# for m = 1:UNROLL_NUM
+	# 	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l+m <= TILE_DIM2 && i == 1 && j <= Ny
+	# 		d_y[global_index + m*Nx] = (tile[k+HALO_WIDTH,l+m] - 2*tile[k+HALO_WIDTH+1,l+m] + tile[k+HALO_WIDTH+2,l+m]) / h^2
+	# 	end
+
+	# 	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l+m <= TILE_DIM2 && 2 <= i <= Nx-1 && j <= Ny
+	# 		d_y[global_index + m*Nx] = (tile[k+HALO_WIDTH-1,l+m] - 2*tile[k+HALO_WIDTH,l+m] + tile[k+HALO_WIDTH+1,l+m]) / h^2
+	# 	end
+
+	# 	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l+m <= TILE_DIM2 && i == Nx && j <= Ny
+	# 		d_y[global_index + m*Nx] = (tile[k+HALO_WIDTH-2,l+m] - 2*tile[k+HALO_WIDTH-1,l+m] + tile[k+HALO_WIDTH,l+m]) / h^2
+	# 	end
+	# end
 
 	sync_threads()
 	
@@ -779,10 +795,11 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 end
 
+
 function tester_D2y_v7(Nx)
 	Ny = Nx
 	h = 1/Nx
-	TILE_DIM_1 = 64
+	TILE_DIM_1 = 16
 	TILE_DIM_2 = 2
 
 	u = randn(Nx*Ny)
@@ -904,7 +921,159 @@ function tester_D2y(Nx)
 end
 
 
-zfunction tester_d2x_d2y(Nx)
+
+
+function Operator_y_GPU(d_u, d_y, d2_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+	tidx = threadIdx().x
+	tidy = threadIdx().y
+
+	i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+	j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+	global_index = i + (j-1)*Nx
+
+	HALO_WIDTH = 1
+	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
+
+	k = tidx
+	l = tidy
+
+	# Writing pencil-shaped shared memory
+
+	# for tile itself
+	if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
+		@inbounds tile[k+HALO_WIDTH,l] = d_u[global_index]
+	end
+
+	sync_threads()
+
+	# For upper halo
+	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny + HALO_WIDTH
+		@inbounds tile[k,l] = d_u[global_index - HALO_WIDTH]
+	end
+
+	sync_threads()
+
+	# For lower halo
+	if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny - HALO_WIDTH
+		@inbounds tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
+	end
+
+	sync_threads()
+
+	# Finite Difference Operations starts here
+
+	# For d2_y, output second order differential operators in y direction
+
+	#Upper Boundary
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == 1 && j <= Ny
+		@inbounds d2_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
+		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH+1,l] - tile[k+HALO_WIDTH,l]) / h
+		(tile[k+HALO_WIDTH+1,l] - tile[k+HALO_WIDTH,l]) / h
+	end
+
+	sync_threads()
+
+	#Center
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && 2 <= i <= Nx-1 && j <= Ny
+		@inbounds d2_y[global_index] = (tile[k+HALO_WIDTH-1,l] - 2*tile[k+HALO_WIDTH,l] + tile[k+HALO_WIDTH+1,l]) / h^2
+		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH+1,l] - tile[k+HALO_WIDTH-1,l]) / (2*h)
+		(tile[k+HALO_WIDTH+1,l] - tile[k+HALO_WIDTH-1,l]) / (2*h)
+	end
+
+	sync_threads()
+
+	#Lower Boundary
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == Nx && j <= Ny
+		@inbounds d2_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
+		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH,l] - tile[k+HALO_WIDTH-1,l]) / h
+		(tile[k+HALO_WIDTH,l] - tile[k+HALO_WIDTH-1,l]) / h
+	end
+
+	# For d_y, output first order differential operators in y direction
+
+	# if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == 1 && j <= Ny
+	# 	d_y[global_index] = (tile[k+HALO_WIDTH+2,l] - tile[k+HALO_WIDTH+1]) / h
+	# end
+
+	nothing
+end
+
+
+function tester_Operator_y_GPU(Nx)
+	Ny = Nx
+	h = 1/Nx
+	TILE_DIM_1 = 16
+	TILE_DIM_2 = 4
+
+	u = randn(Nx*Ny)
+	d_u = CuArray(u)
+	d_y = similar(d_u)
+	d2_y = similar(d_u)
+	d_y7 = similar(d_u)
+	y = Dy(u,Nx,Ny,h)
+	y2 = D2y(u,Nx,Ny,h)
+
+	griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+	blockdim = (TILE_DIM_1,TILE_DIM_2)
+
+	TILE_DIM = 32
+	THREAD_NUM = 32
+	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
+
+	@cuda threads=blockdim blocks=griddim Operator_y_GPU(d_u,d_y, d2_y, Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
+	@show Array(d_y) ≈ Array(y)
+	@show Array(d2_y) ≈ Array(y2)
+
+
+	# Starting test
+
+	rep_times = 10
+
+	ty = time_ns()
+	for i in 1:rep_times
+		y = Dy(u,Nx,Ny,h)
+	end
+	ty_end = time_ns()
+	t1 = ty_end - ty
+
+	memsize = length(u) * sizeof(eltype(u))
+	@printf("CPU Through-put (Dy) %20.2f\n", 2 * memsize * rep_times / t1)
+
+	t2y = time_ns()
+	for i in 1:rep_times
+		y2 = D2y(u,Nx,Ny,h)
+	end
+	t2y_end = time_ns()
+	t2 = t2y_end - t2y
+
+	@printf("CPU Through-put (D2y) %20.2f\n", 2 * memsize * rep_times / t1)
+	@printf("CPU through-put (Dy + D2y, serial) %20.2f\n", 2 * memsize * rep_times / (t1+t2))
+
+	td2y = time_ns()
+	for i in 1:rep_times
+		@cuda threads=blockdim blocks=griddim D2y_GPU_v7(d_u,d_y7, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+	end
+	synchronize()
+	td2y_end = time_ns()
+	t3 = td2y_end - td2y
+	@printf("GPU through-put (D2y_GPU_v7) %20.2f\n", 2 * memsize * rep_times / t3)
+
+	t_GPUy = time_ns()
+	for i in 1:rep_times
+		@cuda threads=blockdim blocks=griddim Operator_y_GPU(d_u,d_y, d2_y, Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
+	end
+	synchronize()
+	t_GPUy_end = time_ns()
+	t4 = t_GPUy_end - t_GPUy
+	@printf("GPU through-put (Operator_y_GPU) %20.2f\n", 2* memsize * rep_times / t4)
+
+	return Float64(t1), Float64(t2), Float64(t3), Float64(t4)
+
+	return nothing
+end
+
+function tester_d2x_d2y(Nx)
 	Ny = Nx
 	u = randn(Nx * Ny)
 	d_u = CuArray(u)
