@@ -741,7 +741,7 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	sync_threads()
 
 	# For lower halo
-	if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 &&  1 <= global_index <= Nx*Ny - HALO_WIDTH
+	if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny - HALO_WIDTH
 		tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
 	end
 
@@ -751,7 +751,7 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 	# Finite Difference Operations starts here
 
 	#Upper Boundary
-	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && mod(global_index,Nx) == 1 && i == 1 && j <= Ny
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == 1 && j <= Ny
 		d_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
 	end
 
@@ -769,6 +769,10 @@ function D2y_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 		d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
 	end
 	
+	# if global_index <= Nx*Ny
+	# 	d_y[global_index] = tile[k+HALO_WIDTH,l]
+	# end # Check if copying data to tile is correct, checked
+
 	sync_threads()
 	
 	nothing
@@ -778,12 +782,14 @@ end
 function tester_D2y_v7(Nx)
 	Ny = Nx
 	h = 1/Nx
-	TILE_DIM_1 = 32
+	TILE_DIM_1 = 64
 	TILE_DIM_2 = 2
 
-	d_u = CuArray(randn(Nx*Ny))
+	u = randn(Nx*Ny)
+	d_u = CuArray(u)
 	d_y = similar(d_u)
 	d_y2 = similar(d_u)
+	y = D2y(u,Nx,Ny,h)
 
 	griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
@@ -793,9 +799,15 @@ function tester_D2y_v7(Nx)
 	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
 
 	@cuda threads=blockdim blocks=griddim D2y_GPU_v7(d_u,d_y,Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
-	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2x_GPU_v2(d_u, d_y2, Nx, Ny, h, Val(TILE_DIM))
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v2(d_u, d_y2, Nx, Ny, h, Val(TILE_DIM))
 	@show Array(d_y) ≈ Array(d_y2)
-	@show Array((d_y - d_y2))
+	# @show Array((d_y - d_y2))
+	# @show Array((d_y - d_u))
+	# @show Array(d_y)
+	# @show y
+	# @show Array(d_y - d_y2) 
+	# @show Array(d_u)
+	# @show Array(d_y) - y
 	return nothing
 end
 
@@ -808,16 +820,23 @@ function tester_D2y(Nx)
 	d_u = CuArray(u)
 	d_y = similar(d_u)
 	d_y2 = similar(d_u)
+	d_y7 = similar(d_u)
 	h = 1/Nx
 	TILE_DIM=32
 	t1 = 0
 	t2 = 0
 	t3 = 0
 
+	TILE_DIM_1 = 16
+	TILE_DIM_2 = 4
+
 	rep_times = 10
 
 	THREAD_NUM = 32
 	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
+
+	griddim = (div(Nx,TILE_DIM_1)+1,div(Ny,TILE_DIM_2)+1)
+	blockdim = (TILE_DIM_1,TILE_DIM_2)
 
 	y = D2y(u,Nx,Ny,h)
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
@@ -825,10 +844,13 @@ function tester_D2y(Nx)
 	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v5(d_u,d_y2,Nx,Ny,h,Val(TILE_DIM))
 	synchronize()
 	y_gpu_2 = collect(d_y2)
+	@cuda threads=blockdim blocks=griddim D2y_GPU_v7(d_u,d_y7, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+	y_gpu_7 = collect(d_y7)
 	# @show y_gpu - y
 	# @show y_gpu_2 - y
 	@show y ≈ y_gpu
 	@show y ≈ y_gpu_2
+	@show y ≈ y_gpu_7
 
 
 	ty = time_ns()
@@ -855,23 +877,34 @@ function tester_D2y(Nx)
 	t_dy_v2_end = time_ns()
 	t3 = t_dy_v2_end - t_dy_v2
 
+	t_dy_v7 = time_ns()
+	for i in 1:rep_times
+		@cuda threads=blockdim blocks=griddim D2y_GPU_v7(d_u,d_y7, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+	end
+	synchronize()
+	t_dy_v7_end = time_ns()
+	t7 = t_dy_v7_end - t_dy_v7
+
 	@show Float64(t1)
 	@show Float64(t2)
 	@show Float64(t3)
+	@show Float64(t7)
 
 	@show t1/t2
 	@show t1/t3
+	@show t1/t7
 
 	memsize = length(u) * sizeof(eltype(u))
 	@printf("CPU Through-put %20.2f\n", 2 * memsize * rep_times / t1)
 	@printf("GPU Through-put %20.2f\n", 2 * memsize * rep_times / t2)
 	@printf("GPU (v2) Through-put %20.2f\n", 2 * memsize * rep_times / t3)
+	@printf("GPU (v7) Through-put %20.2f\n", 2 * memsize * rep_times / t7)
 
 	return Float64(t1), Float64(t2), Float64(t3)
 end
 
 
-function tester_d2x_d2y(Nx)
+zfunction tester_d2x_d2y(Nx)
 	Ny = Nx
 	u = randn(Nx * Ny)
 	d_u = CuArray(u)
