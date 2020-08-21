@@ -900,7 +900,7 @@ function tester_D2y(Nx)
 	@printf("GPU (v2) Through-put %20.2f\n", 2 * memsize * rep_times / t3)
 	@printf("GPU (v7) Through-put %20.2f\n", 2 * memsize * rep_times / t7)
 
-	return Float64(t1), Float64(t2), Float64(t3)
+	return Float64(t1), Float64(t2), Float64(t3), Float64(t7)
 end
 
 
