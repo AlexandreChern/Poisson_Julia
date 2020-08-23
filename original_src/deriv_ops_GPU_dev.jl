@@ -336,15 +336,17 @@ function D2x_GPU_v6(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	# Finite difference operation starts here
 
+	# Using global_index is wrong here. Because i,j could be larger than Nx, and Ny, which makes accessing through global_index is not unique.
+	# It can cause memory issue.
 	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && global_index <= Ny
 		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
 	end
 
-	if k <= TILE_DIM1 &&  l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
+	if k <= TILE_DIM1 &&  l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && Ny+1 <= global_index <= (Nx-1)*Ny
 		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-1] - 2*tile[k, l + HALO_WIDTH] + tile[k,l + HALO_WIDTH + 1]) / h^2
 	end
 
-	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && (Nx-HALO_WIDTH)*Ny + 1 <= global_index <= Nx*Ny
+	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
 		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
 	end
 
@@ -407,15 +409,27 @@ function D2x_GPU_v7(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) whe
 
 	# Finite difference operation starts here
 
-	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && global_index <= Ny
+	# if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && global_index <= Ny
+	# 	@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
+	# end
+
+	# if k <= TILE_DIM1 &&  l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && Ny+1 <= global_index <= (Nx-1)*Ny
+	# 	@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-1] - 2*tile[k, l + HALO_WIDTH] + tile[k,l + HALO_WIDTH + 1]) / h^2
+	# end
+
+	# if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && (Nx-1)*Ny + 1 <= global_index <= Nx*Ny
+	# 	@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
+	# end
+
+	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && i <= Ny && j == 1
 		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
 	end
 
-	if k <= TILE_DIM1 &&  l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
+	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && i <= Ny && 2 <= j <= Nx - 1
 		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-1] - 2*tile[k, l + HALO_WIDTH] + tile[k,l + HALO_WIDTH + 1]) / h^2
 	end
 
-	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && (Nx-HALO_WIDTH)*Ny + 1 <= global_index <= Nx*Ny
+	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && i <= Ny && j == Nx
 		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
 	end
 
@@ -427,8 +441,8 @@ end
 function tester_D2x_v5(Nx)
 	Ny = Nx
 	h = 1/Nx
-	TILE_DIM_1 = 2
-	TILE_DIM_2 = 256
+	TILE_DIM_1 = 4
+	TILE_DIM_2 = 4
 
 	d_u = CuArray(randn(Nx*Ny))
 	d_y = similar(d_u)
@@ -799,8 +813,8 @@ end
 function tester_D2y_v7(Nx)
 	Ny = Nx
 	h = 1/Nx
-	TILE_DIM_1 = 16
-	TILE_DIM_2 = 2
+	TILE_DIM_1 = 4
+	TILE_DIM_2 = 16
 
 	u = randn(Nx*Ny)
 	d_u = CuArray(u)
@@ -816,8 +830,11 @@ function tester_D2y_v7(Nx)
 	BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
 
 	@cuda threads=blockdim blocks=griddim D2y_GPU_v7(d_u,d_y,Nx,Ny,h,Val(TILE_DIM_1),Val(TILE_DIM_2))
-	@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v2(d_u, d_y2, Nx, Ny, h, Val(TILE_DIM))
-	@show Array(d_y) ≈ Array(d_y2)
+	# @cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU_v2(d_u, d_y2, Nx, Ny, h, Val(TILE_DIM))
+	# @show Array(d_y) ≈ Array(d_y2)
+	@show Array(d_y) ≈ y
+	@show y
+	@show d_y
 	# @show Array((d_y - d_y2))
 	# @show Array((d_y - d_u))
 	# @show Array(d_y)
