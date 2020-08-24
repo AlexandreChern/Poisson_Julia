@@ -5,8 +5,45 @@ using GPUifyLoops: @unroll
 
 include("deriv_ops.jl")
 
+function D2x(u, Nx, Ny, h)
+	N = Nx*Ny
+	y = zeros(N)
+	idx = 1:Ny
+	@inbounds y[idx] = (u[idx] - 2 .* u[Ny .+ idx] + u[2*Ny .+ idx]) ./ h^2
 
-function D2x_GPU(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+	idx1 = Ny+1:N-Ny
+	@inbounds y[idx1] = (u[idx1 .- Ny] - 2 .* u[idx1] + u[idx1 .+ Ny]) ./ h^2
+
+	idx2 = N-Ny+1:N
+	@inbounds y[idx2] = (u[idx2 .- 2*Ny] -2 .* u[idx2 .- Ny] + u[idx2]) ./ h^2
+
+	return y
+end
+
+function D2x_GPU(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM}) where {TILE_DIM}
+	tidx = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	N = Nx*Ny
+	# d_y = zeros(N)
+	if tidx <= Ny
+		d_y[tidx] = (d_u[tidx] - 2 * d_u[Ny + tidx] + d_u[2*Ny + tidx]) / h^2
+	end
+	sync_threads()
+
+	if Ny+1 <= tidx <= N-Ny
+		d_y[tidx] = (d_u[tidx - Ny] - 2 .* d_u[tidx] + d_u[tidx + Ny]) / h^2
+	end
+
+	sync_threads()
+
+	if N-Ny+1 <= tidx <= N
+		d_y[tidx] = (d_u[tidx - 2*Ny] -2 * d_u[tidx - Ny] + d_u[tidx]) / h^2
+	end
+	sync_threads()
+
+	nothing
+end
+
+function D2x_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
     tidx = threadIdx().x
     tidy = threadIdx().y
 
@@ -81,7 +118,7 @@ function D2x_GPU(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where 
 end
 
 
-function D2y_GPU(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+function D2y_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
     tidx = threadIdx().x
     tidy = threadIdx().y
 
@@ -158,9 +195,11 @@ end
 
 function tester_function(f,Nx,TILE_DIM_1,TILE_DIM_2)
     Ny = Nx
-    @show f
-    @eval gpu_function = $(Symbol(f,"_GPU"))
-    @show gpu_function
+	@show f
+	@eval gpu_function = $(Symbol(f,"_GPU"))
+	@eval gpu_function_shared = $(Symbol(f,"_GPU_shared"))
+	@show gpu_function
+    @show gpu_function_shared
     h = 1/Nx
 	# TILE_DIM_1 = 16
 	# TILE_DIM_2 = 2
@@ -168,7 +207,7 @@ function tester_function(f,Nx,TILE_DIM_1,TILE_DIM_2)
 	u = randn(Nx*Ny)
 	d_u = CuArray(u)
 	d_y = similar(d_u)
-	# d_y2 = similar(d_u)
+	d_y2 = similar(d_u)
 
 	griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
@@ -177,10 +216,11 @@ function tester_function(f,Nx,TILE_DIM_1,TILE_DIM_2)
 	THREAD_NUM = 32
     BLOCK_NUM = div(Nx * Ny,TILE_DIM) + 1
     
-    y = f(u,Nx,Ny,h)
-    @cuda threads=blockdim blocks=griddim gpu_function(d_u, d_y, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
-	@show y ≈ Array(d_y)
-	@show y - Array(d_y)
+	y = f(u,Nx,Ny,h)
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM gpu_function(d_u, d_y, Nx, Ny, h, Val(TILE_DIM))
+    @cuda threads=blockdim blocks=griddim gpu_function_shared(d_u, d_y2, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+	@show y ≈ Array(d_y2)
+	# @show y - Array(d_y2)
 	
 	rep_times = 10
 
@@ -191,13 +231,21 @@ function tester_function(f,Nx,TILE_DIM_1,TILE_DIM_2)
 	t_y_end = time_ns()
 	t1 = t_y_end - t_y
 
-	t_dy = time_ns()
+	t_d_y = time_ns()
 	for i in 1:rep_times
-		@cuda threads=blockdim blocks=griddim gpu_function(d_u, d_y, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+		@cuda threads=THREAD_NUM blocks=BLOCK_NUM gpu_function(d_u, d_y, Nx, Ny, h, Val(TILE_DIM))
 	end
 	synchronize()
-	t_dy_end = time_ns()
-	t2 = t_dy_end - t_dy
+	t_d_y_end = time_ns()
+	t2 = t_d_y_end - t_d_y
+
+	t_d_y2 = time_ns()
+	for i in 1:rep_times
+		@cuda threads=blockdim blocks=griddim gpu_function_shared(d_u, d_y, Nx, Ny, h, Val(TILE_DIM_1), Val(TILE_DIM_2))
+	end
+	synchronize()
+	t_d_y2_end = time_ns()
+	t3 = t_d_y2_end - t_d_y2
 
 	@show Float64(t1)
 	@show Float64(t2)
@@ -206,7 +254,8 @@ function tester_function(f,Nx,TILE_DIM_1,TILE_DIM_2)
 
 	memsize = length(u) * sizeof(eltype(u))
 	@printf("CPU Through-put %20.2f\n", 2 * memsize * rep_times / t1)
-	@printf("GPU Through-put %20.2f\n", 2 * memsize * rep_times / t2)
+	@printf("GPU Through-put (naive) %20.2f\n", memsize * rep_times / t2)
+	@printf("GPU Through-put %20.2f\n", 2 * memsize * rep_times / t3)
 
 end
 
