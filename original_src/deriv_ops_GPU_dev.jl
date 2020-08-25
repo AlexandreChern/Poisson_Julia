@@ -893,6 +893,7 @@ function tester_D2y(Nx)
 	end
 	ty_end = time_ns()
 	t1 = ty_end - ty
+	
 	t_dy = time_ns()
 	for i in 1:rep_times
 		@cuda threads=THREAD_NUM blocks=BLOCK_NUM D2y_GPU(d_u,d_y,Nx,Ny,h,Val(TILE_DIM))
