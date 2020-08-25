@@ -1278,7 +1278,31 @@ function Bx(Nx,Ny)
 	return y
 end
 
+function Bx(u,Nx,Ny,h)
+	N = Nx*Ny
+	y = zeros(N)
+
+	idx = 1:Ny
+	y[idx] = -1 .* ones(Ny)
+
+	idx = N-Ny+1:N
+	y[idx] = 1 .* ones(Ny)
+	return y
+end
+
 function By(Nx,Ny)
+	N = Nx*Ny
+	y = zeros(N)
+
+	idx = 1:Ny:N-Ny+1
+	y[idx] = -1 .* ones(Ny)
+
+	idx = Ny:Ny:N
+	y[idx] = 1 .* ones(Ny)
+	return y
+end
+
+function By(u,Nx,Ny,h)
 	N = Nx*Ny
 	y = zeros(N)
 
