@@ -930,6 +930,183 @@ function BySy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}
 
 end
 
+function BxSx_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+	tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    # for global memory indexing
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+    global_index = i + (j - 1) * Ny
+
+    HALO_WIDTH = 1 # For second order derivative
+
+    tile = @cuStaticSharedMem(eltype(d_u), (TILE_DIM1, TILE_DIM2 + 2 * HALO_WIDTH))
+
+    # for tile indexing
+    k = tidx
+    l = tidy
+
+    
+	# Writing pencil-shaped shared memory
+
+	# for tile itself
+	# if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
+	if k <= TILE_DIM1 && l <= TILE_DIM2 && i <= Ny && j <= Nx
+		# @inbounds tile[k,l+HALO_WIDTH] = d_u[global_index]
+		 tile[k,l+HALO_WIDTH] = d_u[global_index]
+    end
+    
+    sync_threads()
+
+	# for left halo
+	# if k <= TILE_DIM1 && l <= HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx+HALO_WIDTH)*Ny
+	if k <= TILE_DIM1 && l <= HALO_WIDTH && i <= Ny && HALO_WIDTH+1 <= j <= HALO_WIDTH + Nx 
+		# @inbounds tile[k,l] = d_u[global_index - HALO_WIDTH*Ny]
+		tile[k,l] = d_u[global_index - HALO_WIDTH*Ny]
+	end
+
+	sync_threads()
+
+
+	# for right halo
+	# if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
+	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
+		# @inbounds tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
+		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
+	end
+
+    sync_threads()
+
+	# Finite difference operation starts here
+	
+
+	# Center
+	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH - 1 && i <= Ny && 4 <= j <= Nx-3
+		# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-1] - 2*tile[k, l + HALO_WIDTH] + tile[k,l + HALO_WIDTH + 1]) / h^2
+		d_y[global_index] = 0.0
+	end
+
+	# Left Boundary
+	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH -2 && i <= Ny && j == 1
+		# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
+		d_y[global_index] = (1.5 * tile[k,l+HALO_WIDTH]) / h
+		d_y[global_index + Ny] = (-2.0 * tile[k,l+HALO_WIDTH])/h
+		d_y[global_index + 2*Ny] = (0.5 * tile[k,l+HALO_WIDTH])/h
+	end
+
+	# if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH -2 && i <= Ny && j == 2
+	# 	# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
+	# 	d_y[global_index] = (-2.0 * tile[k,l+HALO_WIDTH]) / h
+	# end
+
+	# if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH -2 && i <= Ny && j == 3
+	# 	# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
+	# 	d_y[global_index] = (0.5 * tile[k,l+HALO_WIDTH]) / h
+	# end
+
+
+	# Right Boundary
+	if k <= TILE_DIM1 && 3 <= l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && i <= Ny && j == Nx
+		# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
+		d_y[global_index] = (1.5 * tile[k,l+HALO_WIDTH]) / h
+		d_y[global_index - Ny] = (-2.0 * tile[k, l+HALO_WIDTH])/h
+		d_y[global_index - 2*Ny] = (0.5 * tile[k, l+HALO_WIDTH])/h
+	end
+
+	# if k <= TILE_DIM1 && 3 <= l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && i <= Ny && j == Nx - 1
+	# 	# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
+	# 	d_y[global_index] = (-2.0 * tile[k,l+HALO_WIDTH]) / h
+	# end
+
+	# if k <= TILE_DIM1 && 3 <= l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && i <= Ny && j == Nx - 2
+	# 	# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
+	# 	d_y[global_index] = (0.5 * tile[k,l+HALO_WIDTH]) / h
+	# end
+
+    sync_threads()
+    
+    nothing
+end
+
+function BySy_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+	i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+	j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+	global_index = i + (j-1)*Nx
+
+	HALO_WIDTH = 1
+	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
+
+	k = tidx
+	l = tidy
+
+    # Writing pencil-shaped shared memory
+
+    # for tile itself
+	# if k <= TILE_DIM1 && l <= TILE_DIM2 && global_index <= Nx*Ny
+	if k <= TILE_DIM1 && l <= TILE_DIM2 && i <= Ny && j <= Nx
+		# @inbounds tile[k+HALO_WIDTH,l] = d_u[global_index]
+		tile[k+HALO_WIDTH,l] = d_u[global_index]
+	end
+
+	sync_threads()
+
+	# For upper halo
+	# if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny + HALO_WIDTH
+	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= i <= Ny && j <= Nx
+		# @inbounds tile[k,l] = d_u[global_index - HALO_WIDTH]
+		tile[k,l] = d_u[global_index - HALO_WIDTH]
+	end
+
+	sync_threads()
+
+	# For lower halo
+	# if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny - HALO_WIDTH
+	if  TILE_DIM1 - HALO_WIDTH <= k <= TILE_DIM1 && l <= TILE_DIM2 && i <= Ny - HALO_WIDTH && j <= Nx
+		# @inbounds tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
+		tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
+	end
+
+    sync_threads()
+    
+    # Finite Difference Operations starts 
+
+    #Upper Boundary
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == 1 && j <= Ny
+		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
+		d_y[global_index] = (1.5*tile[k+HALO_WIDTH,l]) / h
+		d_y[global_index + 1] = (-2.0*tile[k+HALO_WIDTH,l]) / h
+		d_y[global_index + 2] = (0.5*tile[k+HALO_WIDTH,l])/h
+	end
+
+	sync_threads()
+
+	#Center
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && 4 <= i <= Nx-3 && j <= Ny
+		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH-1,l] - 2*tile[k+HALO_WIDTH,l] + tile[k+HALO_WIDTH+1,l]) / h^2
+		d_y[global_index] = 0.0
+	end
+
+	sync_threads()
+
+	#Lower Boundary
+	if 3 <= k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == Nx && j <= Ny
+		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
+		d_y[global_index] = (1.5*tile[k+HALO_WIDTH,l]) / h
+		d_y[global_index-1] = (-2.0 * tile[k+HALO_WIDTH,l]) / h
+		d_y[global_index-2] = (0.5 * tile[k+HALO_WIDTH,l])/h
+    end
+    
+    sync_threads()
+
+    nothing
+
+end
 
 # tester_function : This gives evaluation on CPU, GPU, GPU_shared 
 function tester_function(f,Nx,TILE_DIM_1,TILE_DIM_2,TILE_DIM)

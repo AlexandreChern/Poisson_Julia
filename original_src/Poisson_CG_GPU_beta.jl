@@ -1,5 +1,5 @@
 include("deriv_ops_beta.jl")
-
+include("deriv_ops_GPU.jl")
 
 using SparseArrays
 using LinearMaps
