@@ -1108,6 +1108,44 @@ function BySy_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_
 
 end
 
+function FACEtoVOL_GPU_shared(d_y, u_face, face, Nx, Ny, ::Val{TILE_DIM}) where {TILE_DIM} #, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+	# tidx = threadIdx().x
+	# i = (blockIdx().x - 1)*TILE_DIM + tidx
+	i = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+	N = Nx*Ny
+
+	if i <= N
+		d_y[i] = 0.0
+	end
+
+	sync_threads()
+
+	if face == 1 && i <= N && mod(i,Ny) == 1 
+		d_y[i] = u_face
+	end
+
+	sync_threads()
+
+	if face == 2 && i <= N && mod(i,Ny) == 0
+		d_y[i] = u_face
+	end
+
+	sync_threads()
+
+	if face == 3 && i <= Ny
+		d_y[i] = u_face
+	end
+
+	sync_threads()
+
+	if face == 4 && N-Ny+1 <= i <= N
+		d_y[i] = u_face
+	end
+	sync_threads()
+
+	nothing
+end
+
 # tester_function : This gives evaluation on CPU, GPU, GPU_shared 
 function tester_function(f,Nx,TILE_DIM_1,TILE_DIM_2,TILE_DIM)
     Ny = Nx
@@ -1338,6 +1376,58 @@ function tester_function_v3(f,Nx,TILE_DIM_1,TILE_DIM_2)
 	@show Float64(t3)
 	@show Float64(t1)/Float64(t3)
 	@printf("GPU Through-put (shared memory)%20.2f\n", 2 * memsize * rep_times / t3)
+
+end
+
+
+function tester_function_FV(f,u_face,face,Nx,TILE_DIM)
+	Ny = Nx
+	N = Ny*Nx
+	@show f
+	# @eval gpu_function = $(Symbol(f,"_GPU"))
+	@eval gpu_function_shared = $(Symbol(f,"_GPU_shared"))
+	# @show gpu_function
+    @show gpu_function_shared
+	y = zeros(N)
+	d_y = CuArray(y)
+
+	# u_face = 2
+	# face = 2
+
+	THREAD_NUM = TILE_DIM
+	BLOCK_NUM = (N + TILE_DIM-1, TILE_DIM)
+
+	y = f(u_face, face, Nx, Ny)
+
+	@cuda threads=THREAD_NUM blocks=BLOCK_NUM gpu_function_shared(d_y,u_face,face,Nx,Ny,Val(TILE_DIM))
+
+	@show y ≈ Array(d_y)
+	# @show y
+	# @show Array(d_y)
+	# @show y - Array(d_y)
+
+	rep_times = 10
+	memsize = length(y) * sizeof(eltype(y))
+
+	t_y = time_ns()
+	for i in 1:rep_times
+		y .= f(u_face, face, Nx, Ny)
+	end
+	t_y_end = time_ns()
+	t1 = t_y_end - t_y
+	@show Float64(t1)
+	@printf("CPU Through-put %20.2f\n", 2 * memsize * rep_times / t1)
+
+
+	t_d_y = time_ns()
+	for i in rep_times
+		@cuda threads=THREAD_NUM blocks=BLOCK_NUM gpu_function_shared(d_y,u_face,face,Nx,Ny,Val(TILE_DIM))
+	end
+	synchronize()
+	t_d_y_end = time_ns()
+	t2 = t_d_y_end - t_d_y
+	@show Float64(t2)
+	@printf("GPU Through-put (naive) %20.2f\n", 2 * memsize * rep_times / t2)
 
 end
 

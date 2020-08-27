@@ -1241,7 +1241,7 @@ function FACEtoVOL(u_face, face, Nx, Ny)
 	else
 	end
 
-	y[idx] = u_face
+	y[idx] .= u_face
 
 	return y
 
