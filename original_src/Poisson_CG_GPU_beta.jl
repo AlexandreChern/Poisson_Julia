@@ -162,6 +162,7 @@ mutable struct intermediates_GPU_mutable
     du16::CuArray{Float64,1}
     du17::CuArray{Float64,1}
     du0::CuArray{Float64,1}
+    du::CuArray{Float64,1}
 end
 
 # Nx = 10
@@ -180,7 +181,7 @@ function myMAT_beta_GPU!(du::AbstractVector, u::AbstractVector, container, var_t
 
     N = Nx*Ny
     cu_zeros = CuArray(zeros(N))
-    iGm = intermediates_GPU_mutable(Nx,Ny,N,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros);
+    iGm = intermediates_GPU_mutable(Nx,Ny,N,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros);
 
     TILE_DIM_1 = 4
     TILE_DIM_2 = 16
@@ -191,17 +192,62 @@ function myMAT_beta_GPU!(du::AbstractVector, u::AbstractVector, container, var_t
     blockdim_x = (TILE_DIM_1,TILE_DIM_2)
     blockdim_y = (TILE_DIM_2,TILE_DIM_1)
 
-    @show typeof(u)
-    @show typeof(iGm.du_x)
-    @show blockdim_x
-    @show griddim_x
-    @show size(u)
-    @show size(iGm.du_x)
+    # @show typeof(u)
+    # @show typeof(iGm.du_x)
+    # @show blockdim_x
+    # @show griddim_x
+    # @show size(u)
+    # @show size(iGm.du_x)
     @cuda threads=blockdim_x blocks=griddim_x D2x_GPU_shared(u,iGm.du_x, Nx, Ny, hx, Val(TILE_DIM_1), Val(TILE_DIM_2))
+    # @show Array(iGm.du_x)
+    output = Array(iGm.du_x)
+    synchronize()
     @cuda threads=blockdim_y blocks=griddim_y D2y_GPU_shared(u,iGm.du_y, Nx, Ny, hy, Val(TILE_DIM_2), Val(TILE_DIM_1))
+    synchronize()
     du_ops = iGm.du_x + iGm.du_y
+    output2 = Array(du_ops)
     @cuda threads=blockdim_y blocks=griddim_y BySy_GPU_shared(u,iGm.du1, Nx, Ny, hy, Val(TILE_DIM_2), Val(TILE_DIM_1))
-    du2 = VOLtoFACE_beta(Array(iGm.du1),1,Nx,Ny,N,yv2fs)
+    synchronize()
+    iGm.du2 .= CuArray(VOLtoFACE_beta(Array(iGm.du1),1,Nx,Ny,N,yv2fs))
+    @cuda threads=blockdim_y blocks=griddim_y Hyinv_GPU_shared(iGm.du2,iGm.du3,Nx,Ny,hy, Val(TILE_DIM_2), Val(TILE_DIM_1))
+    synchronize()
+    iGm.du3 = alpha1 * iGm.du3
+
+    iGm.du5 = VOLtoFACE_beta(Array(iGm.du1),2,Nx,Ny,N,yv2fs)
+    @cuda threads=blockdim_y blocks=griddim_y Hyinv_GPU_shared(iGm.du5,iGm.du6,Nx,Ny,hy, Val(TILE_DIM_2), Val(TILE_DIM_1))
+    synchronize()
+    iGm.du6 = alpha2 * iGm.du6
+
+    iGm.du7 = CuArray(VOLtoFACE_beta(Array(u),3,Nx,Ny,N,yv2fs))
+    @cuda threads=blockdim_x blocks=griddim_x BxSx_tran_GPU_shared(iGm.du7,iGm.du8,Nx,Ny,hx,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    synchronize()
+    @cuda threads=blockdim_x blocks=griddim_x Hxinv_GPU_shared(iGm.du8,iGm.du9,Nx,Ny,hx, Val(TILE_DIM_1), Val(TILE_DIM_2))
+    synchronize()
+    iGm.du9 = beta * iGm.du9
+
+    @cuda threads=blockdim_x blocks=griddim_x Hxinv_GPU_shared(iGm.du7,iGm.du11,Nx,Ny,hx, Val(TILE_DIM_1), Val(TILE_DIM_2))
+    synchronize()
+    iGm.du11 =alpha3 * iGm.du11
+
+    du12 = CuArray(VOLtoFACE_beta(Array(u),4,Nx,Ny,N,yv2fs))
+    @cuda threads=blockdim_x blocks=griddim_x BxSx_tran_GPU_shared(iGm.du12,iGm.du13,Nx,Ny,hx,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    synchronize()
+    @cuda threads=blockdim_x blocks=griddim_x Hxinv_GPU_shared(iGm.du13,iGm.du14,Nx,Ny,hx,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    synchronize()
+    iGm.du14 = alpha4 * iGm.du14
+    @cuda threads=blockdim_x blocks=griddim_x Hxinv_GPU_shared(iGm.du12,iGm.du16,Nx,Ny,hx,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    synchronize()
+    iGm.du16 = alpha4 * iGm.du16
+    iGm.du0 = du_ops + iGm.du3 + iGm.du6 + iGm.du9 + iGm.du11 + iGm.du14 + iGm.du16
+    @cuda threads=blockdim_y blocks=griddim_x Hy_GPU_shared(iGm.du0,iGm.du17,Nx,Ny,hx,Val(TILE_DIM_1),Val(TILE_DIM_2))
+    synchronize()
+    @cuda threads=blockdim_x blocks=griddim_x Hx_GPU_shared(iGm.du17,iGm.du,Nx,Ny,hx,Val(TILE_DIM_2),Val(TILE_DIM_2))
+    synchronize()
+    # return Array(iGm.du_x)
+    # @show output
+    output_final = Array(iGm.du_y)
+    return output_final
+    # return output2
 end
 
 function myMAT_beta!(du::AbstractVector, u::AbstractVector,container,var_test,intermediate)
@@ -300,6 +346,7 @@ du = zeros(N);
 u = zeros(N);
 
 
+
 function conjugate(myMAT_beta!,b,container,var,intermediate,maxIteration)
     @unpack N, y_D2x, y_D2y, y_Dx, y_Dy, y_Hxinv, y_Hyinv, yv2f1, yv2f2, yv2f3, yv2f4, yv2fs, yf2v1, yf2v2, yf2v3, yf2v4, yf2vs, y_Bx, y_By, y_BxSx, y_BySy, y_BxSx_tran, y_BySy_tran, y_Hx, y_Hy = container
     @unpack Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta = var
@@ -368,6 +415,51 @@ function conjugate_beta(myMAT_beta!,r,b,container,var,intermediate,maxIteration)
     end
     return u, counts
 end
+
+
+function conjugate_beta_GPU(myMAT_beta_GPU!,r,b,container,var,intermediate,maxIteration)
+    @unpack N, y_D2x, y_D2y, y_Dx, y_Dy, y_Hxinv, y_Hyinv, yv2f1, yv2f2, yv2f3, yv2f4, yv2fs, yf2v1, yf2v2, yf2v3, yf2v4, yf2vs, y_Bx, y_By, y_BxSx, y_BySy, y_BxSx_tran, y_BySy_tran, y_Hx, y_Hy = container
+    @unpack Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta = var
+    # @unpack du_ops,du1,du2,du3,du4,du5,du6,du7,du8,du9,du10,du11,du12,du13,du14,du15,du16,du17,du0 = intermediate
+
+    # u = zeros(N);
+    # du = zeros(N);
+    u = CuArray(zeros(N))
+    du = CuArray(zeros(N))
+    tol = 1e-16
+
+    r .= b .- Array(myMAT_beta_GPU!(du,u,container,var))
+    p = copy(r)
+    Ap = similar(u)
+    rsold = r'*r
+    counts = 0
+    # maxIteration = 1000
+    for i = 1:maxIteration
+        Ap = Array(myMAT_beta_GPU!(du,CuArray(p),container,var))   # can't simply translate MATLAB code, p = r create a link from p to r, once p modified, r will be modified
+        Ap = Array(Ap)
+        alpha = rsold / (p'*Ap)
+        #u = u + alpha * p
+        axpy!(alpha,p,Array(u)) # BLAS function
+        #r = r - alpha * Ap
+        axpy!(-alpha,Ap,r)
+        rsnew = r'*r
+        if sqrt(rsnew) < tol
+            break
+        end
+        #p = r + (rsnew/rsold) * p
+        #p .= r .+ (rsnew/rsold) .*p
+        p .= (rsnew/rsold) .* p .+ r
+
+        rsold = rsnew;
+        counts += 1
+        #return rsold;
+    end
+    return u, counts
+end
+
+(uGPU, countsGPU) = conjugate_beta_GPU(myMAT_beta_GPU!,r,b,container,var,intermediate,100)
+conjugate_beta_GPU(myMAT_beta_GPU!,r,b,container,var,intermediate,100)
+
 
 (u1,counts1) = conjugate_beta(myMAT_beta!,r,b,container,var,intermediate,1000)
 u1 = copy(u1)
