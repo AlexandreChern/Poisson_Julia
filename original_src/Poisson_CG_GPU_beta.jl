@@ -112,8 +112,97 @@ container = containers()
     du0 = zeros(N)
 end
 
+@with_kw struct intermediates_GPU
+    Nx = Int64(1001)
+    Ny = Int64(1001)
+    N = Nx*Ny
+    du_ops = CuArray(zeros(N))
+    du1 = CuArray(zeros(N))
+    du2 = CuArray(zeros(N))
+    du3 = CuArray(zeros(N))
+    du4 = CuArray(zeros(N))
+    du5 = CuArray(zeros(N))
+    du6 = CuArray(zeros(N))
+    du7 = CuArray(zeros(N))
+    du8 = CuArray(zeros(N))
+    du9 = CuArray(zeros(N))
+    du10 = CuArray(zeros(N))
+    du11 = CuArray(zeros(N))
+    du12 = CuArray(zeros(N))
+    du13 = CuArray(zeros(N))
+    du14 = CuArray(zeros(N))
+    du15 = CuArray(zeros(N))
+    du16 = CuArray(zeros(N))
+    du17 = CuArray(zeros(N))
+    du0 = CuArray(zeros(N))
+end
+
+mutable struct intermediates_GPU_mutable
+    Nx::Int64
+    Ny::Int64
+    N::Int64
+    # du_ops::CuArray{Float64,1}
+    du_x::CuArray{Float64,1}
+    du_y::CuArray{Float64,1}
+    du1::CuArray{Float64,1}
+    du2::CuArray{Float64,1}
+    du3::CuArray{Float64,1}
+    du4::CuArray{Float64,1}
+    du5::CuArray{Float64,1}
+    du6::CuArray{Float64,1}
+    du7::CuArray{Float64,1}
+    du8::CuArray{Float64,1}
+    du9::CuArray{Float64,1}
+    du10::CuArray{Float64,1}
+    du11::CuArray{Float64,1}
+    du12::CuArray{Float64,1}
+    du13::CuArray{Float64,1}
+    du14::CuArray{Float64,1}
+    du15::CuArray{Float64,1}
+    du16::CuArray{Float64,1}
+    du17::CuArray{Float64,1}
+    du0::CuArray{Float64,1}
+end
+
+# Nx = 10
+# Ny = 10
+# N = Nx*Ny
+# cu_zeros = CuArray(zeros(N));
+# intermediate_GPU_mut = intermediates_GPU_mutable(Nx,Ny,N,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros);
+
+
 intermediate = intermediates()
 @unpack du_ops,du1,du2,du3,du4,du5,du6,du7,du8,du9,du10,du11,du12,du13,du14,du15,du16,du17,du0 = intermediate
+
+function myMAT_beta_GPU!(du::AbstractVector, u::AbstractVector, container, var_test) # , intermediates_GPU_mutable)
+    @unpack N, y_D2x, y_D2y, y_Dx, y_Dy, y_Hxinv, y_Hyinv, yv2f1, yv2f2, yv2f3, yv2f4, yv2fs, yf2v1, yf2v2, yf2v3, yf2v4, yf2vs, y_Bx, y_By, y_BxSx, y_BySy, y_BxSx_tran, y_BySy_tran, y_Hx, y_Hy = container
+    @unpack Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta = var
+
+    N = Nx*Ny
+    cu_zeros = CuArray(zeros(N))
+    iGm = intermediates_GPU_mutable(Nx,Ny,N,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros);
+
+    TILE_DIM_1 = 4
+    TILE_DIM_2 = 16
+
+    griddim_x = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+    griddim_y = (div(Nx,TILE_DIM_2) + 1, div(Ny,TILE_DIM_1) + 1)
+
+    blockdim_x = (TILE_DIM_1,TILE_DIM_2)
+    blockdim_y = (TILE_DIM_2,TILE_DIM_1)
+
+    @show typeof(u)
+    @show typeof(iGm.du_x)
+    @show blockdim_x
+    @show griddim_x
+    @show size(u)
+    @show size(iGm.du_x)
+    @cuda threads=blockdim_x blocks=griddim_x D2x_GPU_shared(u,iGm.du_x, Nx, Ny, hx, Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim_y blocks=griddim_y D2y_GPU_shared(u,iGm.du_y, Nx, Ny, hy, Val(TILE_DIM_2), Val(TILE_DIM_1))
+    du_ops = iGm.du_x + iGm.du_y
+    @cuda threads=blockdim_y blocks=griddim_y BySy_GPU_shared(u,iGm.du1, Nx, Ny, hy, Val(TILE_DIM_2), Val(TILE_DIM_1))
+    du2 = VOLtoFACE_beta(Array(iGm.du1),1,Nx,Ny,N,yv2fs)
+end
 
 function myMAT_beta!(du::AbstractVector, u::AbstractVector,container,var_test,intermediate)
 #function myMAT_beta!(du::AbstractVector, u::AbstractVector, y_D2x, y_D2y, y_Dx, y_Dy, y_Hxinv, y_Hyinv, yv2f1, yv2f2, yv2f3, yv2f4, yv2fs, yf2v1, yf2v2, yf2v3, yf2v4, yf2vs, y_Bx, y_By, y_BxSx, y_BySy, y_BxSx_tran, y_BySy_tran, y_Hx, y_Hy,Nx,Ny,N,hx,hy,alpha1,alpha2,alpha3,alpha4,beta,du_ops,du1,du2,du3,du4,du5,du6,du7,du8,du9,du10,du11,du12,du13,du14,du15,du16,du17,du0)
@@ -125,7 +214,7 @@ function myMAT_beta!(du::AbstractVector, u::AbstractVector,container,var_test,in
     du_ops .= D2x_beta(u,Nx,Ny,N,hx,hy,y_D2x) .+ D2y_beta(u,Nx,Ny,N,hx,hy,y_D2y)  #compute action of D2x + D2y
     du1 = BySy_beta(u,Nx,Ny,N,hx,hy,y_BySy)
     du2 = VOLtoFACE_beta(du1,1,Nx,Ny,N,yv2fs)
-    du3 .= alpha1 .*Hyinv_beta(du2,Nx,Ny,N,hx,hy,y_Hyinv)     #compute action of P1  .= for faster assignment
+    du3 .= alpha1 .* Hyinv_beta(du2,Nx,Ny,N,hx,hy,y_Hyinv)     #compute action of P1  .= for faster assignment
 
     du5 = VOLtoFACE_beta(du1,2,Nx,Ny,N,yv2fs)
     du6 .= alpha2 .* Hyinv_beta(du5,Nx,Ny,N,hx,hy,y_Hyinv)    #compute action of P2

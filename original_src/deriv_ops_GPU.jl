@@ -1108,43 +1108,81 @@ function BySy_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_
 
 end
 
-function FACEtoVOL_GPU_shared(d_y, u_face, face, Nx, Ny, ::Val{TILE_DIM}) where {TILE_DIM} #, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
-	# tidx = threadIdx().x
-	# i = (blockIdx().x - 1)*TILE_DIM + tidx
-	i = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
-	N = Nx*Ny
+# function FACEtoVOL_GPU_shared(d_y, u_face, face, Nx, Ny, ::Val{TILE_DIM}) where {TILE_DIM} #, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+# 	# tidx = threadIdx().x
+# 	# i = (blockIdx().x - 1)*TILE_DIM + tidx
+# 	i = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+# 	N = Nx*Ny
 
-	if i <= N
-		d_y[i] = 0.0
-	end
+# 	if i <= N
+# 		d_y[i] = 0.0
+# 	end
 
-	sync_threads()
+# 	sync_threads()
 
-	if face == 1 && i <= N && mod(i,Ny) == 1 
-		d_y[i] = u_face
-	end
+# 	if face == 1 && i <= N && mod(i,Ny) == 1 
+# 		d_y[i] = u_face
+# 	end
 
-	sync_threads()
+# 	sync_threads()
 
-	if face == 2 && i <= N && mod(i,Ny) == 0
-		d_y[i] = u_face
-	end
+# 	if face == 2 && i <= N && mod(i,Ny) == 0
+# 		d_y[i] = u_face
+# 	end
 
-	sync_threads()
+# 	sync_threads()
 
-	if face == 3 && i <= Ny
-		d_y[i] = u_face
-	end
+# 	if face == 3 && i <= Ny
+# 		d_y[i] = u_face
+# 	end
 
-	sync_threads()
+# 	sync_threads()
 
-	if face == 4 && N-Ny+1 <= i <= N
-		d_y[i] = u_face
-	end
-	sync_threads()
+# 	if face == 4 && N-Ny+1 <= i <= N
+# 		d_y[i] = u_face
+# 	end
+# 	sync_threads()
 
-	nothing
-end
+# 	nothing
+# end
+
+# function VOLtoFACE_GPU_shared(d_u, d_y,  face, Nx, Ny, ::Val{TILE_DIM}) where {TILE_DIM} #, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+# 	# tidx = threadIdx().x
+# 	# i = (blockIdx().x - 1)*TILE_DIM + tidx
+# 	i = (blockIdx().x - 1) * TILE_DIM + threadIdx().x
+# 	N = Nx*Ny
+
+# 	if i <= N
+# 		d_y[i] = 0.0
+# 	end
+
+# 	sync_threads()
+
+# 	if face == 1 && i <= N && mod(i,Ny) == 1 
+# 		d_y[i] = u_face
+# 	end
+
+# 	sync_threads()
+
+# 	if face == 2 && i <= N && mod(i,Ny) == 0
+# 		d_y[i] = u_face
+# 	end
+
+# 	sync_threads()
+
+# 	if face == 3 && i <= Ny
+# 		d_y[i] = u_face
+# 	end
+
+# 	sync_threads()
+
+# 	if face == 4 && N-Ny+1 <= i <= N
+# 		d_y[i] = u_face
+# 	end
+# 	sync_threads()
+
+# 	nothing
+# end
 
 # tester_function : This gives evaluation on CPU, GPU, GPU_shared 
 function tester_function(f,Nx,TILE_DIM_1,TILE_DIM_2,TILE_DIM)
@@ -1438,6 +1476,9 @@ tester_function_v3(Dx, 10, 16, 4)
 
 tester_function_v3(Dx, 10, 16, 4)
 tester_function_v3(Dy, 10, 16, 4)
+
+
+# tester_function_FV(FACEtoVOL,1,1,10,32)
 
 # Nx = 10
 # Ny = Nx
