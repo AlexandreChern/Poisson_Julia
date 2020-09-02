@@ -183,7 +183,7 @@ intermediate = intermediates()
 
 N = Nx*Ny
 cu_zeros = CuArray(zeros(N))
-iGm = intermediates_GPU_mutable(Nx,Ny,N,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros,cu_zeros);
+iGm = intermediates_GPU_mutable(Nx,Ny,N,CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)),CuArray(zeros(N)));
 
 
 function myMAT_beta_GPU!(du_GPU::AbstractVector, u_GPU::AbstractVector, container, var_test) # , intermediates_GPU_mutable)
@@ -249,20 +249,22 @@ function myMAT_beta_GPU!(du_GPU::AbstractVector, u_GPU::AbstractVector, containe
     synchronize()
     @cuda threads=blockdim_x blocks=griddim_x Hxinv_GPU_shared(iGm.du13,iGm.du14,Nx,Ny,hx,Val(TILE_DIM_1), Val(TILE_DIM_2))
     synchronize()
-    iGm.du14 = alpha4 * iGm.du14
+    iGm.du14 = beta * iGm.du14
     @cuda threads=blockdim_x blocks=griddim_x Hxinv_GPU_shared(iGm.du12,iGm.du16,Nx,Ny,hx,Val(TILE_DIM_1), Val(TILE_DIM_2))
     synchronize()
     iGm.du16 = alpha4 * iGm.du16
+    synchronize()
     iGm.du0 = iGm.du_ops + iGm.du3 + iGm.du6 + iGm.du9 + iGm.du11 + iGm.du14 + iGm.du16
-    @cuda threads=blockdim_y blocks=griddim_x Hy_GPU_shared(iGm.du0,iGm.du17,Nx,Ny,hx,Val(TILE_DIM_1),Val(TILE_DIM_2))
+    synchronize()
+    @cuda threads=blockdim_y blocks=griddim_y Hy_GPU_shared(iGm.du0,iGm.du17,Nx,Ny,hx,Val(TILE_DIM_1),Val(TILE_DIM_2))
     synchronize()
     @cuda threads=blockdim_x blocks=griddim_x Hx_GPU_shared(iGm.du17,iGm.du,Nx,Ny,hx,Val(TILE_DIM_2),Val(TILE_DIM_2))
     synchronize()
     # return Array(iGm.du_x)
     # @show output
     output_final = copy(iGm.du);
-    @show output_final[1:10]
-    return Array(iGm.du_x)
+    # @show output_final[1:10]
+    return Array(iGm.du)
     # return output_final
     # return output2
 end
