@@ -258,7 +258,7 @@ function myMAT_beta_GPU!(du_GPU::AbstractVector, u_GPU::AbstractVector, containe
     synchronize()
     @cuda threads=blockdim_y blocks=griddim_y Hy_GPU_shared(iGm.du0,iGm.du17,Nx,Ny,hx,Val(TILE_DIM_1),Val(TILE_DIM_2))
     synchronize()
-    @cuda threads=blockdim_x blocks=griddim_x Hx_GPU_shared(iGm.du17,iGm.du,Nx,Ny,hx,Val(TILE_DIM_2),Val(TILE_DIM_2))
+    @cuda threads=blockdim_x blocks=griddim_x Hx_GPU_shared(iGm.du17,iGm.du,Nx,Ny,hx,Val(TILE_DIM_1),Val(TILE_DIM_2))
     synchronize()
     # return Array(iGm.du_x)
     # @show output
