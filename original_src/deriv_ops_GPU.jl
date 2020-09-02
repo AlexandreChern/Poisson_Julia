@@ -988,6 +988,8 @@ function BxSx_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_
 		d_y[global_index] = 0.0
 	end
 
+	sync_threads()
+
 	# Left Boundary
 	if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH -2 && i <= Ny && j == 1
 		# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
@@ -995,6 +997,7 @@ function BxSx_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_
 		d_y[global_index + Ny] = (-2.0 * tile[k,l+HALO_WIDTH])/h
 		d_y[global_index + 2*Ny] = (0.5 * tile[k,l+HALO_WIDTH])/h
 	end
+	sync_threads()
 
 	# if k <= TILE_DIM1 && l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH -2 && i <= Ny && j == 2
 	# 	# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH] - 2*tile[k,l + HALO_WIDTH+1] + tile[k,l + HALO_WIDTH+2]) / h^2
@@ -1006,7 +1009,6 @@ function BxSx_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_
 	# 	d_y[global_index] = (0.5 * tile[k,l+HALO_WIDTH]) / h
 	# end
 
-
 	# Right Boundary
 	if k <= TILE_DIM1 && 3 <= l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && i <= Ny && j == Nx
 		# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
@@ -1014,6 +1016,7 @@ function BxSx_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_
 		d_y[global_index - Ny] = (-2.0 * tile[k, l+HALO_WIDTH])/h
 		d_y[global_index - 2*Ny] = (0.5 * tile[k, l+HALO_WIDTH])/h
 	end
+	sync_threads()
 
 	# if k <= TILE_DIM1 && 3 <= l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && i <= Ny && j == Nx - 1
 	# 	# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
@@ -1024,8 +1027,6 @@ function BxSx_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_
 	# 	# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
 	# 	d_y[global_index] = (0.5 * tile[k,l+HALO_WIDTH]) / h
 	# end
-
-    sync_threads()
     
     nothing
 end
