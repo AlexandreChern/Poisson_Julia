@@ -568,7 +568,7 @@ function Hy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 	i = (blockIdx().x - 1) * TILE_DIM1 + tidx
 	j = (blockIdx().y - 1) * TILE_DIM2 + tidy
 
-	global_index = i + (j-1)*Nx
+	global_index = i + (j-1)*Ny
 
 	HALO_WIDTH = 1
 	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
@@ -589,7 +589,7 @@ function Hy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	# For upper halo
 	# if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny + HALO_WIDTH
-	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= i <= Ny && j <= Nx
+	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= i <= Ny + HALO_WIDTH && j <= Nx
 		# @inbounds tile[k,l] = d_u[global_index - HALO_WIDTH]
 		tile[k,l] = d_u[global_index - HALO_WIDTH]
 	end
@@ -598,7 +598,7 @@ function Hy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	# For lower halo
 	# if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny - HALO_WIDTH
-	if  TILE_DIM1 - HALO_WIDTH <= k <= TILE_DIM1 && l <= TILE_DIM2 && i <= Ny - HALO_WIDTH && j <= Nx
+	if  TILE_DIM1 - HALO_WIDTH + 1 <= k <= TILE_DIM1 && l <= TILE_DIM2 && i <= Ny - HALO_WIDTH && j <= Nx
 		# @inbounds tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
 		tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
 	end
@@ -608,6 +608,7 @@ function Hy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
     # Finite Difference Operations starts 
 
     #Upper Boundary
+	# if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH -2 && l <= TILE_DIM2 && i == 1 && j <= Ny
 	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == 1 && j <= Ny
 		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
 		d_y[global_index] = (h*tile[k+HALO_WIDTH,l]) / 2
@@ -616,6 +617,7 @@ function Hy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 	sync_threads()
 
 	#Center
+	# if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH - 1 && l <= TILE_DIM2 && 2 <= i <= Nx-1 && j <= Ny
 	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && 2 <= i <= Nx-1 && j <= Ny
 		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH-1,l] - 2*tile[k+HALO_WIDTH,l] + tile[k+HALO_WIDTH+1,l]) / h^2
 		d_y[global_index] = h * (tile[k+HALO_WIDTH,l]) 
@@ -624,7 +626,7 @@ function Hy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 	sync_threads()
 
 	#Lower Boundary
-	if 3 <= k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == Nx && j <= Ny
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == Ny && j <= Nx
 		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
 		d_y[global_index] = (h*tile[k+HALO_WIDTH,l]) / 2
     end

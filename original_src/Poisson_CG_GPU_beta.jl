@@ -308,7 +308,7 @@ function myMAT_beta!(du::AbstractVector, u::AbstractVector,container,var_test,in
     du0 .= du_ops .+ du3 .+ du6 .+ du9 .+ du11 .+ du14 .+ du16 #Collect together
     du17 = Hy_beta(du0,Nx,Ny,N,hx,hy,y_Hy)
 	du .= -1.0 .* Hx_beta(du17,Nx,Ny,N,hx,hy,y_Hx)
-    return du_ops
+    return du
 end
 
 
