@@ -408,7 +408,18 @@ function D2y_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2})
 		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
 		d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
 		# d_y[global_index] = 0
-    end
+	end
+	
+	# if i == 1 && j <= Nx
+	# 	d_y[global_index] = d_y[global_index+1]
+	# end
+
+	# sync_threads()
+
+	# if i == Ny && j <= Nx
+	# 	d_y[global_index] = d_y[global_index-1]
+	# 	# d_y[global_index] = 0.0
+	# end
     
     sync_threads()
 
