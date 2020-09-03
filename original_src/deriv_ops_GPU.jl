@@ -350,7 +350,7 @@ function D2y_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2})
 
 	global_index = i + (j-1)*Nx
 
-	HALO_WIDTH = 1
+	HALO_WIDTH = 2
 	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
 
 	k = tidx
@@ -378,7 +378,7 @@ function D2y_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2})
 
 	# For lower halo
 	# if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny - HALO_WIDTH
-	if  TILE_DIM1 - HALO_WIDTH <= k <= TILE_DIM1 && l <= TILE_DIM2 && i <= Ny - HALO_WIDTH && j <= Nx
+	if  TILE_DIM1 - HALO_WIDTH + 1 <= k <= TILE_DIM1 && l <= TILE_DIM2 && i <= Ny - HALO_WIDTH && j <= Nx
 		# @inbounds tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
 		tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
 	end
@@ -388,7 +388,7 @@ function D2y_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2})
     # Finite Difference Operations starts 
 
     #Upper Boundary
-	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == 1 && j <= Ny
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH -2 && l <= TILE_DIM2 && i == 1 && j <= Ny
 		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
 		d_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
 	end
@@ -396,7 +396,7 @@ function D2y_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2})
 	sync_threads()
 
 	#Center
-	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && 2 <= i <= Nx-1 && j <= Ny
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH - 1 && l <= TILE_DIM2 && 2 <= i <= Nx-1 && j <= Ny
 		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH-1,l] - 2*tile[k+HALO_WIDTH,l] + tile[k+HALO_WIDTH+1,l]) / h^2
 		d_y[global_index] = (tile[k+HALO_WIDTH-1,l] - 2*tile[k+HALO_WIDTH,l] + tile[k+HALO_WIDTH+1,l]) / h^2
 	end
