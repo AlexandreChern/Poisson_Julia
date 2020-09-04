@@ -38,7 +38,7 @@ function D2x_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2})
 
     global_index = i + (j - 1) * Ny
 
-    HALO_WIDTH = 1 # For second order derivative
+    HALO_WIDTH = 2 # For second order derivative
 
     tile = @cuStaticSharedMem(eltype(d_u), (TILE_DIM1, TILE_DIM2 + 2 * HALO_WIDTH))
 
@@ -70,7 +70,7 @@ function D2x_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2})
 
 	# for right halo
 	# if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
-	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
+	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH + 1 <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
 		# @inbounds tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 	end
@@ -93,10 +93,10 @@ function D2x_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2})
 
 	# Right Boundary
 	if k <= TILE_DIM1 && 3 <= l + HALO_WIDTH <= TILE_DIM2 + 2*HALO_WIDTH && i <= Ny && j == Nx
-		# @inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
+		@inbounds d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
 		# d_y[global_index] = (tile[k,l + HALO_WIDTH-2] - 2*tile[k,l + HALO_WIDTH - 1] + tile[k,l + HALO_WIDTH]) / h^2
 		# d_y[global_index] = (tile[k,l+HALO_WIDTH-2])
-		d_y[global_index] = 0
+		# d_y[global_index] = 0
 	end
 
     sync_threads()
@@ -114,7 +114,7 @@ function Dx_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
     global_index = i + (j - 1) * Ny
 
-    HALO_WIDTH = 1 # For second order derivative
+    HALO_WIDTH = 2 # For second order derivative
 
     tile = @cuStaticSharedMem(eltype(d_u), (TILE_DIM1, TILE_DIM2 + 2 * HALO_WIDTH))
 
@@ -146,7 +146,7 @@ function Dx_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	# for right halo
 	# if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
-	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
+	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH + 1<= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
 		# @inbounds tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 	end
@@ -188,7 +188,7 @@ function Hxinv_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2
 
     global_index = i + (j - 1) * Ny
 
-    HALO_WIDTH = 1 # For second order derivative
+    HALO_WIDTH = 2 # For second order derivative
 
     tile = @cuStaticSharedMem(eltype(d_u), (TILE_DIM1, TILE_DIM2 + 2 * HALO_WIDTH))
 
@@ -220,7 +220,7 @@ function Hxinv_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2
 
 	# for right halo
 	# if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
-	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
+	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH + 1<= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
 		# @inbounds tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 	end
@@ -262,7 +262,7 @@ function Hx_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
     global_index = i + (j - 1) * Ny
 
-    HALO_WIDTH = 1 # For second order derivative
+    HALO_WIDTH = 2 # For second order derivative
 
     tile = @cuStaticSharedMem(eltype(d_u), (TILE_DIM1, TILE_DIM2 + 2 * HALO_WIDTH))
 
@@ -294,7 +294,7 @@ function Hx_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	# for right halo
 	# if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
-	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
+	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH + 1 <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
 		# @inbounds tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 	end
@@ -440,7 +440,7 @@ function Dy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	global_index = i + (j-1)*Nx
 
-	HALO_WIDTH = 1
+	HALO_WIDTH = 2
 	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
 
 	k = tidx
@@ -459,7 +459,7 @@ function Dy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	# For upper halo
 	# if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny + HALO_WIDTH
-	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= i <= Ny && j <= Nx
+	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= i <= Ny + HALO_WIDTH && j <= Nx
 		# @inbounds tile[k,l] = d_u[global_index - HALO_WIDTH]
 		tile[k,l] = d_u[global_index - HALO_WIDTH]
 	end
@@ -468,7 +468,7 @@ function Dy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	# For lower halo
 	# if k >= TILE_DIM1 - HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny - HALO_WIDTH
-	if  TILE_DIM1 - HALO_WIDTH <= k <= TILE_DIM1 && l <= TILE_DIM2 && i <= Ny - HALO_WIDTH && j <= Nx
+	if  TILE_DIM1 - HALO_WIDTH + 1 <= k <= TILE_DIM1 && l <= TILE_DIM2 && i <= Ny - HALO_WIDTH && j <= Nx
 		# @inbounds tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
 		tile[k+2*HALO_WIDTH,l] = d_u[global_index + HALO_WIDTH]
 	end
@@ -478,7 +478,7 @@ function Dy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
     # Finite Difference Operations starts 
 
     #Upper Boundary
-	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == 1 && j <= Ny
+	if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH - 2 && l <= TILE_DIM2 && i == 1 && j <= Ny
 		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH,l] - 2*tile[k+HALO_WIDTH+1,l] + tile[k+HALO_WIDTH+2,l]) / h^2
 		d_y[global_index] = (tile[k+HALO_WIDTH+1,l] - tile[k+HALO_WIDTH,l]) / h
 	end
@@ -497,7 +497,8 @@ function Dy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 	if 3 <= k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == Nx && j <= Ny
 		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
 		d_y[global_index] = (tile[k+HALO_WIDTH,l] - tile[k+HALO_WIDTH-1,l]) / h
-    end
+		# d_y[global_index] = tile[k+HALO_WIDTH-1,l] #- tile[k+HALO_WIDTH-1,l]
+ 	end
     
     sync_threads()
 
@@ -513,7 +514,7 @@ function Hyinv_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2
 
 	global_index = i + (j-1)*Nx
 
-	HALO_WIDTH = 1
+	HALO_WIDTH = 2
 	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
 
 	k = tidx
@@ -532,7 +533,7 @@ function Hyinv_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2
 
 	# For upper halo
 	# if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny + HALO_WIDTH
-	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= i <= Ny && j <= Nx
+	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= i <= Ny + HALO_WIDTH && j <= Nx
 		# @inbounds tile[k,l] = d_u[global_index - HALO_WIDTH]
 		tile[k,l] = d_u[global_index - HALO_WIDTH]
 	end
@@ -586,7 +587,7 @@ function Hy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	global_index = i + (j-1)*Ny
 
-	HALO_WIDTH = 1
+	HALO_WIDTH = 2
 	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
 
 	k = tidx
@@ -663,7 +664,7 @@ function Bx_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
     global_index = i + (j - 1) * Ny
 
-    HALO_WIDTH = 1 # For second order derivative
+    HALO_WIDTH = 2 # For second order derivative
 
     tile = @cuStaticSharedMem(eltype(d_u), (TILE_DIM1, TILE_DIM2 + 2 * HALO_WIDTH))
 
@@ -695,7 +696,7 @@ function Bx_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	# for right halo
 	# if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
-	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
+	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH + 1<= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
 		# @inbounds tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 	end
@@ -737,7 +738,7 @@ function BxSx_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}
 
     global_index = i + (j - 1) * Ny
 
-    HALO_WIDTH = 1 # For second order derivative
+    HALO_WIDTH = 2 # For second order derivative
 
     tile = @cuStaticSharedMem(eltype(d_u), (TILE_DIM1, TILE_DIM2 + 2 * HALO_WIDTH))
 
@@ -769,7 +770,7 @@ function BxSx_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}
 
 	# for right halo
 	# if k <= TILE_DIM1 && l >= TILE_DIM2 - HALO_WIDTH && HALO_WIDTH*Ny+1 <= global_index <= (Nx-HALO_WIDTH)*Ny
-	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
+	if k <= TILE_DIM1 && TILE_DIM2 - HALO_WIDTH + 1 <= l <= TILE_DIM2 && i <= Ny && j <= Nx - HALO_WIDTH
 		# @inbounds tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 		tile[k,l+2*HALO_WIDTH] = d_u[global_index + HALO_WIDTH*Ny]
 	end
@@ -810,7 +811,7 @@ function By_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 
 	global_index = i + (j-1)*Nx
 
-	HALO_WIDTH = 1
+	HALO_WIDTH = 2
 	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
 
 	k = tidx
@@ -883,7 +884,7 @@ function BySy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}
 
 	global_index = i + (j-1)*Nx
 
-	HALO_WIDTH = 1
+	HALO_WIDTH = 2
 	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
 
 	k = tidx
@@ -902,7 +903,7 @@ function BySy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}
 
 	# For upper halo
 	# if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= global_index <= Nx*Ny + HALO_WIDTH
-	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= i <= Ny && j <= Nx
+	if k <= HALO_WIDTH && l <= TILE_DIM2 && HALO_WIDTH + 1 <= i <= Ny + HALO_WIDTH && j <= Nx
 		# @inbounds tile[k,l] = d_u[global_index - HALO_WIDTH]
 		tile[k,l] = d_u[global_index - HALO_WIDTH]
 	end
@@ -958,7 +959,7 @@ function BxSx_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_
 
     global_index = i + (j - 1) * Ny
 
-    HALO_WIDTH = 1 # For second order derivative
+    HALO_WIDTH = 2 # For second order derivative
 
     tile = @cuStaticSharedMem(eltype(d_u), (TILE_DIM1, TILE_DIM2 + 2 * HALO_WIDTH))
 
@@ -1058,7 +1059,7 @@ function BySy_tran_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_
 
 	global_index = i + (j-1)*Nx
 
-	HALO_WIDTH = 1
+	HALO_WIDTH = 2
 	tile = @cuStaticSharedMem(eltype(d_u),(TILE_DIM1+2*HALO_WIDTH,TILE_DIM2))
 
 	k = tidx
