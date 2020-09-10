@@ -631,7 +631,7 @@ function Hy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 		d_y[global_index] = (h*tile[k+HALO_WIDTH,l]) / 2
 	end
 
-	sync_threads()
+	# sync_threads()
 
 	#Center
 	# if k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH - 1 && l <= TILE_DIM2 && 2 <= i <= Nx-1 && j <= Ny
@@ -640,10 +640,10 @@ function Hy_GPU_shared(d_u, d_y, Nx, Ny, h, ::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
 		d_y[global_index] = h * (tile[k+HALO_WIDTH,l]) 
 	end
 
-	sync_threads()
+	# sync_threads()
 
 	#Lower Boundary
-	if 3 <= k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == Ny && j <= Nx
+	if 1 <= k + HALO_WIDTH <= TILE_DIM1 + 2*HALO_WIDTH && l <= TILE_DIM2 && i == Ny && j <= Nx
 		# @inbounds d_y[global_index] = (tile[k+HALO_WIDTH-2,l] - 2*tile[k+HALO_WIDTH-1,l] + tile[k+HALO_WIDTH,l]) / h^2
 		d_y[global_index] = (h*tile[k+HALO_WIDTH,l]) / 2
     end
@@ -1316,6 +1316,8 @@ function tester_function_v2(f,Nx,TILE_DIM_1,TILE_DIM_2)
 	@show Array(d_y2)
 	println()
 	@show y - Array(d_y2)
+
+	@show y ≈ Array(d_y2)
 	
 	rep_times = 10
 
@@ -1380,6 +1382,9 @@ function tester_function_v3(f,Nx,TILE_DIM_1,TILE_DIM_2)
 
 	griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
+
+	@show blockdim
+	@show griddim
 
 	# TILE_DIM = 32
 	# THREAD_NUM = TILE_DIM

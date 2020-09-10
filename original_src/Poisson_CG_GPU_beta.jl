@@ -1,7 +1,3 @@
-include("deriv_ops_beta.jl")
-include("deriv_ops_GPU.jl")
-
-
 using CUDA
 using SparseArrays
 using LinearMaps
@@ -10,6 +6,8 @@ using Parameters
 using BenchmarkTools
 using LinearAlgebra
 
+include("deriv_ops_beta.jl")
+include("deriv_ops_GPU.jl")
 
 
 ## Define variables for this problem
@@ -258,7 +256,9 @@ function myMAT_beta_GPU!(du_GPU::AbstractVector, u_GPU::AbstractVector, iGm, var
     iGm.du0 = iGm.du_ops + iGm.du3 + iGm.du6 + iGm.du9 + iGm.du11 + iGm.du14 + iGm.du16
     synchronize()
     # comment: starting this line, iGm.du17 is not returned with correct solution
-    @cuda threads=blockdim_y blocks=griddim_y Hy_GPU_shared(iGm.du0,iGm.du17,Nx,Ny,hx,Val(TILE_DIM_1),Val(TILE_DIM_2))
+    # @cuda threads=blockdim_y blocks=griddim_y Hy_GPU_shared(iGm.du0,iGm.du17,Nx,Ny,hx,Val(TILE_DIM_1),Val(TILE_DIM_2))
+    # synchronize()
+    @cuda threads=blockdim_x blocks=griddim_x Hy_GPU_shared(iGm.du0,iGm.du17,Nx,Ny,hx,Val(TILE_DIM_1),Val(TILE_DIM_2)) # Looks likes something wrong with griddim_y and blockdim_y
     synchronize()
     @cuda threads=blockdim_x blocks=griddim_x Hx_GPU_shared(iGm.du17,iGm.du,Nx,Ny,hx,Val(TILE_DIM_1),Val(TILE_DIM_2))
     synchronize()
@@ -278,6 +278,7 @@ u_GPU = CuArray(u);
 du = similar(u);
 du_GPU = similar(u_GPU);
 
+myMAT_beta_GPU!(du_GPU,u_GPU,iGm,var)
 
 
 function myMAT_beta!(du::AbstractVector, u::AbstractVector,container,var_test,intermediate)
