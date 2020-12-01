@@ -5,6 +5,7 @@ using LinearMaps
 using Parameters
 using BenchmarkTools
 using LinearAlgebra
+using Random
 
 include("deriv_ops_beta.jl")
 include("deriv_ops_GPU.jl")

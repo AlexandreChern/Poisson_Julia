@@ -4,10 +4,11 @@ using LinearAlgebra
 using SparseArrays
 using Plots
 
-using CUDAdrv
-CUDAdrv.CuDevice(0)
+# using CUDAdrv
+# CUDAdrv.CuDevice(0)
 
-using CuArrays, CUDAnative
+# using CuArrays, CUDAnative
+using CUDA
 using IterativeSolvers
 using BenchmarkTools
 
@@ -107,7 +108,8 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
 
 rel_errs = []
 iter_errs = []
-for k in 1:length(h_list_x)
+# for k in 1:length(h_list_x)
+for k in 1:4
     i = j  = k
     println("k = ", k)
     hx = h_list_x[i]
@@ -163,12 +165,17 @@ for k in 1:length(h_list_x)
 
     b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
 
+    A = H_tilde*A;
+    b = H_tilde*b;
+
     # A_d = cu(A)
     # b_d = cu(b)
     # init_guess = cu(rand(length(b)));
 
 
-    A_d = CuArrays.CUSPARSE.CuSparseMatrixCSC(A);
+    # A_d = CuArrays.CUSPARSE.CuSparseMatrixCSC(A);
+    # A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
+    A_d = CuArray(A);
     b_d = CuArray(b);
     init_guess = CuArray(randn(length(b)))
 
