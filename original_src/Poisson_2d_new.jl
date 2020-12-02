@@ -146,7 +146,7 @@ for k in 1:4
     SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
     # SAT_S = tau_S*HI_y*E_S*D1_y
     # SAT_N = tau_N*HI_y*E_N*D1_y
-    SAT_S = tau_S*HI_y*ES*BS_y
+    SAT_S = tau_S*HI_y*E_S*BS_y
     SAT_N = tau_N*HI_y*E_N*BS_y
 
     SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W
