@@ -5,7 +5,7 @@ using Interpolations
 
 
 L = 2
-k = 2
+k = 1
 
 function exact_u(C,k,σ,x)
     return C/(π^2*k^2 + σ) * sin.(k*π*x)
@@ -60,7 +60,8 @@ function Jacobi_iter(ω,v,f)
 end
 
 function A(v)
-    h = v[2] - v[1]
+    # h = v[2] - v[1]
+    h = 1/(length(v)+1)
     v_new = similar(v)
     v_new[1] = (2*v[1] - v[2]) / h^2
     v_new[end] = (2*v[end] - v[end-1]) / h^2
@@ -83,17 +84,19 @@ function A_matrix(N)
     return A ./ h^2
 end
 
-function multi_grid(L)
+function multi_grid(L,iter_times)
     ω = 2/3
-    N = 2^6
-    x = range(0,stop=1,step=1/2^6)
+    N = 2^7
+    x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
     C = 1
-    iter_times = 100
+    # iter_times = 10
     v = 1/2*(sin.(16*x*π/N) + sin.(40*x*π/N))
+    # v = similar(x)
     rhs = C*sin.(k*π*x)
     v_values = Dict(1 => v)
     rhs_values = Dict(1 => rhs)
+    # @show rhs_values[1]
     for i in 1:L
         @show i
         if i != L
@@ -101,24 +104,26 @@ function multi_grid(L)
                 v = Jacobi_iter(ω,v,rhs_values[i])
             end
             v_values[i] = v
-            rhs = weighting(rhs_values[i] - A(v))
+            rhs = weighting(rhs_values[i] - A(v_values[i]))
+            # rhs = weighting(rhs_values[i] - A_matrix(N-1)*(v_values[i]))
             rhs_values[i+1] = rhs
             N = div(N,2)
             v = zeros(N-1)
         else
             v_values[i] = A_matrix(N-1) \ rhs_values[i]
+            # v_values[i] = Jacobi_iter(ω,v,rhs_values[i])
         end
         @show v_values[i]
     end
     println("Pass first part")
     for i in 1:length(v_values)
-        @show length(v_values[i])
+        # @show length(v_values[i])
     end
     for i in 1:L-1
         j = L - i
-        @show j
-        @show v_values[j]
-        @show v_values[j+1]
+        # @show j
+        # @show v_values[j]
+        # @show v_values[j+1]
         v_values[j] = v_values[j] + linear_interpolation(v_values[j+1])
         v = v_values[j]
         for i in 1:iter_times
