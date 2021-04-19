@@ -6,6 +6,7 @@ using Interpolations
 
 L = 2
 k = 1
+σ = 0
 
 function exact_u(C,k,σ,x)
     return C/(π^2*k^2 + σ) * sin.(k*π*x)
@@ -22,8 +23,7 @@ function linear_interpolation(v)
         # println(i)
         if i%2 == 0
             # println("case 1")
-            # v_interpolated[i] = (v[div(i,2)] + v[div(i,2)+1])/2
-            v_interpolated[i] = v[div(i,2)]
+            v_interpolated[i] = (v[div(i,2)])
         elseif i == 1 
             # println("case 2")
             # v_interpolated[i] = (v[div((i+1),2)])
@@ -54,7 +54,7 @@ function Jacobi_iter(ω,v,f)
     h = 1/(N+1)
     v_new = copy(v)
     for j = 2:N-1
-        v_new[j] = (1-ω) * v[j] + ω * 1/2 * (v[j-1] + v[j+1] + h^2*f[j])
+        v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
     end
     return v_new
 end
@@ -63,10 +63,10 @@ function A(v)
     # h = v[2] - v[1]
     h = 1/(length(v)+1)
     v_new = similar(v)
-    v_new[1] = (2*v[1] - v[2]) / h^2
-    v_new[end] = (2*v[end] - v[end-1]) / h^2
+    v_new[1] = ((2 + σ*h^2)*v[1] - v[2]) / h^2
+    v_new[end] = ((2 + σ*h^2)*v[end] - v[end-1]) / h^2
     for i in 2:length(v_new)-1
-        v_new[i] = (- v[i-1] + 2v[i] - v[i+1]) / h^2
+        v_new[i] = (- v[i-1] + (2 + σ*h^2)*v[i] - v[i+1]) / h^2
     end
     return v_new
 end
@@ -75,7 +75,7 @@ function A_matrix(N)
     A = spzeros(N,N)
     h = 1/(N+1)
     for i in 1:N
-        A[i,i] = 2
+        A[i,i] = 2 + σ*h^2
     end
     for i in 1:N-1
         A[i,i+1] = -1
@@ -84,15 +84,16 @@ function A_matrix(N)
     return A ./ h^2
 end
 
-function multi_grid(L,iter_times)
+function V_cycle(L,iter_times)
     ω = 2/3
     N = 2^7
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
     C = 1
     # iter_times = 10
-    v = 1/2*(sin.(16*x*π/N) + sin.(40*x*π/N))
-    # v = similar(x)
+    # v = 1/2*(sin.(16*x*π) + sin.(40*x*π))
+    # v = 1/2*sin.(16*x*π)
+    v = similar(x)
     rhs = C*sin.(k*π*x)
     v_values = Dict(1 => v)
     rhs_values = Dict(1 => rhs)
@@ -110,8 +111,10 @@ function multi_grid(L,iter_times)
             N = div(N,2)
             v = zeros(N-1)
         else
-            v_values[i] = A_matrix(N-1) \ rhs_values[i]
-            # v_values[i] = Jacobi_iter(ω,v,rhs_values[i])
+            # v_values[i] = A_matrix(N-1) \ rhs_values[i]
+            for _ in 1:iter_times
+                v_values[i] = Jacobi_iter(ω,v,rhs_values[i])
+            end
         end
         @show v_values[i]
     end
