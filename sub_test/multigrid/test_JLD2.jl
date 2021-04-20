@@ -8,6 +8,6 @@ end
 
 b = test_struct(3,randn(3),randn(3,3))
 
-@save "example.jld2"
+@save "example.jld2" b
 
 # @load "example.jld2" 
