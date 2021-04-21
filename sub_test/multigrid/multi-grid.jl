@@ -93,7 +93,9 @@ function V_cycle(L,iter_times)
     # iter_times = 10
     # v = 1/2*(sin.(16*x*π) + sin.(40*x*π))
     # v = 1/2*sin.(16*x*π)
-    v = similar(x)
+    # v = similar(x)
+    v = zeros(N-1)
+    # v = randn(N-1)
     rhs = C*sin.(k*π*x)
     v_values = Dict(1 => v)
     rhs_values = Dict(1 => rhs)
@@ -104,6 +106,7 @@ function V_cycle(L,iter_times)
             for _ in 1:iter_times
                 v = Jacobi_iter(ω,v,rhs_values[i])
             end
+            # v_values[i] = copy(v) # need to examine
             v_values[i] = v
             rhs = weighting(rhs_values[i] - A(v_values[i]))
             # rhs = weighting(rhs_values[i] - A_matrix(N-1)*(v_values[i]))
@@ -134,5 +137,13 @@ function V_cycle(L,iter_times)
         end
         v_values[j] = v
     end
-    return v_values[1]
+    return v_values[1], exact_u(C,k,σ,x)
 end
+
+
+function plot_results(results)
+    plot(results[1])
+    plot!(results[2])
+end
+
+
