@@ -141,7 +141,11 @@ function V_cycle(L,iter_times,N)
 end
 
 
-function V_cycle_kernel(vh,fh,N,L,iter_times,ω,C,x)
+# function V_cycle_kernel(vh,fh,N,L,iter_times,ω,C,x)
+function V_cycle_kernel(vh,fh)
+    N = length(vh) + 1
+    x = range(0,stop=1,step=1/N)
+    x = x[2:end-1]
     v_values = Dict(1=>vh)
     rhs_values = Dict(1 => fh)
     for i in 1:L
@@ -186,43 +190,47 @@ function V_cycle_kernel(vh,fh,N,L,iter_times,ω,C,x)
 end
 
 function test_V_cycle_kernel()
-    ω = 2/3
+    global ω = 2/3
+    global L = 3
+    global iter_times = 10
+    global C = 1
     N = 2^7
-    # L = 3
-    iter_times = 10
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
-    C = 1
+ 
     vh = zeros(N-1)
     rhs = C*sin.(k*π*x)
-    V_cycle_kernel(vh,rhs,N,L,iter_times,ω,C,x)
+    V_cycle_kernel(vh,rhs)
 end
 
 
 function FMG(fh)
-    ω = 2/3
-    iter_times = 3
-    L = 3
+    global ω = 2/3
+    global iter_times = 3
+    global L = 3
+    global C = 1
     N = length(fh) + 1
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
-    C = 1
     vh = zeros(N-1)
     rhs = C*sin.(k*π*x)
     v_values = Dict(1=>vh)
     rhs_values = Dict(1 => fh)
     N_values = Dict(1=> N)
-    for i in 1:L
-        if i != L
+    i = 1
+    while i <= L
+        println(i)
+        if i!= L
             rhs_values[i+1] = linear_interpolation(rhs_values[i])
             v_values[i+1] = FMG(rhs_values[i+1])
             N_values[i+1] = div(N_values[i],2)
+            i += 1
         else
             # N_values[i+1] = div(N_values[i],2)
             vh = zeros(N_values[i]-1)
             x = range(0,stop=1,step=1/N_values[i])
             x = x[2:end-1]
-            v_values[i] = V_cycle_kernel(vh,rhs_values[i],N_values[i],L,iter_times,ω,C,x)[1]
+            v_values[i] = V_cycle_kernel(vh,rhs_values[i])
         end
     end
     return v_values
