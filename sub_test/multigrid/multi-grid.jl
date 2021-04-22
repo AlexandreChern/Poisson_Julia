@@ -84,9 +84,9 @@ function A_matrix(N)
     return A ./ h^2
 end
 
-function V_cycle(L,iter_times)
+function V_cycle(L,iter_times,N)
     ω = 2/3
-    N = 2^7
+    # N = 2^7
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
     C = 1
@@ -114,10 +114,10 @@ function V_cycle(L,iter_times)
             N = div(N,2)
             v = zeros(N-1)
         else
-            # v_values[i] = A_matrix(N-1) \ rhs_values[i]
-            for _ in 1:iter_times
-                v_values[i] = Jacobi_iter(ω,v,rhs_values[i])
-            end
+            v_values[i] = A_matrix(N-1) \ rhs_values[i]
+            # for _ in 1:iter_times
+            #     v_values[i] = Jacobi_iter(ω,v,rhs_values[i])
+            # end
         end
         @show v_values[i]
     end
@@ -138,6 +138,94 @@ function V_cycle(L,iter_times)
         v_values[j] = v
     end
     return v_values[1], exact_u(C,k,σ,x)
+end
+
+
+function V_cycle_kernel(vh,fh,N,L,iter_times,ω,C,x)
+    v_values = Dict(1=>vh)
+    rhs_values = Dict(1 => fh)
+    for i in 1:L
+        @show i
+        if i != L
+            for _ in 1:iter_times
+                vh = Jacobi_iter(ω,vh,rhs_values[i])
+            end
+            # v_values[i] = copy(v) # need to examine
+            v_values[i] = vh
+            rhs = weighting(rhs_values[i] - A(v_values[i]))
+            # rhs = weighting(rhs_values[i] - A_matrix(N-1)*(v_values[i]))
+            rhs_values[i+1] = rhs
+            N = div(N,2)
+            vh = zeros(N-1)
+        else
+            v_values[i] = A_matrix(N-1) \ rhs_values[i]
+            # for _ in 1:iter_times
+            #     v_values[i] = Jacobi_iter(ω,vh,rhs_values[i])
+            # end
+        end
+        @show v_values[i]
+    end
+
+    println("Pass first part")
+    for i in 1:length(v_values)
+        # @show length(v_values[i])
+    end
+    for i in 1:L-1
+        j = L - i
+        # @show j
+        # @show v_values[j]
+        # @show v_values[j+1]
+        v_values[j] = v_values[j] + linear_interpolation(v_values[j+1])
+        vh = v_values[j]
+        for i in 1:iter_times
+            vh = Jacobi_iter(ω,vh,rhs_values[j])
+        end
+        v_values[j] = vh
+    end
+    return v_values[1], exact_u(C,k,σ,x)
+end
+
+function test_V_cycle_kernel()
+    ω = 2/3
+    N = 2^7
+    # L = 3
+    iter_times = 10
+    x = range(0,stop=1,step=1/N)
+    x = x[2:end-1]
+    C = 1
+    vh = zeros(N-1)
+    rhs = C*sin.(k*π*x)
+    V_cycle_kernel(vh,rhs,N,L,iter_times,ω,C,x)
+end
+
+
+function FMG(fh)
+    ω = 2/3
+    iter_times = 3
+    L = 3
+    N = length(fh) + 1
+    x = range(0,stop=1,step=1/N)
+    x = x[2:end-1]
+    C = 1
+    vh = zeros(N-1)
+    rhs = C*sin.(k*π*x)
+    v_values = Dict(1=>vh)
+    rhs_values = Dict(1 => fh)
+    N_values = Dict(1=> N)
+    for i in 1:L
+        if i != L
+            rhs_values[i+1] = linear_interpolation(rhs_values[i])
+            v_values[i+1] = FMG(rhs_values[i+1])
+            N_values[i+1] = div(N_values[i],2)
+        else
+            # N_values[i+1] = div(N_values[i],2)
+            vh = zeros(N_values[i]-1)
+            x = range(0,stop=1,step=1/N_values[i])
+            x = x[2:end-1]
+            v_values[i] = V_cycle_kernel(vh,rhs_values[i],N_values[i],L,iter_times,ω,C,x)[1]
+        end
+    end
+    return v_values
 end
 
 
