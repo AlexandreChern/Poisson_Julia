@@ -149,7 +149,7 @@ function V_cycle_kernel(vh,fh)
     v_values = Dict(1=>vh)
     rhs_values = Dict(1 => fh)
     for i in 1:L
-        @show i
+        # @show i
         if i != L
             for _ in 1:iter_times
                 vh = Jacobi_iter(ω,vh,rhs_values[i])
@@ -167,10 +167,10 @@ function V_cycle_kernel(vh,fh)
             #     v_values[i] = Jacobi_iter(ω,vh,rhs_values[i])
             # end
         end
-        @show v_values[i]
+        # @show v_values[i]
     end
 
-    println("Pass first part")
+    # println("Pass first part")
     for i in 1:length(v_values)
         # @show length(v_values[i])
     end
@@ -189,10 +189,10 @@ function V_cycle_kernel(vh,fh)
     return v_values[1], exact_u(C,k,σ,x)
 end
 
-function test_V_cycle_kernel()
+function test_V_cycle_kernel(test_times)
     global ω = 2/3
     global L = 3
-    global iter_times = 10
+    global iter_times = 3
     global C = 1
     N = 2^7
     x = range(0,stop=1,step=1/N)
@@ -200,7 +200,19 @@ function test_V_cycle_kernel()
  
     vh = zeros(N-1)
     rhs = C*sin.(k*π*x)
-    V_cycle_kernel(vh,rhs)
+    A_matrix_form = A_matrix(N-1)
+
+    dirct_sol = A_matrix_form \ rhs
+
+    for _ in 1:test_times
+        ans = V_cycle_kernel(vh,rhs)
+        vh = ans[1]
+        err = norm(vh - ans[2])
+        println(err)
+    end
+    # V_cycle_kernel(vh,rhs)
+    direct_error = norm(dirct_sol - exact_u(C,k,σ,x));
+    println("direct error:",direct_error)
 end
 
 
