@@ -217,9 +217,10 @@ function FMG(fh)
     v_values = Dict(1=>vh)
     rhs_values = Dict(1 => fh)
     N_values = Dict(1=> N)
-    i = 1
-    while i <= L
-        println(i)
+    # i = 1
+    # while length(N_values[end]) > div(N,2^L) 
+    #     println(i)
+    for i = 1:L
         if i!= L
             rhs_values[i+1] = linear_interpolation(rhs_values[i])
             v_values[i+1] = FMG(rhs_values[i+1])
