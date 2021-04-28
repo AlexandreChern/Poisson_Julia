@@ -2,6 +2,7 @@ using SparseArrays
 using LinearAlgebra
 using Plots
 using Interpolations
+using Printf
 
 
 L = 2
@@ -70,6 +71,9 @@ function A(v)
     end
     return v_new
 end
+
+
+
 
 function A_matrix(N)
     A = spzeros(N,N)
@@ -192,9 +196,9 @@ end
 function test_V_cycle_kernel(test_times)
     global ω = 2/3
     global L = 3
-    global iter_times = 3
+    global iter_times = 1
     global C = 1
-    N = 2^7
+    N = 2^6
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
  
@@ -204,15 +208,17 @@ function test_V_cycle_kernel(test_times)
 
     dirct_sol = A_matrix_form \ rhs
 
-    for _ in 1:test_times
+    for step in 1:test_times
         ans = V_cycle_kernel(vh,rhs)
         vh = ans[1]
-        err = norm(vh - ans[2])
-        println(err)
+        err = norm(vh - exact_u(C,k,σ,x))
+        # println("step: ",k," error: ",err)
+        @printf "step: %6d, error: %1.15e\n" step err
     end
     # V_cycle_kernel(vh,rhs)
     direct_error = norm(dirct_sol - exact_u(C,k,σ,x));
-    println("direct error:",direct_error)
+    # println("direct solve, error: ",direct_error)
+    @printf "direct solve, error: %1.15e" direct_error
 end
 
 
@@ -226,13 +232,15 @@ function FMG(fh)
     x = x[2:end-1]
     vh = zeros(N-1)
     rhs = C*sin.(k*π*x)
-    v_values = Dict(1=>vh)
-    rhs_values = Dict(1 => fh)
+    global v_values = Dict(1=>vh)
+    global rhs_values = Dict(1 => fh)
     N_values = Dict(1=> N)
-    # i = 1
+    global i = 1
     # while length(N_values[end]) > div(N,2^L) 
     #     println(i)
-    for i = 1:L
+    # for i = 1:L
+    while i <= L
+        println(i)
         if i!= L
             rhs_values[i+1] = linear_interpolation(rhs_values[i])
             v_values[i+1] = FMG(rhs_values[i+1])
@@ -250,9 +258,50 @@ function FMG(fh)
 end
 
 
+function FMG_test(fh)
+    global ω = 2/3
+    global iter_times = 3
+    global L = 3
+    global C = 1
+    global counter = 1
+    N = length(fh) + 1
+    x = range(0,stop=1,step=1/N)
+    x = x[2:end-1]
+    vh = zeros(N-1)
+    rhs = C*sin.(k*π*x)
+    while counter <= L
+        counter += 1
+        println(counter)
+        FMG_test(fh)
+    end
+end
+
+
 function plot_results(results)
     plot(results[1])
     plot!(results[2])
+end
+
+
+function iter_test(m)
+    global i = 1
+    # i = 1
+    while i <= m
+        iter_test(m-1)
+        println(i)
+        i += 1
+    end
+end
+
+function iter_test2(m)
+    global i = 1
+    # global K = 3
+    K = 3
+    while i <= K
+        i += 1
+        println(i)
+        iter_test2(m-1)
+    end
 end
 
 
