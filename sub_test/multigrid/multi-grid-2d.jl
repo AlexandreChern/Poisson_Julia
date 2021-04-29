@@ -18,7 +18,7 @@ function exact_u(C,k,σ,x)
 end
 
 function exact_u_2d(C,k,l,σ,x,y)
-    return  C/(π^2*k^2 + π^2*l^2 + σ) .* sin.(k*π*x) .* sin.(k*π*y')
+    return  C/(π^2*k^2 + π^2*l^2 + σ) .* sin.(k*π*x) .* sin.(k*π*y)
 end
 
 function f(C,k,x)
@@ -147,8 +147,8 @@ function Jacobi_iter_2d(ω,mat,f)
     (dim1,dim2) = size(mat)
     h = 1/(dim1+1)
     mat_new = copy(mat)
-    for i = 2:dim1
-        for j = 2:dim2
+    for i = 2:dim1-1
+        for j = 2:dim2-1
             mat_new[i,j] = (1-ω)*mat[i,j] + ω* 1/(4 + σ*h^2) * (mat[i-1,j] + mat[i+1,j] + mat[i,j-1] + mat[i,j+1] + h^2*f[i,j])
         end
     end
@@ -262,6 +262,68 @@ function V_cycle_kernel(vh,fh)
     return v_values[1], exact_u(C,k,σ,x)
 end
 
+
+function V_cycle_kernel_2d(vh,fh)
+    # N = length(vh) + 1
+    (dim1,dim2) = size(vh)
+    x = range(0,stop=1,step=1/(dim1+1))
+    x = x[2:end-1]
+    y = range(0,stop=1,step=1/(dim2+1))
+    y = y[2:end-1]
+    v_values = Dict(1=>vh)
+    rhs_values = Dict(1 => fh)
+    for i in 1:L
+        # @show i
+        if i != L
+            for _ in 1:iter_times
+                vh = Jacobi_iter_2d(ω,vh,rhs_values[i])
+            end
+            # v_values[i] = copy(v) # need to examine
+            v_values[i] = vh
+            rhs = weighting_2d(rhs_values[i] - A(v_values[i]))
+            # rhs = weighting(rhs_values[i] - A_matrix(N-1)*(v_values[i]))
+            rhs_values[i+1] = rhs
+            # N = div(N,2)
+            # vh = zeros(N-1)
+            (dim1,dim2) = div.((dim1-1,dim2-1),2)
+            vh = zeros(dim1,dim2)
+            # @show rhs_values[i+1]
+        else
+            # @show A_matrix_2d(dim1)
+            # @show rhs_values[i][:]
+            # rhs_coarse = rhs_values[i]
+            # v_values[i] = A_matrix_2d(dim1) \ (rhs_coarse[:])
+            # @show A_matrix_2d(dim1) \ rhs_values[i][:]
+            # for _ in 1:iter_times
+            #     v_values[i] = Jacobi_iter(ω,vh,rhs_values[i])
+            # end
+            v_values[i] = reshape(A_matrix_2d(dim1) \ rhs_values[i][:],dim1,dim2)
+        end
+        # @show v_values[i]
+    end
+
+    v_values_backup = v_values
+
+    # println("Pass first part")
+    for i in 1:length(v_values)
+        # @show length(v_values[i])
+        # @show i, length(v_values[i])
+    end
+    for i in 1:L-1
+        j = L - i
+        # @show j
+        # @show v_values[j]
+        # @show v_values[j+1]
+        v_values[j] = v_values[j] .+ linear_interpolation_2d(v_values[j+1])
+        vh = v_values[j]
+        for i in 1:iter_times
+            vh = Jacobi_iter_2d(ω,vh,rhs_values[j])
+        end
+        v_values[j] = vh
+    end
+    return v_values[1], exact_u_2d(C,k,l,σ,x,y'), v_values_backup
+end
+
 function test_V_cycle_kernel(test_times)
     global ω = 2/3
     global L = 3
@@ -293,4 +355,26 @@ function test_V_cycle_kernel(test_times)
     cg_error = norm(cg_results[1] - exact_u(C,k,σ,x))
     @printf "CG iterative, error: %1.15e\n " cg_error
     @printf "%s" cg_results[2]
+end
+
+
+function test_V_cycle_kernel_2d()
+    global ω = 4/5
+    global L = 2
+    global iter_times = 1
+    global C = 1
+    N = 2^3
+    x = range(0,stop=1,step=1/N)
+    x = x[2:end-1]
+    y = range(0,stop=1,step=1/N)
+    y = y[2:end-1]
+
+    vh = zeros(N-1,N-1)
+    rhs = f_2d(C,k,l,x,y')
+    A_matrix_form_2d = A_matrix_2d(N-1)
+    direct_sol = A_matrix_form_2d \ rhs[:]
+    direct_sol = reshape(direct_sol,N-1,N-1)
+    plot(x,y,direct_sol,st=:surface)
+    (v_cycle_2d, exact_2d, v_values_backup) = V_cycle_kernel_2d(vh,rhs)
+    plot(x,y,exact_2d,st=:surface)
 end
