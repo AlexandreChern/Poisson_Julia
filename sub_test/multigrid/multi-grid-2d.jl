@@ -143,8 +143,16 @@ function Jacobi_iter(ω,v,f)
     return v_new
 end
 
-function Jacobi_iter(ω,v,f)
-    
+function Jacobi_iter_2d(ω,mat,f)
+    (dim1,dim2) = size(mat)
+    h = 1/(dim1+1)
+    mat_new = copy(mat)
+    for i = 2:dim1
+        for j = 2:dim2
+            mat_new[i,j] = (1-ω)*mat[i,j] + ω* 1/(4 + σ*h^2) * (mat[i-1,j] + mat[i+1,j] + mat[i,j-1] + mat[i,j+1] + h^2*f[i,j])
+        end
+    end
+    return mat_new
 end
 
 function A(v)
@@ -159,6 +167,34 @@ function A(v)
     return v_new
 end
 
+function A_2d(mat)
+    (dim1,dim2) = size(mat)
+    h = 1/(dim1+1)
+    mat_new = copy(mat)
+    mat_new[1,1] = ((4 + σ*h^2)*mat[1,1] - mat[1,2] - mat[2,1]) / h^2
+    mat_new[1,dim2] = ((4 + σ*h^2)*mat[1,end] - mat[1,end-1] - mat[2,end]) / h^2
+    mat_new[dim1,1] = ((4 + σ*h^2)*mat[end,1] - mat[end-1,1] - mat[end,2]) / h^2
+    mat_new[dim1,dim2] = ((4 + σ*h^2)*mat[dim1,dim2] - mat[dim1-1,dim2] - mat[dim1,dim2-1]) / h^2
+    for i in 2:dim1-1
+        mat_new[i,1] = ((4 + σ*h^2)*mat[i,1] - mat[i-1,1] - mat[i+1,1] - mat[i,2]) / h^2
+        mat_new[i,end] = ((4 + σ*h^2)*mat[i,end] - mat[i-1,end] - mat[i+1,end] - mat[i,end-1]) / h^2
+    end
+    # for i in 2:dim1-1
+    #     mat_new[i,end] = ((4 + σ*h^2)*mat[i,end] - mat[i-1,end] - mat[i+1,end] - mat[i,end-1]) / h^2
+    # end
+    for j in 2:dim1-1
+        mat_new[1,j] = ((4 + σ*h^2)*mat[1,j] - mat[1,j-1] - mat[1,j+1] - mat[2,j]) / h^2
+        mat_new[end,j] = ((4 + σ*h^2)*mat[end,j] - mat[end,j-1] - mat[end,j+1] - mat[end-1,j]) / h^2
+    end
+
+    for i in 2:dim1-1
+        for j in 2:dim2-1
+            mat_new[i,j] = ((4 + σ*h^2)*mat[i,j] - mat[i-1,j] - mat[i+1,j] - mat[i,j-1] - mat[i,j+1]) / h^2
+        end
+    end
+    return mat_new
+end
+
 
 function A_matrix(N)
     A = spzeros(N,N)
@@ -171,6 +207,12 @@ function A_matrix(N)
         A[i+1,i] = -1
     end
     return A ./ h^2
+end
+
+function A_matrix_2d(N)
+    sparse_I = sparse(I,N,N)
+    A_matrix_1d = A_matrix(N)
+    return kron(A_matrix_1d,sparse_I) + kron(sparse_I,A_matrix_1d)
 end
 
 function V_cycle_kernel(vh,fh)
