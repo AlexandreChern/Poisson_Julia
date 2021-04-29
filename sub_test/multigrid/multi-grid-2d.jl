@@ -66,7 +66,7 @@ function linear_interpolation_2d(mat)
                 elseif j == 2*dim2 + 1
                     mat_interpolated[i,j] = (mat[div(i,2),end]) / 2
                 else
-                    mat_interpolated[i,j] = (mat[div(i,2),div(j-1,2)] + mat[div(i,2),div(j-1,2)]) / 2
+                    mat_interpolated[i,j] = (mat[div(i,2),div(j-1,2)] + mat[div(i,2),div(j+1,2)]) / 2
                 end
             elseif i == 1 
                 # println("case 2")
@@ -327,7 +327,7 @@ end
 function test_V_cycle_kernel(test_times)
     global ω = 2/3
     global L = 3
-    global iter_times = 1
+    global iter_times = 3
     global C = 1
     N = 2^7
     x = range(0,stop=1,step=1/N)
@@ -360,10 +360,10 @@ end
 
 function test_V_cycle_kernel_2d()
     global ω = 4/5
-    global L = 2
-    global iter_times = 1
+    global L = 3
+    global iter_times = 10
     global C = 1
-    N = 2^3
+    N = 2^4
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
     y = range(0,stop=1,step=1/N)
