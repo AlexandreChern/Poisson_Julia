@@ -6,17 +6,29 @@ using Printf
 using IterativeSolvers
 
 
+C = 1
 L = 2
 k = 1
+l = 1
 σ = 0
 
+
 function exact_u(C,k,σ,x)
-    return C/(π^2*k^2 + σ) * sin.(k*π*x)
+    return C/(π^2*k^2 + σ) * sin.(k*π*x) 
+end
+
+function exact_u_2d(C,k,l,σ,x,y)
+    return  C/(π^2*k^2 + π^2*l^2 + σ) .* sin.(k*π*x) .* sin.(k*π*y')
 end
 
 function f(C,k,x)
     return C*sin.(k*π*x)
 end
+
+function f_2d(C,k,l,x,y)
+    return C .* sin.(k*π*x) .* sin.(l*π*y)
+end
+
 
 function linear_interpolation(v)
     len_v = length(v)
@@ -39,6 +51,64 @@ function linear_interpolation(v)
     return v_interpolated
 end
 
+function linear_interpolation_2d(mat)
+    (dim1,dim2) = size(mat)
+    mat_interpolated = zeros(2*dim1+1,2*dim2+1)
+    for i in 1:2*dim1+1
+        for j in 1:2*dim2 + 1
+            # println(i)
+            if i%2 == 0
+                if j % 2 == 0
+                # println("case 1")
+                    mat_interpolated[i,j] = mat[div(i,2),div(j,2)]
+                elseif j == 1
+                    mat_interpolated[i,j] = (mat[div(i,2),1]) / 2
+                elseif j == 2*dim2 + 1
+                    mat_interpolated[i,j] = (mat[div(i,2),end]) / 2
+                else
+                    mat_interpolated[i,j] = (mat[div(i,2),div(j-1,2)] + mat[div(i,2),div(j-1,2)]) / 2
+                end
+            elseif i == 1 
+                # println("case 2")
+                # v_interpolated[i] = (v[div((i+1),2)])
+                # v_interpolated[i] = (v[1])/2
+                if j % 2 == 0
+                    mat_interpolated[i,j] = (mat[i,div(j,2)]) / 2
+                elseif j == 1
+                    mat_interpolated[i,j] = (mat[i,j]) / 4
+                elseif j == 2*dim2 + 1
+                    mat_interpolated[i,j] = (mat[i,div(j,2)]) / 4
+                else
+                    mat_interpolated[i,j] = (mat[i,div(j-1,2)] + mat[i,div(j+1,2)]) / 4
+                end
+            elseif i == 2*dim1 + 1
+                # v_interpolated[i] = (v[end])/2
+                if j % 2 == 0
+                    mat_interpolated[i,j] = (mat[div(i,2),div(j,2)]) / 2
+                elseif j == 1
+                    mat_interpolated[i,j] = (mat[div(i,2),j]) / 4
+                elseif j == 2*dim2 + 1
+                    mat_interpolated[i,j] = (mat[div(i,2),div(j,2)]) / 4
+                else
+                    mat_interpolated[i,j] = (mat[div(i,2),div(j-1,2)] + mat[div(i,2),div(j+1,2)]) / 4
+                end
+            else
+                # v_interpolated[i] = (v[div(i-1,2)] + v[div(i+1,2)]) / 2
+                if j % 2 == 0
+                    mat_interpolated[i,j] = (mat[div(i-1,2),div(j,2)] + mat[div(i+1,2),div(j,2)]) / 2
+                elseif j == 1
+                    mat_interpolated[i,j] = (mat[div(i-1,2),j] + mat[div(i+1,2),j]) / 4
+                elseif j == 2*dim2 + 1
+                    mat_interpolated[i,j] = (mat[div(i-1,2),div(j,2)] + mat[div(i+1,2),div(j,2)]) / 4
+                else
+                    mat_interpolated[i,j] = (mat[div(i-1,2),div(j-1,2)] + mat[div(i+1,2),div(j-1,2)] + mat[div(i-1,2),div(j+1,2)] + mat[div(i+1,2),div(j+1,2)]) / 4
+                end
+            end
+        end
+    end
+    return mat_interpolated
+end
+
 function weighting(f)
     len_f = length(f)
     f_weighted = zeros(div(len_f-1,2))
@@ -48,8 +118,10 @@ function weighting(f)
     return f_weighted
 end
 
-# for one vector, linear interpolation and weighting are not necessary reverse operation
 
+function weighting_2d(mat)
+    
+end
 function Jacobi_iter(ω,v,f)
     N = length(v)
     # h = v[2] - v[1]
@@ -74,8 +146,6 @@ function A(v)
 end
 
 
-
-
 function A_matrix(N)
     A = spzeros(N,N)
     h = 1/(N+1)
@@ -89,64 +159,6 @@ function A_matrix(N)
     return A ./ h^2
 end
 
-function V_cycle(L,iter_times,N)
-    ω = 2/3
-    # N = 2^7
-    x = range(0,stop=1,step=1/N)
-    x = x[2:end-1]
-    C = 1
-    # iter_times = 10
-    # v = 1/2*(sin.(16*x*π) + sin.(40*x*π))
-    # v = 1/2*sin.(16*x*π)
-    # v = similar(x)
-    v = zeros(N-1)
-    # v = randn(N-1)
-    rhs = C*sin.(k*π*x)
-    v_values = Dict(1 => v)
-    rhs_values = Dict(1 => rhs)
-    # @show rhs_values[1]
-    for i in 1:L
-        @show i
-        if i != L
-            for _ in 1:iter_times
-                v = Jacobi_iter(ω,v,rhs_values[i])
-            end
-            # v_values[i] = copy(v) # need to examine
-            v_values[i] = v
-            rhs = weighting(rhs_values[i] - A(v_values[i]))
-            # rhs = weighting(rhs_values[i] - A_matrix(N-1)*(v_values[i]))
-            rhs_values[i+1] = rhs
-            N = div(N,2)
-            v = zeros(N-1)
-        else
-            v_values[i] = A_matrix(N-1) \ rhs_values[i]
-            # for _ in 1:iter_times
-            #     v_values[i] = Jacobi_iter(ω,v,rhs_values[i])
-            # end
-        end
-        @show v_values[i]
-    end
-    println("Pass first part")
-    for i in 1:length(v_values)
-        # @show length(v_values[i])
-    end
-    for i in 1:L-1
-        j = L - i
-        # @show j
-        # @show v_values[j]
-        # @show v_values[j+1]
-        v_values[j] = v_values[j] + linear_interpolation(v_values[j+1])
-        v = v_values[j]
-        for i in 1:iter_times
-            v = Jacobi_iter(ω,v,rhs_values[j])
-        end
-        v_values[j] = v
-    end
-    return v_values[1], exact_u(C,k,σ,x)
-end
-
-
-# function V_cycle_kernel(vh,fh,N,L,iter_times,ω,C,x)
 function V_cycle_kernel(vh,fh)
     N = length(vh) + 1
     x = range(0,stop=1,step=1/N)
@@ -226,104 +238,3 @@ function test_V_cycle_kernel(test_times)
     @printf "CG iterative, error: %1.15e\n " cg_error
     @printf "%s" cg_results[2]
 end
-
-
-global i = 1
-function FMG(fh)
-    global ω = 2/3
-    global iter_times = 3
-    global L = 3
-    global C = 1
-    N = length(fh) + 1
-    x = range(0,stop=1,step=1/N)
-    x = x[2:end-1]
-    vh = zeros(N-1)
-    rhs = C*sin.(k*π*x)
-    global v_values = Dict(1=>vh)
-    global rhs_values = Dict(1 => fh)
-    N_values = Dict(1=> N)
-    # global i = 1
-    global i
-    # while length(N_values[end]) > div(N,2^L) 
-    #     println(i)
-    # for i = 1:L
-    if i <= L
-        println(i)
-        if i!= L
-            rhs_values[i+1] = linear_interpolation(rhs_values[i])
-            v_values[i+1] = FMG(rhs_values[i+1])
-            N_values[i+1] = div(N_values[i],2)
-            i += 1
-        else
-            # N_values[i+1] = div(N_values[i],2)
-            vh = zeros(N_values[i]-1)
-            x = range(0,stop=1,step=1/N_values[i])
-            x = x[2:end-1]
-            v_values[i] = V_cycle_kernel(vh,rhs_values[i])
-        end
-    end
-    return v_values
-end
-
-
-global counter = 1
-function FMG_test(fh)
-    global ω = 2/3
-    global iter_times = 3
-    global L = 3
-    global C = 1
-    global counter
-    # global counter = 1
-    N = length(fh) + 1
-    x = range(0,stop=1,step=1/N)
-    x = x[2:end-1]
-    vh = zeros(N-1)
-    rhs = C*sin.(k*π*x)
-    while counter <= L
-        counter += 1
-        println(counter)
-        FMG_test(fh)
-    end
-end
-
-
-function plot_results(results)
-    plot(results[1])
-    plot!(results[2])
-end
-
-
-function iter_test(m)
-    global i = 1
-    # i = 1
-    while i <= m
-        iter_test(m-1)
-        println(i)
-        i += 1
-    end
-end
-
-function iter_test2(m)
-    global i = 1
-    # global K = 3
-    K = 3
-    while i <= K
-        i += 1
-        println(i)
-        iter_test2(m-1)
-    end
-end
-
-global i = 1
-function iter_test3(m)
-    # global i = 1
-    # global K = 3
-    # K = 3
-    global i
-    if i < 5
-        i += 1
-        println(i)
-        iter_test3(m)
-    end
-end
-
