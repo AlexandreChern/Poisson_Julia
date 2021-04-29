@@ -120,8 +120,18 @@ end
 
 
 function weighting_2d(mat)
-    
+    (dim1,dim2) = size(mat)
+    mat_weighted = zeros(div(dim1-1,2),div(dim2-1,2))
+    for i in 1:div(dim1-1,2)
+        for j in 1:div(dim2-1,2)
+            mat_weighted[i,j] = (mat[2*i-1,2*j-1] + mat[2*i-1,2*i+1] + mat[2*i+1,2*j-1] + mat[2*i+1,2*j+1]
+                            + 2*(mat[2*i,2*j-1] + mat[2*i,2*j+1] + mat[2*i-1,2*j] + mat[2*i+1,2*j])
+                            + 4*mat[2*i,2*j]) / 16
+        end
+    end
+    return mat_weighted
 end
+
 function Jacobi_iter(ω,v,f)
     N = length(v)
     # h = v[2] - v[1]
@@ -131,6 +141,10 @@ function Jacobi_iter(ω,v,f)
         v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
     end
     return v_new
+end
+
+function Jacobi_iter(ω,v,f)
+    
 end
 
 function A(v)
