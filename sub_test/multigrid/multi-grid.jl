@@ -147,7 +147,7 @@ end
 
 
 # function V_cycle_kernel(vh,fh,N,L,iter_times,ω,C,x)
-function V_cycle_kernel(vh,fh)
+function V_cycle_kernel(vh,fh,L)
     N = length(vh) + 1
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
@@ -210,7 +210,7 @@ function test_V_cycle_kernel(test_times)
     direct_sol = A_matrix_form \ rhs
 
     for step in 1:test_times
-        ans = V_cycle_kernel(vh,rhs)
+        ans = V_cycle_kernel(vh,rhs,L)
         vh = ans[1]
         # err = norm(vh - exact_u(C,k,σ,x))
         err = norm(vh - direct_sol)
@@ -259,7 +259,7 @@ function FMG(fh)
             vh = zeros(N_values[i]-1)
             x = range(0,stop=1,step=1/N_values[i])
             x = x[2:end-1]
-            v_values[i] = V_cycle_kernel(vh,rhs_values[i])
+            v_values[i] = V_cycle_kernel(vh,rhs_values[i],L)
         end
     end
     return v_values
@@ -267,25 +267,46 @@ end
 
 
 global counter = 1
-function FMG_test(fh)
+
+function FMG_test(num_v_cycles)
     global ω = 2/3
     global iter_times = 3
     global L = 3
     global C = 1
     global counter
     # global counter = 1
-    N = length(fh) + 1
+    # N = length(fh) + 1
+    N = 2^2 # initial coarse grid
+    N_finest = N * (2^num_v_cycles) # finest grid
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
+    x_finest = range(0,stop=1,step=1/N_finest)
+    x_finest = x_finest[2:end-1]
+    exact_sol_finest = exact_u(C,k,σ,x_finest)
+
     vh = zeros(N-1)
     rhs = C*sin.(k*π*x)
-    while counter <= L
-        counter += 1
-        println(counter)
-        FMG_test(fh)
+    # num_v_cycles = 3
+    v_values = Dict(1=>vh)
+    rhs_values = Dict(1=>rhs)
+    tmp_results = Dict(1=>vh)
+    for i in 1:num_v_cycles
+        @show i
+        for _ in 1:iter_times
+            v_values[i] = Jacobi_iter(ω,v_values[i],rhs_values[i])
+        end
+        rhs_values[i+1] = linear_interpolation(rhs_values[i])
+        tmp_results[i+1] = linear_interpolation(v_values[i])
+        v_values[i+1] = V_cycle_kernel(tmp_results[i+1],rhs_values[i+1],i)[1]
     end
+    return v_values, exact_sol_finest
 end
 
+
+function plot_FMG(results)
+    plot(results[2])
+    plot!(results[1][length(results[1])])
+end
 
 function plot_results(results)
     plot(results[1])
