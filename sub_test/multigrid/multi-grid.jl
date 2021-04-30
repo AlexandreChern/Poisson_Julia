@@ -229,54 +229,68 @@ end
 
 
 global i = 1
-function FMG(fh)
-    global ω = 2/3
-    global iter_times = 3
-    global L = 3
-    global C = 1
-    N = length(fh) + 1
-    x = range(0,stop=1,step=1/N)
-    x = x[2:end-1]
-    vh = zeros(N-1)
-    rhs = C*sin.(k*π*x)
-    global v_values = Dict(1=>vh)
-    global rhs_values = Dict(1 => fh)
-    N_values = Dict(1=> N)
-    # global i = 1
-    global i
-    # while length(N_values[end]) > div(N,2^L) 
-    #     println(i)
-    # for i = 1:L
-    if i <= L
-        println(i)
-        if i!= L
-            rhs_values[i+1] = linear_interpolation(rhs_values[i])
-            v_values[i+1] = FMG(rhs_values[i+1])
-            N_values[i+1] = div(N_values[i],2)
-            i += 1
-        else
-            # N_values[i+1] = div(N_values[i],2)
-            vh = zeros(N_values[i]-1)
-            x = range(0,stop=1,step=1/N_values[i])
-            x = x[2:end-1]
-            v_values[i] = V_cycle_kernel(vh,rhs_values[i],L)
-        end
-    end
-    return v_values
-end
 
 
-global counter = 1
+###### Iterative Implementation of FMG, NOT SUCCESSFUL #################
 
-function FMG_test(num_v_cycles)
+# function FMG(fh)
+#     global ω = 2/3
+#     global iter_times = 3
+#     global L = 3
+#     global C = 1
+#     N = length(fh) + 1
+#     x = range(0,stop=1,step=1/N)
+#     x = x[2:end-1]
+#     vh = zeros(N-1)
+#     rhs = C*sin.(k*π*x)
+#     global v_values = Dict(1=>vh)
+#     global rhs_values = Dict(1 => fh)
+#     N_values = Dict(1=> N)
+#     # global i = 1
+#     global i
+#     # while length(N_values[end]) > div(N,2^L) 
+#     #     println(i)
+#     # for i = 1:L
+#     if i <= L
+#         println(i)
+#         if i!= L
+#             rhs_values[i+1] = linear_interpolation(rhs_values[i])
+#             v_values[i+1] = FMG(rhs_values[i+1])
+#             N_values[i+1] = div(N_values[i],2)
+#             i += 1
+#         else
+#             # N_values[i+1] = div(N_values[i],2)
+#             vh = zeros(N_values[i]-1)
+#             x = range(0,stop=1,step=1/N_values[i])
+#             x = x[2:end-1]
+#             v_values[i] = V_cycle_kernel(vh,rhs_values[i],L)
+#         end
+#     end
+#     return v_values
+# end
+
+
+# global counter = 1
+
+
+#########################################################################
+
+
+"""
+    FMG_test(num_v_cycles,N)
+    num_v_cycles for how many v_cycles in one FMG
+    N for the coarsest grid point
+"""
+function FMG_test(num_v_cycles,N)
     global ω = 2/3
     global iter_times = 3
     global L = 3
     global C = 1
     global counter
+    ν = 3 # v cycle iter times
     # global counter = 1
     # N = length(fh) + 1
-    N = 2^2 # initial coarse grid
+    # N = 2^3 # initial coarse grid
     N_finest = N * (2^num_v_cycles) # finest grid
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
@@ -297,7 +311,10 @@ function FMG_test(num_v_cycles)
         end
         rhs_values[i+1] = linear_interpolation(rhs_values[i])
         tmp_results[i+1] = linear_interpolation(v_values[i])
-        v_values[i+1] = V_cycle_kernel(tmp_results[i+1],rhs_values[i+1],i)[1]
+        for _ in 1:ν
+            tmp_results[i+1] = V_cycle_kernel(tmp_results[i+1],rhs_values[i+1],i)[1]
+        end
+        v_values[i+1] = tmp_results[i+1]
     end
     return v_values, exact_sol_finest
 end
