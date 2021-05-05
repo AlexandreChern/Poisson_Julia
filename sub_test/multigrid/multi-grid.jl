@@ -312,7 +312,7 @@ function FMG_test(num_v_cycles,N)
         rhs_values[i+1] = linear_interpolation(rhs_values[i])
         tmp_results[i+1] = linear_interpolation(v_values[i])
         for _ in 1:ν
-            tmp_results[i+1] = V_cycle_kernel(tmp_results[i+1],rhs_values[i+1],i)[1]
+            tmp_results[i+1] = V_cycle_kernel(tmp_results[i+1],rhs_values[i+1],i+1)[1]
         end
         v_values[i+1] = tmp_results[i+1]
     end

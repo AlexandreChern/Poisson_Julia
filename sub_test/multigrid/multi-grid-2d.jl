@@ -360,8 +360,8 @@ end
 
 function test_V_cycle_kernel_2d()
     global ω = 4/5
-    global L = 3
-    global iter_times = 10
+    global L = 2
+    global iter_times = 100
     global C = 1
     N = 2^4
     x = range(0,stop=1,step=1/N)
@@ -377,4 +377,5 @@ function test_V_cycle_kernel_2d()
     plot(x,y,direct_sol,st=:surface)
     (v_cycle_2d, exact_2d, v_values_backup) = V_cycle_kernel_2d(vh,rhs)
     plot(x,y,exact_2d,st=:surface)
+    plot(x,y,v_cycle_2d,st=:surface)
 end
