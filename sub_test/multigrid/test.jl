@@ -1,7 +1,7 @@
 using SparseArrays
 using LinearAlgebra
 using Plots
-N = 63
+N = 64
 h = 1/N
 x = range(0,stop=1,length=N+1)
 x = x[2:end-1]
