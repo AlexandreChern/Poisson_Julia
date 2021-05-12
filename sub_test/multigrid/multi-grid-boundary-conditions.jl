@@ -39,6 +39,39 @@ function linear_interpolation(v)
     return v_interpolated
 end
 
+function linear_interpolation_v2(v)
+    len_v = length(v)
+    v_interpolated = zeros(2*len_v+1)
+    for i in 1:2*len_v+1
+        # println(i)
+        if i%2 == 0
+            # println("case 1")
+            v_interpolated[i] = (v[div(i,2)])
+        elseif i == 1 
+            # println("case 2")
+            # v_interpolated[i] = (v[div((i+1),2)])
+            v_interpolated[i] = (v[1] + 1.0)/2
+        elseif i == 2*len_v + 1
+            v_interpolated[i] = (v[end] + 1.0)/2
+        else
+            v_interpolated[i] = (v[div(i-1,2)] + v[div(i+1,2)]) / 2
+        end
+    end
+    return v_interpolated
+end
+
+function linear_interpolation_dirichlet(v,v0,vn)
+    # v_interpolated = linear_interpolation(v)
+    # v_0 = 1
+    # v_end = 1
+    # v_interpolated[1] = v_interpolated[1] + v_0/2
+    # v_interpolated[end] = v_interpolated[end] + v_end/2
+    # return v_interpolated
+    len_v = length(v)
+    v_interpolated = zeros(2*len_v - 1)
+    return v_interpolated
+end
+
 function weighting(f)
     len_f = length(f)
     f_weighted = zeros(div(len_f-1,2))
@@ -89,6 +122,37 @@ function A_matrix(N)
     return A ./ h^2
 end
 
+function A_matrix_dirichlet(N)
+    A = spzeros(N,N)
+    h = 1/(N-1)
+    # for i in 2:N-1
+    for i in 1:N
+        A[i,i] = 2 + σ*h^2    
+    end
+    # for i in 2:N-2
+    for i in 1:N-1
+        A[i,i+1] = -1
+        A[i+1,i] = -1
+    end
+    A ./= h^2
+    A[1,1] = 1
+    A[1,2] = 0
+    A[end,end] = 1
+    A[end,end-1] = 0
+    return A
+end
+
+function rhs_dirichlet(N,v0,vn)
+    h = 1/(N-1)
+    x = 0:h:1
+    C = 1
+    k = 1
+    rhs = C*sin.(k*π*x)
+    rhs[1] = v0
+    rhs[end] = vn
+    return rhs
+end
+
 function V_cycle(L,iter_times,N)
     ω = 2/3
     # N = 2^7
@@ -102,6 +166,10 @@ function V_cycle(L,iter_times,N)
     v = zeros(N-1)
     # v = randn(N-1)
     rhs = C*sin.(k*π*x)
+    ###
+    rhs[1] = 1
+    rhs[end] = 1
+    ###
     v_values = Dict(1 => v)
     rhs_values = Dict(1 => rhs)
     # @show rhs_values[1]
@@ -135,7 +203,7 @@ function V_cycle(L,iter_times,N)
         # @show j
         # @show v_values[j]
         # @show v_values[j+1]
-        v_values[j] = v_values[j] + linear_interpolation(v_values[j+1])
+        v_values[j] = v_values[j] + linear_interpolation_v2(v_values[j+1]) # changed to Jacobi Iteration form
         v = v_values[j]
         for i in 1:iter_times
             v = Jacobi_iter(ω,v,rhs_values[j])
@@ -329,39 +397,3 @@ function plot_results(results)
     plot(results[1])
     plot!(results[2])
 end
-
-
-function iter_test(m)
-    global i = 1
-    # i = 1
-    while i <= m
-        iter_test(m-1)
-        println(i)
-        i += 1
-    end
-end
-
-function iter_test2(m)
-    global i = 1
-    # global K = 3
-    K = 3
-    while i <= K
-        i += 1
-        println(i)
-        iter_test2(m-1)
-    end
-end
-
-global i = 1
-function iter_test3(m)
-    # global i = 1
-    # global K = 3
-    # K = 3
-    global i
-    if i < 5
-        i += 1
-        println(i)
-        iter_test3(m)
-    end
-end
-
