@@ -10,8 +10,13 @@ L = 2
 k = 1
 σ = 0
 
+# Dirichlet Boundary Condition
+# v0 = 1.0 vn = 1.0
+# exact solution sine wave .+ 1
+
+
 function exact_u(C,k,σ,x)
-    return C/(π^2*k^2 + σ) * sin.(k*π*x)
+    return C/(π^2*k^2 + σ) * sin.(k*π*x) .+ 1
 end
 
 function f(C,k,x)
@@ -39,7 +44,7 @@ function linear_interpolation(v)
     return v_interpolated
 end
 
-function linear_interpolation_v2(v)
+function linear_interpolation_v2(v) # modified for v0 = 1 and vn = 1
     len_v = length(v)
     v_interpolated = zeros(2*len_v+1)
     for i in 1:2*len_v+1
@@ -60,7 +65,7 @@ function linear_interpolation_v2(v)
     return v_interpolated
 end
 
-function linear_interpolation_dirichlet(v,v0,vn)
+function linear_interpolation_dirichlet(v,v0,vn) # including boundary points
     # v_interpolated = linear_interpolation(v)
     # v_0 = 1
     # v_end = 1
@@ -81,7 +86,9 @@ function weighting(f)
     return f_weighted
 end
 
+
 # for one vector, linear interpolation and weighting are not necessary reverse operation
+# They are associated via Galerkin property
 
 function Jacobi_iter(ω,v,f)
     N = length(v)
@@ -91,6 +98,22 @@ function Jacobi_iter(ω,v,f)
     for j = 2:N-1
         v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
     end
+    v_new[1] = (1-ω) * v[1] + ω * 1/(2 + σ*h^2) * (v[2] + h^2*f[1]) 
+    v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end])
+    return v_new
+end
+
+function Jacobi_iter_v2(ω,v,f)
+    N = length(v)
+    # h = v[2] - v[1]
+    h = 1/(N-1)
+    v_new = copy(v)
+
+    for j = 2:N-1
+        v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
+    end
+    v_new[1] = (1-ω) * v[1] + ω * 1/(2 + σ*h^2) * (v[2] + h^2*f[1] + 1) 
+    v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end] + 1)
     return v_new
 end
 
@@ -145,8 +168,9 @@ end
 function rhs_dirichlet(N,v0,vn)
     h = 1/(N-1)
     x = 0:h:1
-    C = 1
+    # C = 1
     k = 1
+    C = π^2*k^2
     rhs = C*sin.(k*π*x)
     rhs[1] = v0
     rhs[end] = vn
@@ -158,27 +182,33 @@ function V_cycle(L,iter_times,N)
     # N = 2^7
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
-    C = 1
+    # C = 1
+    C = π^2*k^2
     # iter_times = 10
     # v = 1/2*(sin.(16*x*π) + sin.(40*x*π))
     # v = 1/2*sin.(16*x*π)
     # v = similar(x)
     v = zeros(N-1)
+    # v[1] = 1
+    # v[end] = 1
+    # v = ones(N-1)
     # v = randn(N-1)
     rhs = C*sin.(k*π*x)
     ###
-    rhs[1] = 1
-    rhs[end] = 1
+    rhs[1] += 1/(1/N)^2
+    rhs[end] += 1/(1/N)^2
     ###
     v_values = Dict(1 => v)
     rhs_values = Dict(1 => rhs)
+    # @show rhs_values[1]
     # @show rhs_values[1]
     for i in 1:L
         @show i
         if i != L
             for _ in 1:iter_times
-                v = Jacobi_iter(ω,v,rhs_values[i])
+                v = Jacobi_iter_v2(ω,v,rhs_values[i])
             end
+            # @show v
             # v_values[i] = copy(v) # need to examine
             v_values[i] = v
             rhs = weighting(rhs_values[i] - A(v_values[i]))
@@ -186,6 +216,8 @@ function V_cycle(L,iter_times,N)
             rhs_values[i+1] = rhs
             N = div(N,2)
             v = zeros(N-1)
+            # v[1] = 1
+            # v[end] = 1
         else
             v_values[i] = A_matrix(N-1) \ rhs_values[i]
             # for _ in 1:iter_times
@@ -203,12 +235,14 @@ function V_cycle(L,iter_times,N)
         # @show j
         # @show v_values[j]
         # @show v_values[j+1]
-        v_values[j] = v_values[j] + linear_interpolation_v2(v_values[j+1]) # changed to Jacobi Iteration form
+        v_values[j] = v_values[j] + linear_interpolation(v_values[j+1]) # changed to Jacobi Iteration form
         v = v_values[j]
-        for i in 1:iter_times
+        for _ in 1:iter_times
             v = Jacobi_iter(ω,v,rhs_values[j])
         end
         v_values[j] = v
+        @show j
+        @show v_values[j]
     end
     return v_values[1], exact_u(C,k,σ,x)
 end
