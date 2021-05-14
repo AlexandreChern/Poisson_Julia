@@ -14,9 +14,12 @@ k = 1
 # v0 = 1.0 vn = 1.0
 # exact solution sine wave .+ 1
 
+g0 = 2
+gn = 3
+
 
 function exact_u(C,k,σ,x)
-    return C/(π^2*k^2 + σ) * sin.(k*π*x) .+ 1
+    return C/(π^2*k^2 + σ) * sin.(k*π*x) .+ g0 + (gn-g0)*x
 end
 
 function f(C,k,x)
@@ -103,7 +106,7 @@ function Jacobi_iter(ω,v,f)
     return v_new
 end
 
-function Jacobi_iter_v2(ω,v,f)
+function Jacobi_iter_v2(ω,v,f) # including boundary conditions
     N = length(v)
     # h = v[2] - v[1]
     h = 1/(N-1)
@@ -112,8 +115,8 @@ function Jacobi_iter_v2(ω,v,f)
     for j = 2:N-1
         v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
     end
-    v_new[1] = (1-ω) * v[1] + ω * 1/(2 + σ*h^2) * (v[2] + h^2*f[1] + 1) 
-    v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end] + 1)
+    v_new[1] = (1-ω) * v[1] + ω * 1/(2 + σ*h^2) * (v[2] + h^2*f[1] + g0) 
+    v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end] + gn)
     return v_new
 end
 
@@ -195,8 +198,8 @@ function V_cycle(L,iter_times,N)
     # v = randn(N-1)
     rhs = C*sin.(k*π*x)
     ###
-    rhs[1] += 1/(1/N)^2
-    rhs[end] += 1/(1/N)^2
+    rhs[1] += g0/(1/N)^2
+    rhs[end] += gn/(1/N)^2
     ###
     v_values = Dict(1 => v)
     rhs_values = Dict(1 => rhs)
