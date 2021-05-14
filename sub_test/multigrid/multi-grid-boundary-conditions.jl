@@ -14,8 +14,8 @@ k = 1
 # v0 = 1.0 vn = 1.0
 # exact solution sine wave .+ 1
 
-g0 = 2
-gn = 3
+g0 = 3
+gn = 2
 
 
 function exact_u(C,k,σ,x)
@@ -47,26 +47,26 @@ function linear_interpolation(v)
     return v_interpolated
 end
 
-function linear_interpolation_v2(v) # modified for v0 = 1 and vn = 1
-    len_v = length(v)
-    v_interpolated = zeros(2*len_v+1)
-    for i in 1:2*len_v+1
-        # println(i)
-        if i%2 == 0
-            # println("case 1")
-            v_interpolated[i] = (v[div(i,2)])
-        elseif i == 1 
-            # println("case 2")
-            # v_interpolated[i] = (v[div((i+1),2)])
-            v_interpolated[i] = (v[1] + 1.0)/2
-        elseif i == 2*len_v + 1
-            v_interpolated[i] = (v[end] + 1.0)/2
-        else
-            v_interpolated[i] = (v[div(i-1,2)] + v[div(i+1,2)]) / 2
-        end
-    end
-    return v_interpolated
-end
+# function linear_interpolation_v2(v) # modified for v0 = 1 and vn = 1, probably incorrect
+#     len_v = length(v)
+#     v_interpolated = zeros(2*len_v+1)
+#     for i in 1:2*len_v+1
+#         # println(i)
+#         if i%2 == 0
+#             # println("case 1")
+#             v_interpolated[i] = (v[div(i,2)])
+#         elseif i == 1 
+#             # println("case 2")
+#             # v_interpolated[i] = (v[div((i+1),2)])
+#             v_interpolated[i] = (v[1] + 1.0)/2
+#         elseif i == 2*len_v + 1
+#             v_interpolated[i] = (v[end] + 1.0)/2
+#         else
+#             v_interpolated[i] = (v[div(i-1,2)] + v[div(i+1,2)]) / 2
+#         end
+#     end
+#     return v_interpolated
+# end
 
 function linear_interpolation_dirichlet(v,v0,vn) # including boundary points
     # v_interpolated = linear_interpolation(v)
@@ -185,13 +185,16 @@ function V_cycle(L,iter_times,N)
     # N = 2^7
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
-    # C = 1
-    C = π^2*k^2
+    C = 1
+    # C = π^2*k^2
     # iter_times = 10
     # v = 1/2*(sin.(16*x*π) + sin.(40*x*π))
     # v = 1/2*sin.(16*x*π)
     # v = similar(x)
-    v = zeros(N-1)
+    v = ones(N-1)
+    # v = zeros(N-1)
+    # v[1] = g0
+    # v[end] = gn
     # v[1] = 1
     # v[end] = 1
     # v = ones(N-1)
@@ -209,7 +212,7 @@ function V_cycle(L,iter_times,N)
         @show i
         if i != L
             for _ in 1:iter_times
-                v = Jacobi_iter_v2(ω,v,rhs_values[i])
+                v = Jacobi_iter(ω,v,rhs_values[i])
             end
             # @show v
             # v_values[i] = copy(v) # need to examine
