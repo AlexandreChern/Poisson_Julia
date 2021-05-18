@@ -221,7 +221,7 @@ void Restrict_Residual (int lev, Array<double>* Sol,
     for (int i = 1; i < RHS[lev+1].nrows()-1; i++)
     {
         int fi = 2*i;
-        for (int j = 1l j < RHS[level+1].ncols()-1; j++)
+        for (int j = 1; j < RHS[lev+1].ncols()-1; j++)
         {
             int fj = 2*j
             RHS[lev+1] (i,j) = double (0.25) * 
