@@ -69,17 +69,17 @@ end
 #     return v_interpolated
 # end
 
-function linear_interpolation_dirichlet(v,v0,vn) # including boundary points
-    # v_interpolated = linear_interpolation(v)
-    # v_0 = 1
-    # v_end = 1
-    # v_interpolated[1] = v_interpolated[1] + v_0/2
-    # v_interpolated[end] = v_interpolated[end] + v_end/2
-    # return v_interpolated
-    len_v = length(v)
-    v_interpolated = zeros(2*len_v - 1)
-    return v_interpolated
-end
+# function linear_interpolation_dirichlet(v,v0,vn) # including boundary points
+#     # v_interpolated = linear_interpolation(v)
+#     # v_0 = 1
+#     # v_end = 1
+#     # v_interpolated[1] = v_interpolated[1] + v_0/2
+#     # v_interpolated[end] = v_interpolated[end] + v_end/2
+#     # return v_interpolated
+#     len_v = length(v)
+#     v_interpolated = zeros(2*len_v - 1)
+#     return v_interpolated
+# end
 
 function weighting(f)
     len_f = length(f)
@@ -107,19 +107,19 @@ function Jacobi_iter(ω,v,f)
     return v_new
 end
 
-function Jacobi_iter_v2(ω,v,f) # including boundary conditions
-    N = length(v)
-    # h = v[2] - v[1]
-    h = 1/(N-1)
-    v_new = copy(v)
+# function Jacobi_iter_v2(ω,v,f) # including boundary conditions
+#     N = length(v)
+#     # h = v[2] - v[1]
+#     h = 1/(N-1)
+#     v_new = copy(v)
 
-    for j = 2:N-1
-        v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
-    end
-    v_new[1] = (1-ω) * v[1] + ω * 1/(2 + σ*h^2) * (v[2] + h^2*f[1] + g0) 
-    v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end] + gn)
-    return v_new
-end
+#     for j = 2:N-1
+#         v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
+#     end
+#     v_new[1] = (1-ω) * v[1] + ω * 1/(2 + σ*h^2) * (v[2] + h^2*f[1] + g0) 
+#     v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end] + gn)
+#     return v_new
+# end
 
 function A(v)
     # h = v[2] - v[1]
