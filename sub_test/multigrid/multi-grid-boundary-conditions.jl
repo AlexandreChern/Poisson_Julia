@@ -10,7 +10,8 @@ L = 2
 k = 1
 σ = 0
 
-# Dirichlet Boundary Condition
+# 1D Dirichlet Boundary Condition
+# D_xx(u) = C*sin(k*π*x)
 # v0 = 1.0 vn = 1.0
 # exact solution sine wave .+ 1
 
