@@ -186,13 +186,13 @@ function V_cycle(L,iter_times,N)
     # N = 2^7
     x = range(0,stop=1,step=1/N)
     x = x[2:end-1]
-    C = 1
-    # C = π^2*k^2
+    # C = 1
+    C = π^2*k^2
     # iter_times = 10
     # v = 1/2*(sin.(16*x*π) + sin.(40*x*π))
     # v = 1/2*sin.(16*x*π)
     # v = similar(x)
-    v = ones(N-1)
+    # v = ones(N-1)
     # v = zeros(N-1)
     # v[1] = g0
     # v[end] = gn
@@ -200,11 +200,13 @@ function V_cycle(L,iter_times,N)
     # v[end] = 1
     # v = ones(N-1)
     # v = randn(N-1)
+    v = Array(range(g0,gn,length=length(x)))
     rhs = C*sin.(k*π*x)
     ###
     rhs[1] += g0/(1/N)^2
     rhs[end] += gn/(1/N)^2
     ###
+    # v = rhs
     v_values = Dict(1 => v)
     rhs_values = Dict(1 => rhs)
     # @show rhs_values[1]
