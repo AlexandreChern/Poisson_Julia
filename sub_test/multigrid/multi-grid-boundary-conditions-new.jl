@@ -17,7 +17,9 @@ k = 1
 # new formulation includes boundary data
 
 g0 = 1
-gn = -π
+gn = 0
+
+gn_n = -π
 
 
 function exact_u(C,k,σ,x)
@@ -59,9 +61,11 @@ function weighting(f)
     for i in 1:length(f_weighted)
         if i == 1
             # f_weighted[i] = 1/2 * f[1] + 1/4 * f[2]
-            f_weighted[i] = 1/2 * f[1] + 1/2 * f[2]
+            # f_weighted[i] = 1/4 * f[1] + 1/4 * f[2]
+            f_weighted[i] = 1 * f[1]
         elseif i == length(f_weighted)
-            f_weighted[i] = 1/2 * f[end] + 1/4 * f[end-1]
+            # f_weighted[i] = 1/4 * f[end] + 1/4 * f[end-1]
+            f_weighted[i] = 1 * f[end]
             # f_weighted[i] = 1/2 * f[end] + 1/2 * f[end-1]
         else
             f_weighted[i] = (f[2*i-2] + 2*f[2*i-1] + f[2*i])/4
@@ -268,7 +272,7 @@ function V_cycle_mixed(L,iter_times,N)
     # # rhs[end] = gn
     # rhs = rhs_dirichlet(N,g0,gn)
     ###
-    rhs = rhs_mixed(N,g0,gn)
+    rhs = rhs_mixed(N,g0,gn_n)
     # v = rhs
     v_values = Dict(1 => v)
     rhs_values = Dict(1 => rhs)
