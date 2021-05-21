@@ -17,11 +17,15 @@ k = 1
 # new formulation includes boundary data
 
 g0 = 1
-gn = 0
+gn = -π
 
 
 function exact_u(C,k,σ,x)
     return C/(π^2*k^2 + σ) * sin.(k*π*x) .+ g0 + (gn-g0)*x
+end
+
+function exact_u_mixed(C,k,σ,x)
+    return C/(π^2*k^2+σ) * sin.(k*π*x) .+ g0
 end
 
 function f(C,k,x)
@@ -54,8 +58,8 @@ function weighting(f)
     f_weighted = zeros(div(len_f+1,2))
     for i in 1:length(f_weighted)
         if i == 1
-            f_weighted[i] = 1/2 * f[1] + 1/4 * f[2]
-            # f_weighted[i] = 1/2 * f[1] + 1/2 * f[2]
+            # f_weighted[i] = 1/2 * f[1] + 1/4 * f[2]
+            f_weighted[i] = 1/2 * f[1] + 1/2 * f[2]
         elseif i == length(f_weighted)
             f_weighted[i] = 1/2 * f[end] + 1/4 * f[end-1]
             # f_weighted[i] = 1/2 * f[end] + 1/2 * f[end-1]
@@ -138,6 +142,26 @@ function A_matrix_dirichlet(N)
     return A
 end
 
+function A_matrix_mixed(N)
+    A = spzeros(N+1,N+1)
+    h = 1/(N)
+    # for i in 2:N-1
+    for i in 1:N+1
+        A[i,i] = 2 + σ*h^2    
+    end
+    # for i in 2:N-2
+    for i in 1:N
+        A[i,i+1] = -1
+        A[i+1,i] = -1
+    end
+    A[1,1] = 1
+    A[1,2] = 0
+    A[end,end] = 1
+    A[end,end-1] = -1
+    A ./= h^2
+    return A
+end
+
 function rhs_dirichlet(N,v0,vn)
     h = 1/(N)
     x = 0:h:1
@@ -150,6 +174,18 @@ function rhs_dirichlet(N,v0,vn)
     return rhs
 end
 
+function rhs_mixed(N,v0,vn)
+    h = 1/(N)
+    x = 0:h:1
+    # C = 1
+    k = 1
+    C = π^2*k^2
+    rhs = C*sin.(k*π*x)
+    rhs[1] = v0/h^2
+    rhs[end] = vn/(h)
+    return rhs
+end
+
 function V_cycle(L,iter_times,N)
     ω = 2/3
     # N = 2^3
@@ -159,8 +195,8 @@ function V_cycle(L,iter_times,N)
     v = Array(range(g0,gn,length=length(x)))
     rhs = C*sin.(k*π*x)
     ###
-    rhs[1] += g0/(1/N)^2
-    rhs[end] += gn/(1/N)^2
+    # rhs[1] += g0/(1/N)^2
+    # rhs[end] += gn/(1/N)^2
     # rhs[1] = g0
     # rhs[end] = gn
     rhs = rhs_dirichlet(N,g0,gn)
@@ -215,6 +251,74 @@ function V_cycle(L,iter_times,N)
         @show v_values[j]
     end
     return v_values[1], exact_u(C,k,σ,x)
+end
+
+function V_cycle_mixed(L,iter_times,N)
+    ω = 2/3
+    # N = 2^3
+    x = range(0,stop=1,step=1/N)
+    C = π^2*k^2
+    # iter_times = 10
+    v = Array(range(g0,gn,length=length(x)))
+    rhs = C*sin.(k*π*x)
+    ###
+    # rhs[1] += g0/(1/N)^2
+    # rhs[end] += gn/(1/N)^2
+    # # rhs[1] = g0
+    # # rhs[end] = gn
+    # rhs = rhs_dirichlet(N,g0,gn)
+    ###
+    rhs = rhs_mixed(N,g0,gn)
+    # v = rhs
+    v_values = Dict(1 => v)
+    rhs_values = Dict(1 => rhs)
+    # @show rhs_values[1]
+    # @show rhs_values[1]
+    for i in 1:L
+        @show i
+        if i != L
+            for _ in 1:iter_times
+                v = Jacobi_iter(ω,v,rhs_values[i])
+            end
+            # @show v
+            # v_values[i] = copy(v) # need to examine
+            v_values[i] = v
+            rhs = weighting(rhs_values[i] - A(v_values[i]))
+            @show rhs
+            # rhs = weighting(rhs_values[i] - A_matrix(N-1)*(v_values[i]))
+            rhs_values[i+1] = rhs
+            N = div(N,2)
+            v = zeros(N+1)
+            # v[1] = 1
+            # v[end] = 1
+        else
+            @show rhs_values[i]
+            v_values[i] = A_matrix_mixed(N) \ rhs_values[i]
+            # for _ in 1:iter_times
+            #     v_values[i] = Jacobi_iter(ω,v,rhs_values[i])
+            # end
+        end
+        @show v_values[i]
+    end
+    println("Pass first part")
+    for i in 1:length(v_values)
+        # @show length(v_values[i])
+    end
+    for i in 1:L-1
+        j = L - i
+        # @show j
+        # @show v_values[j]
+        # @show v_values[j+1]
+        v_values[j] = v_values[j] + linear_interpolation(v_values[j+1]) # changed to Jacobi Iteration form
+        v = v_values[j]
+        for _ in 1:iter_times
+            v = Jacobi_iter(ω,v,rhs_values[j])
+        end
+        v_values[j] = v
+        @show j
+        @show v_values[j]
+    end
+    return v_values[1], exact_u_mixed(C,k,σ,x)
 end
 
 
