@@ -16,8 +16,8 @@ k = 1
 # exact solution sine wave .+ 1
 # new formulation includes boundary data
 
-g0 = 3
-gn = 2
+g0 = 1
+gn = 0
 
 
 function exact_u(C,k,σ,x)
@@ -55,8 +55,10 @@ function weighting(f)
     for i in 1:length(f_weighted)
         if i == 1
             f_weighted[i] = 1/2 * f[1] + 1/4 * f[2]
+            # f_weighted[i] = 1/2 * f[1] + 1/2 * f[2]
         elseif i == length(f_weighted)
             f_weighted[i] = 1/2 * f[end] + 1/4 * f[end-1]
+            # f_weighted[i] = 1/2 * f[end] + 1/2 * f[end-1]
         else
             f_weighted[i] = (f[2*i-2] + 2*f[2*i-1] + f[2*i])/4
         end
@@ -67,7 +69,7 @@ end
 function Jacobi_iter(ω,v,f)
     N = length(v)
     # h = v[2] - v[1]
-    h = 1/(N+1)
+    h = 1/(N-1)
     v_new = copy(v)
     for j = 2:N-1
         v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
@@ -78,18 +80,28 @@ function Jacobi_iter(ω,v,f)
 end
 
 
+# function A(v)
+#     # h = v[2] - v[1]
+#     h = 1/(length(v)+1)
+#     v_new = similar(v)
+#     v_new[1] = ((2 + σ*h^2)*v[1] - v[2]) / h^2
+#     v_new[end] = ((2 + σ*h^2)*v[end] - v[end-1]) / h^2
+#     for i in 2:length(v_new)-1
+#         v_new[i] = (- v[i-1] + (2 + σ*h^2)*v[i] - v[i+1]) / h^2
+#     end
+#     return v_new
+# end
+
 function A(v)
-    # h = v[2] - v[1]
-    h = 1/(length(v)+1)
+    h = 1/(length(v) - 1)
     v_new = similar(v)
-    v_new[1] = ((2 + σ*h^2)*v[1] - v[2]) / h^2
-    v_new[end] = ((2 + σ*h^2)*v[end] - v[end-1]) / h^2
     for i in 2:length(v_new)-1
         v_new[i] = (- v[i-1] + (2 + σ*h^2)*v[i] - v[i+1]) / h^2
     end
+    v_new[1] = v[1] / h^2
+    v_new[end] = v[end] / h^2
     return v_new
 end
-
 
 
 
@@ -107,61 +119,51 @@ function A_matrix(N)
 end
 
 function A_matrix_dirichlet(N)
-    A = spzeros(N,N)
-    h = 1/(N-1)
+    A = spzeros(N+1,N+1)
+    h = 1/(N)
     # for i in 2:N-1
-    for i in 1:N
+    for i in 1:N+1
         A[i,i] = 2 + σ*h^2    
     end
     # for i in 2:N-2
-    for i in 1:N-1
+    for i in 1:N
         A[i,i+1] = -1
         A[i+1,i] = -1
     end
-    A ./= h^2
     A[1,1] = 1
     A[1,2] = 0
     A[end,end] = 1
     A[end,end-1] = 0
+    A ./= h^2
     return A
 end
 
 function rhs_dirichlet(N,v0,vn)
-    h = 1/(N-1)
+    h = 1/(N)
     x = 0:h:1
     # C = 1
     k = 1
     C = π^2*k^2
     rhs = C*sin.(k*π*x)
-    rhs[1] = v0
-    rhs[end] = vn
+    rhs[1] = v0/h^2
+    rhs[end] = vn/h^2
     return rhs
 end
 
 function V_cycle(L,iter_times,N)
     ω = 2/3
-    # N = 2^7
+    # N = 2^3
     x = range(0,stop=1,step=1/N)
-    # x = x[2:end-1]
-    # C = 1
     C = π^2*k^2
     # iter_times = 10
-    # v = 1/2*(sin.(16*x*π) + sin.(40*x*π))
-    # v = 1/2*sin.(16*x*π)
-    # v = similar(x)
-    # v = ones(N-1)
-    # v = zeros(N-1)
-    # v[1] = g0
-    # v[end] = gn
-    # v[1] = 1
-    # v[end] = 1
-    # v = ones(N-1)
-    # v = randn(N-1)
     v = Array(range(g0,gn,length=length(x)))
     rhs = C*sin.(k*π*x)
     ###
     rhs[1] += g0/(1/N)^2
     rhs[end] += gn/(1/N)^2
+    # rhs[1] = g0
+    # rhs[end] = gn
+    rhs = rhs_dirichlet(N,g0,gn)
     ###
     # v = rhs
     v_values = Dict(1 => v)
@@ -178,14 +180,16 @@ function V_cycle(L,iter_times,N)
             # v_values[i] = copy(v) # need to examine
             v_values[i] = v
             rhs = weighting(rhs_values[i] - A(v_values[i]))
+            @show rhs
             # rhs = weighting(rhs_values[i] - A_matrix(N-1)*(v_values[i]))
             rhs_values[i+1] = rhs
             N = div(N,2)
-            v = zeros(N-1)
+            v = zeros(N+1)
             # v[1] = 1
             # v[end] = 1
         else
-            v_values[i] = A_matrix(N-1) \ rhs_values[i]
+            @show rhs_values[i]
+            v_values[i] = A_matrix_dirichlet(N) \ rhs_values[i]
             # for _ in 1:iter_times
             #     v_values[i] = Jacobi_iter(ω,v,rhs_values[i])
             # end
