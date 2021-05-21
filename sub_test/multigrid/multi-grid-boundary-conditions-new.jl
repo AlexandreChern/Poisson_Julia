@@ -28,22 +28,22 @@ function f(C,k,x)
     return C*sin.(k*π*x)
 end
 
-function linear_interpolation(v,gl,gr)
+function linear_interpolation(v)
     len_v = length(v)
-    v_interpolated = zeros(2*len_v+1)
-    for i in 1:2*len_v+1
+    v_interpolated = zeros(2*len_v-1)
+    for i in 1:length(v_interpolated)
         # println(i)
-        if i%2 == 0
+        if i%2 == 1
             # println("case 1")
-            v_interpolated[i] = (v[div(i,2)])
-        elseif i == 1 
-            # println("case 2")
-            # v_interpolated[i] = (v[div((i+1),2)])
-            v_interpolated[i] = (v[1])/2
-        elseif i == 2*len_v + 1
-            v_interpolated[i] = (v[end])/2
+            v_interpolated[i] = (v[div(i+1,2)])
+        # elseif i == 1 
+        #     # println("case 2")
+        #     # v_interpolated[i] = (v[div((i+1),2)])
+        #     v_interpolated[i] = (v[1])/2
+        # elseif i == 2*len_v + 1
+        #     v_interpolated[i] = (v[end])/2
         else
-            v_interpolated[i] = (v[div(i-1,2)] + v[div(i+1,2)]) / 2
+            v_interpolated[i] = (v[div(i,2)] + v[div(i,2)+1]) / 2
         end
     end
     return v_interpolated
@@ -51,9 +51,15 @@ end
 
 function weighting(f)
     len_f = length(f)
-    f_weighted = zeros(div(len_f-1,2))
+    f_weighted = zeros(div(len_f+1,2))
     for i in 1:length(f_weighted)
-        f_weighted[i] = (f[2*i-1] + 2*f[2*i] + f[2*i+1])/4
+        if i == 1
+            f_weighted[i] = 1/2 * f[1] + 1/4 * f[2]
+        elseif i == length(f_weighted)
+            f_weighted[i] = 1/2 * f[end] + 1/4 * f[end-1]
+        else
+            f_weighted[i] = (f[2*i-2] + 2*f[2*i-1] + f[2*i])/4
+        end
     end
     return f_weighted
 end
@@ -136,7 +142,7 @@ function V_cycle(L,iter_times,N)
     ω = 2/3
     # N = 2^7
     x = range(0,stop=1,step=1/N)
-    x = x[2:end-1]
+    # x = x[2:end-1]
     # C = 1
     C = π^2*k^2
     # iter_times = 10
