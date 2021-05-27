@@ -73,7 +73,7 @@ function Linear_Operators(n,p)
 
     A = D2 + β*HI1*BS'*e0*e0' + σ₁*HI1*e0*e0' + σ₂*HI1*en*en'*D1
     b = - π^2 * sin.(r1*π) - σ₂*HI1*en*π
-    return (A,b,D1)
+    return (A,b,D1,D2)
 end
 
 
@@ -97,6 +97,18 @@ function linear_interpolation(v)
     return v_out
 end
 
+function linear_interpolation_matrix(n)
+    v_out = spzeros(2*n-1,n)
+    for i in 1:2*n-1
+        if mod(i,2) == 1
+            v_out[i,div(i+1,2)] = 1
+        else
+            v_out[i,div(i,2):div(i,2)+1] = [1 1] /2
+        end
+    end
+    return v_out
+end
+
 
 
 
@@ -108,4 +120,16 @@ function restriction(v)
         v_out[i] = (v[i*2-2] + 2*v[i*2-1] + v[i*2]) / 4
     end
     return v_out
+end
+
+function restriction_matrix(n)
+    v_out = spzeros(div(n+1,2),n)
+    v_out[1,1:2] = [1 1] / 2
+    v_out[end,end-1:end] = [1 1] / 2
+    for i in 2:div(n+1,2) - 1
+        v_out[i,2*i-2] = 1/4
+        v_out[i,2*i-1] = 1/2
+        v_out[i,2*i] = 1/4
+    end
+    return v_out 
 end
