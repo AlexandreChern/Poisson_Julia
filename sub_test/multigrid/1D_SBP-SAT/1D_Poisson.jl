@@ -12,6 +12,7 @@ using Plots
 
 include("diagonal_sbp.jl")
 
+global σ=0
 
 function e(i,n)
     a = spzeros(n)
@@ -36,6 +37,12 @@ function Jacobi_iter(ω,v,f)
     v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end])
     return v_new
 end
+
+# function Jacobi_iter_SBP(v,A,b)
+#     v_new = copy(v)
+#     v_new = A*v + b
+#     return v_new
+# end
 
 N_list = [2^3,2^4,2^5,2^6,2^7,2^8,2^9,2^10]
 
@@ -153,8 +160,8 @@ end
 function V_cycle()
     ω = 2/3
     N = 2^6
-    L = 2
-    iter_times = 10
+    L = 3
+    iter_times = 100
     x = range(0,stop=1,step=1/N)
     v = zeros(N+1)
     (A,b,D1,D2) = Linear_Operators(N,2)
@@ -168,30 +175,46 @@ function V_cycle()
             A_values[i] = A
             for _ in 1:iter_times
                 v = Jacobi_iter(ω,v,rhs_values[i])
+                # v = Jacobi_iter_SBP(v,A_values[i],rhs_values[i])
             end
             v_values[i] = v
-            rhs = restriction(rhs_values[i] - A_values[i] * v_values[i])
+            @show v
+            rhs = restriction(rhs_values[i] - A_values[i] * v_values[i]00)
+            println()
+            @show rhs
             rhs_values[i+1] = rhs
             N = div(N,2)
             v = zeros(N+1)
         else
             (A,b,D1,D2) = Linear_Operators(N,2)
-            v_values[i] = A \ rhs_values[i]
+            # @show size(A)
+            # @show rhs_values[i]
+            # v_values[i] = A \ Vector(rhs_values[i])
+            v_values[i] = A \ Vector(b)
         end
         @show v_values[i]
+        println()
     end
     println("Pass first part")
 
     for i in 1:L-1
         j = L - I
+        @show v_values[j]
         v_values[j] = v_values[j] + linear_interpolation(v_values[j+1])
         v = v_values[j]
+        @show v_values[j]
         for _ in 1:iter_times
             v = Jacobi_iter(ω,v,rhs_values[j])
+            # v = Jacobi_iter_SBP(v,A_values[j])
         end
         v_values[j] = v
         @show j
         @show v_values[j]
     end
     return v_values[1], exact_u(x)
+end
+
+function plot_results(results)
+    plot(results[1])
+    plot!(results[2])
 end
