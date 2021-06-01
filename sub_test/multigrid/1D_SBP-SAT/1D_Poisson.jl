@@ -1,6 +1,8 @@
 # Solving -U_xx = π^2 * sin(πx)
 # u0 = 0, x = 0 (Dirichlet Boundary Condition)
 # u_x = -π, x = 1 (Neumann Boundary Condition)
+# exact solution u = sin(π*x)
+
 
 
 
@@ -17,6 +19,23 @@ function e(i,n)
     return a
 end
 
+
+function exact_u(x)
+    return sin.(π*x)
+end
+
+function Jacobi_iter(ω,v,f)
+    N = length(v)
+    # h = v[2] - v[1]
+    h = 1/(N+1)
+    v_new = copy(v)
+    for j = 2:N-1
+        v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
+    end
+    v_new[1] = (1-ω) * v[1] + ω * 1/(2 + σ*h^2) * (v[2] + h^2*f[1]) 
+    v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end])
+    return v_new
+end
 
 N_list = [2^3,2^4,2^5,2^6,2^7,2^8,2^9,2^10]
 
@@ -77,10 +96,6 @@ function Linear_Operators(n,p)
 end
 
 
-function Linear_system()
-    
-end
-
 
 function linear_interpolation(v)
     v_out = zeros(2*length(v)-1)
@@ -132,4 +147,9 @@ function restriction_matrix(n)
         v_out[i,2*i] = 1/4
     end
     return v_out 
+end
+
+
+function V_cycle()
+
 end
