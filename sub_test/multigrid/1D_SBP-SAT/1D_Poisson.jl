@@ -38,6 +38,23 @@ function Jacobi_iter(ω,v,f)
     return v_new
 end
 
+function Smoothing(v,f,A)
+    N = length(v)
+    h = 1/(N-1)
+    v_new = copy(v)
+    v_new = v - h^2/4*A*v + h^2/4*f
+    return v_new
+end
+
+# function Jacobi_iter_SBP(v,f)
+#     N = length(v)
+#     h = 1/(N-1)
+#     v_new = copy(v)
+#     for j = 2:N-1
+#         v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
+#     end
+#     v_new[1] = (1-ω) * v[j] + ω * 1/(2)
+# end
 # function Jacobi_iter_SBP(v,A,b)
 #     v_new = copy(v)
 #     v_new = A*v + b
@@ -174,12 +191,11 @@ function V_cycle()
             (A,b,D1,D2) = Linear_Operators(N,2)
             A_values[i] = A
             for _ in 1:iter_times
-                v = Jacobi_iter(ω,v,rhs_values[i])
-                # v = Jacobi_iter_SBP(v,A_values[i],rhs_values[i])
+                v = Smoothing(v,rhs_values[i],A)
             end
             v_values[i] = v
             @show v
-            rhs = restriction(rhs_values[i] - A_values[i] * v_values[i]00)
+            rhs = restriction(rhs_values[i] - A_values[i] * v_values[i])
             println()
             @show rhs
             rhs_values[i+1] = rhs
@@ -198,15 +214,15 @@ function V_cycle()
     println("Pass first part")
 
     for i in 1:L-1
-        j = L - I
+        j = L - i
         @show v_values[j]
         v_values[j] = v_values[j] + linear_interpolation(v_values[j+1])
         v = v_values[j]
         @show v_values[j]
-        for _ in 1:iter_times
-            v = Jacobi_iter(ω,v,rhs_values[j])
-            # v = Jacobi_iter_SBP(v,A_values[j])
-        end
+        # for _ in 1:iter_times
+        #     v = Jacobi_iter(ω,v,rhs_values[j])
+        #     # v = Jacobi_iter_SBP(v,A_values[j])
+        # end
         v_values[j] = v
         @show j
         @show v_values[j]
