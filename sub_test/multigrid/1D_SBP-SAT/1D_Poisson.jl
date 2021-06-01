@@ -151,5 +151,47 @@ end
 
 
 function V_cycle()
+    ω = 2/3
+    N = 2^6
+    L = 2
+    iter_times = 10
+    x = range(0,stop=1,step=1/N)
+    v = zeros(N+1)
+    (A,b,D1,D2) = Linear_Operators(N,2)
+    v_values = Dict(1=>v)
+    rhs_values = Dict(1=>b)
+    A_values = Dict(1=>A)
+    for i in 1:L
+        @show i
+        if i != L
+            (A,b,D1,D2) = Linear_Operators(N,2)
+            A_values[i] = A
+            for _ in 1:iter_times
+                v = Jacobi_iter(ω,v,rhs_values[i])
+            end
+            v_values[i] = v
+            rhs = restriction(rhs_values[i] - A_values[i] * v_values[i])
+            rhs_values[i+1] = rhs
+            N = div(N,2)
+            v = zeros(N+1)
+        else
+            (A,b,D1,D2) = Linear_Operators(N,2)
+            v_values[i] = A \ rhs_values[i]
+        end
+        @show v_values[i]
+    end
+    println("Pass first part")
 
+    for i in 1:L-1
+        j = L - I
+        v_values[j] = v_values[j] + linear_interpolation(v_values[j+1])
+        v = v_values[j]
+        for _ in 1:iter_times
+            v = Jacobi_iter(ω,v,rhs_values[j])
+        end
+        v_values[j] = v
+        @show j
+        @show v_values[j]
+    end
+    return v_values[1], exact_u(x)
 end
