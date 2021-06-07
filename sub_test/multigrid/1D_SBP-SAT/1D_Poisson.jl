@@ -25,24 +25,34 @@ function exact_u(x)
     return sin.(π*x)
 end
 
-function Jacobi_iter(ω,v,f)
-    N = length(v)
-    # h = v[2] - v[1]
-    h = 1/(N+1)
-    v_new = copy(v)
-    for j = 2:N-1
-        v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
-    end
-    v_new[1] = (1-ω) * v[1] + ω * 1/(2 + σ*h^2) * (v[2] + h^2*f[1]) 
-    v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end])
-    return v_new
-end
+# function Jacobi_iter(ω,v,f)
+#     N = length(v)
+#     # h = v[2] - v[1]
+#     h = 1/(N+1)
+#     v_new = copy(v)
+#     for j = 2:N-1
+#         v_new[j] = (1-ω) * v[j] + ω * 1/(2 + σ*h^2) * (v[j-1] + v[j+1] + h^2*f[j])
+#     end
+#     v_new[1] = (1-ω) * v[1] + ω * 1/(2 + σ*h^2) * (v[2] + h^2*f[1]) 
+#     v_new[end] = (1-ω) * v[end] +  ω * 1/(2 + σ*h^2) * (v[end-1] + h^2*f[end])
+#     return v_new
+# end
 
 function Smoothing(v,f,A)
     N = length(v)
     h = 1/(N-1)
     v_new = copy(v)
     v_new = v - h^2/4*A*v + h^2/4*f
+    return v_new
+end
+
+function Jacobi_smoothing(v,f,A)
+    D = Diagonal(A)
+    L_U = A - D
+    N = length(v)
+    h = 1/(N-1)
+    v_new = copy(v)
+    v_new = D\(f - L_U*v)
     return v_new
 end
 
@@ -85,7 +95,8 @@ BS = SN - S0
 α = Dict(2=>1, 4=>0.2508560249, 6=>0.1878715026)
 γ = 2 # γ > 1 for stability
 σ₁ = -γ/(α[p]*h_list[i]) # For left boundary Dirichlet condition
-σ₂ = -γ/(α[p]*h_list[i]) # For right boundary Neumann condition
+# σ₂ = -γ/(α[p]*h_list[i]) # For right boundary Neumann condition
+σ₂ = -1
 β = 1 # For left boundary Neumann condition
 
 A = D2 + β*HI1*BS'*e0*e0' + σ₁*HI1*e0*e0' + σ₂*HI1*en*en'*D1
@@ -111,7 +122,8 @@ function Linear_Operators(n,p)
     α = Dict(2=>1, 4=>0.2508560249, 6=>0.1878715026)
     γ = 2 # γ > 1 for stability
     σ₁ = -γ/(α[p]*h_list[i]) # For left boundary Dirichlet condition
-    σ₂ = -γ/(α[p]*h_list[i]) # For right boundary Neumann condition
+    # σ₂ = -γ/(α[p]*h_list[i]) # For right boundary Neumann condition
+    σ₂ = -1
     β = 1 # For left boundary Neumann condition
 
     A = D2 + β*HI1*BS'*e0*e0' + σ₁*HI1*e0*e0' + σ₂*HI1*en*en'*D1
@@ -177,8 +189,8 @@ end
 function V_cycle()
     ω = 2/3
     N = 2^6
-    L = 3
-    iter_times = 100
+    L = 2
+    iter_times = 10000
     x = range(0,stop=1,step=1/N)
     v = zeros(N+1)
     (A,b,D1,D2) = Linear_Operators(N,2)
@@ -191,7 +203,7 @@ function V_cycle()
             (A,b,D1,D2) = Linear_Operators(N,2)
             A_values[i] = A
             for _ in 1:iter_times
-                v = Smoothing(v,rhs_values[i],A)
+                v = Jacobi_smoothing(v,rhs_values[i],A)
             end
             v_values[i] = v
             @show v
@@ -219,10 +231,9 @@ function V_cycle()
         v_values[j] = v_values[j] + linear_interpolation(v_values[j+1])
         v = v_values[j]
         @show v_values[j]
-        # for _ in 1:iter_times
-        #     v = Jacobi_iter(ω,v,rhs_values[j])
-        #     # v = Jacobi_iter_SBP(v,A_values[j])
-        # end
+        for _ in 1:iter_times
+            v = Jacobi_smoothing(v,rhs_values[j],A_values[j])
+        end
         v_values[j] = v
         @show j
         @show v_values[j]
