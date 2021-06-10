@@ -71,8 +71,10 @@ b = [2;21;-12;-6]
 
 ϕ = zeros(length(b))
 sor(A,b,ϕ,1/3)
+
 ϕ = zeros(length(b))
 sor(A,b,ϕ,ω)
+
 ϕ = zeros(length(b))
 sor(A,b,ϕ,1)
 
