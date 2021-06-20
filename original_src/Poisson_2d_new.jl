@@ -144,8 +144,10 @@ for k in 1:4
     ## Formulation 1
     SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W
     SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
+    
     # SAT_S = tau_S*HI_y*E_S*D1_y
     # SAT_N = tau_N*HI_y*E_N*D1_y
+
     SAT_S = tau_S*HI_y*E_S*BS_y
     SAT_N = tau_N*HI_y*E_N*BS_y
 
@@ -159,7 +161,8 @@ for k in 1:4
 
     g_W = sin.(π*y)
     g_E = -sin.(π*y)
-    g_S = π*cos.(π*x)
+    g_S = -π*cos.(π*x)
+    # g_N = -π*cos.(π*x)
     g_N = -π*cos.(π*x)
 
     # Solving with CPU
@@ -182,12 +185,17 @@ for k in 1:4
     init_guess = CuArray(randn(length(b)))
 
     num_sol = reshape(A\b,N_y+1,N_x+1)
+    # @show num_sol
     cu_sol = reshape(cg!(init_guess,A_d,b_d),N_y+1,N_x+1)
     cu_sol = collect(cu_sol)
     err = (num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:])
     iter_err = (cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:])
+    @show err
+    @show iter_err
     rel_err = √err
+    # @show rel_err
     iter_err = √iter_err
+    # @show iter_err
     push!(rel_errs,rel_err)
     push!(iter_errs,iter_err)
 end
