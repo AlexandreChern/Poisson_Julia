@@ -4,7 +4,8 @@ using LinearAlgebra
 using SparseArrays
 using Plots
 
-using CuArrays, CUDAnative
+# using CuArrays, CUDAnative
+using CUDA
 using IterativeSolvers
 using BenchmarkTools
 
