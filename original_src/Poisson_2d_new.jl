@@ -109,7 +109,7 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
 rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
-for k in 1:4
+for k in 1:6
     i = j  = k
     println("k = ", k)
     hx = h_list_x[i]
@@ -163,7 +163,7 @@ for k in 1:4
     g_E = -sin.(π*y)
     g_S = -π*cos.(π*x)
     # g_N = -π*cos.(π*x)
-    g_N = -π*cos.(π*x)
+    g_N = π*cos.(π*x .+ π)
 
     # Solving with CPU
     A = D2 + SAT_W + SAT_E + SAT_S + SAT_N
@@ -173,14 +173,23 @@ for k in 1:4
     A = H_tilde*A;
     b = H_tilde*b;
 
+    file = matopen("A_$N_x.mat","w")
+    write(file,"A",A)
+    close(file)
+
+    file = matopen("b_$N_x.mat","w")
+    write(file,"b",b)
+    close(file)
+
+
     # A_d = cu(A)
     # b_d = cu(b)
     # init_guess = cu(rand(length(b)));
 
 
     # A_d = CuArrays.CUSPARSE.CuSparseMatrixCSC(A);
-    # A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
-    A_d = CuArray(A);
+    A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
+    # A_d = CuArray(A);
     b_d = CuArray(b);
     init_guess = CuArray(randn(length(b)))
 
