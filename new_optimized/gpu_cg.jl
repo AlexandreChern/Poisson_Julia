@@ -6,7 +6,8 @@ using SparseArrays
 using Plots
 using LinearOperators
 
-using CuArrays, CUDAnative
+# using CuArrays, CUDAnative
+using CUDA
 using IterativeSolvers
 using BenchmarkTools
 
