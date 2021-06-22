@@ -11,6 +11,7 @@ using Plots
 using CUDA
 using IterativeSolvers
 using BenchmarkTools
+using MAT
 
 function e(i,n)
     A = Matrix{Float64}(I,n,n)
@@ -109,7 +110,7 @@ h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
 rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
-for k in 1:6
+for k in 1:8
     i = j  = k
     println("k = ", k)
     hx = h_list_x[i]
@@ -173,11 +174,11 @@ for k in 1:6
     A = H_tilde*A;
     b = H_tilde*b;
 
-    file = matopen("A_$N_x.mat","w")
+    file = matopen("../data/A_$N_x.mat","w")
     write(file,"A",A)
     close(file)
 
-    file = matopen("b_$N_x.mat","w")
+    file = matopen("../data/b_$N_x.mat","w")
     write(file,"b",b)
     close(file)
 

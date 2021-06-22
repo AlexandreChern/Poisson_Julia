@@ -1,0 +1,32 @@
+N =  8
+Linear solve converged due to CONVERGED_RTOL iterations 13
+0.03user 0.02system 0:00.08elapsed 70%CPU (0avgtext+0avgdata 25180maxresident)k
+2000inputs+0outputs (12major+2369minor)pagefaults 0swaps
+N =  16
+Linear solve converged due to CONVERGED_RTOL iterations 18
+0.01user 0.00system 0:00.04elapsed 57%CPU (0avgtext+0avgdata 25544maxresident)k
+0inputs+0outputs (0major+2402minor)pagefaults 0swaps
+N =  32
+Linear solve converged due to CONVERGED_RTOL iterations 30
+0.01user 0.01system 0:00.02elapsed 96%CPU (0avgtext+0avgdata 25516maxresident)k
+0inputs+0outputs (0major+2458minor)pagefaults 0swaps
+N =  64
+Linear solve converged due to CONVERGED_RTOL iterations 53
+0.03user 0.00system 0:00.04elapsed 95%CPU (0avgtext+0avgdata 26252maxresident)k
+0inputs+0outputs (0major+2677minor)pagefaults 0swaps
+N =  128
+Linear solve converged due to CONVERGED_RTOL iterations 101
+0.19user 0.00system 0:00.21elapsed 90%CPU (0avgtext+0avgdata 29172maxresident)k
+0inputs+0outputs (0major+3574minor)pagefaults 0swaps
+N =  256
+Linear solve converged due to CONVERGED_RTOL iterations 192
+1.34user 0.01system 0:01.36elapsed 99%CPU (0avgtext+0avgdata 43212maxresident)k
+0inputs+0outputs (0major+7226minor)pagefaults 0swaps
+N =  512
+Linear solve converged due to CONVERGED_RTOL iterations 354
+10.41user 0.02system 0:10.45elapsed 99%CPU (0avgtext+0avgdata 98276maxresident)k
+0inputs+0outputs (0major+21666minor)pagefaults 0swaps
+N =  1024
+Linear solve converged due to CONVERGED_RTOL iterations 637
+75.56user 0.08system 1:15.66elapsed 99%CPU (0avgtext+0avgdata 319812maxresident)k
+0inputs+0outputs (0major+79345minor)pagefaults 0swaps

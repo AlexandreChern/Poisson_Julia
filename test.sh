@@ -1,5 +1,5 @@
 #!/bin/bash
-for x in 8 16 32 64 128 256
+for x in 8 16 32 64 128 256 512 1024
 do
 	#x = $(( 2 ** $iter))
 	#x <<< 2^$iter
