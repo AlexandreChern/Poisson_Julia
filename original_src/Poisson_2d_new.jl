@@ -7,6 +7,10 @@ using Plots
 # using CUDAdrv
 # CUDAdrv.CuDevice(0)
 
+# Solving Poisson Equation
+# Δ u(x,y) = f(x,y)
+# Manufactured Solution: u(x,y) = sin(πx .+ πy) 
+
 # using CuArrays, CUDAnative
 using CUDA
 using IterativeSolvers
