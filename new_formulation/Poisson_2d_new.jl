@@ -130,6 +130,9 @@ for k in 1:8
     N_x = Integer(m_list[i])
     N_y = Integer(n_list[j])
 
+    Nx = N_x + 1
+    Ny = N_y + 1
+
     # 2D operators
     (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
 
@@ -163,6 +166,7 @@ for k in 1:8
     SAT_N_r = tau_N*HI_y*E_N*e_N
 
 
+    (alpha1,alpha2,alpha3,alpha4,beta) = (tau_N,tau_S,tau_W,tau_E,beta)
 
 
     g_W = sin.(π*y)
@@ -179,8 +183,12 @@ for k in 1:8
     A = H_tilde*A;
     b = H_tilde*b;
 
-    odata = zeros(N_x*N_y)
-    matrix_free_A(b,odata,N_x,N_y,hx,tau_N,tau_S,tau_W,tau_E,beta)
+    idata = b
+
+    odata = spzeros(Nx*Ny)
+    matrix_free_A(b,odata,N_x+1,N_y+1,hx,tau_N,tau_S,tau_W,tau_E,beta)
+
+    @assert A*b ≈ odata
 
     # file = matopen("../data/A_$N_x.mat","w")
     # write(file,"A",A)

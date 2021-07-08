@@ -28,7 +28,7 @@ function Boundary_Conditions(idata,odata,Nx,Ny,h,alpha1,alpha2,alpha3,alpha4,bet
             end
 
             if j == 1 # S
-                odata[global_index] += alpha1 * 2 *(1.5*idata[global_index] - 2*idata[global_index+1] + 0.5*idata[global_index+2]) / h^2
+                odata[global_index] += alpha2 * 2 *(1.5*idata[global_index] - 2*idata[global_index+1] + 0.5*idata[global_index+2]) / h^2
             end
 
             if i == Nx # E
@@ -72,7 +72,10 @@ function matrix_free_A(idata,odata,Nx,Ny,h,alpha1,alpha2,alpha3,alpha4,beta)
     odata1 = spzeros(Nx*Ny)
     odata2 = spzeros(Nx*Ny)
     D2_test(idata,odata1,Nx,Ny,h)
-    Boundary_Conditions(idata,odata1,Nx,Ny,h,alpha1,alpha2,alpha3,alpha4,beta)
-    odata3 = odata1 + odata2
-    return H_tilde_matrix_free(odata3,odata,Nx,Ny,h)
+    Boundary_Conditions(idata,odata2,Nx,Ny,h,alpha1,alpha2,alpha3,alpha4,beta)
+    # odata3 = odata1 .+ odata2
+    # return odata
+    odata .= odata1 .+ odata2
+    H_tilde_matrix_free(odata,odata,Nx,Ny,h)
+    # return odata3
 end
