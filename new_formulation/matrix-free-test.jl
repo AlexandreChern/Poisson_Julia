@@ -1,8 +1,8 @@
 using BenchmarkTools
-# include("diagonal_sbp.jl")
+include("diagonal_sbp.jl")
 include("deriv_ops.jl")
 
-using BenchmarkTools
+# using BenchmarkTools
 
 function D2(idata,odata,Nx,Ny,h)
     for i = 1:Nx
@@ -127,6 +127,11 @@ function Boundary_Conditions(idata,odata,Nx,Ny,h,alpha1,alpha2,alpha3,alpha4,bet
 end
 
 
+function matrix-free-A(idata,odata,Nx,Ny,h,alpha1,alpha2,alpha3,alpha4,beta)
+    return D2_test(idata,odata,Nx,Ny,h) + Boundary_Conditions(idata,odata,Nx,Ny,h,alpha1,alpha2,alpha3,alpha4,beta)
+end
+
+
 function test_Boundary_conditions(Nx,Ny)
     Nx = Nx
     Ny = Ny
@@ -138,8 +143,6 @@ function test_Boundary_conditions(Nx,Ny)
     alpha4 = -13/h
 
     beta = 1
-
-    
 end
 
 
