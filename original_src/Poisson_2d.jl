@@ -147,7 +147,7 @@ for k in 1:length(h_list_x) - 1
     ## Formulation 1
     SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W
     SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
-    SAT_S = tau_S*HI_y*E_S*D1_y
+    SAT_S = tau_S*HI_y*E_S*D1_y # I believe this is not correct, should use BS
     SAT_N = tau_N*HI_y*E_N*D1_y
 
     SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W

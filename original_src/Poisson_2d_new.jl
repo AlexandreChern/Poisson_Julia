@@ -27,16 +27,16 @@ function eyes(n)
 end
 
 function u(x,y)
-           return sin.(π*x .+ π*y)
-       end
+    return sin.(π*x .+ π*y)
+end
 
 function Diag(A)
     # Self defined function that is similar to Matlab Diag
     return Diagonal(A[:])
 end
 
-function Operators_2d(i, j, p=2, h_list_x = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8,1/2^9,1/2^10]),
-			 h_list_y = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10])
+function Operators_2d(i, j, p=2, h_list_x = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8,1/2^9,1/2^10]),
+			 h_list_y = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10])
 			 )
     hx = h_list_x[i];
     hy = h_list_y[j];
@@ -108,8 +108,8 @@ function Operators_2d(i, j, p=2, h_list_x = ([1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7,
     return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
-h_list_x = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
-h_list_y = [1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
+h_list_x = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
+h_list_y = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
 
 rel_errs = []
 iter_errs = []
