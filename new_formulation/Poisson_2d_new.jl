@@ -179,6 +179,9 @@ for k in 1:8
     A = H_tilde*A;
     b = H_tilde*b;
 
+    odata = zeros(N_x*N_y)
+    matrix_free_A(b,odata,N_x,N_y,hx,tau_N,tau_S,tau_W,tau_E,beta)
+
     # file = matopen("../data/A_$N_x.mat","w")
     # write(file,"A",A)
     # close(file)
