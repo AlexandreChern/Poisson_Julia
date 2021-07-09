@@ -4,7 +4,7 @@ include("deriv_ops.jl")
 
 # using BenchmarkTools
 
-function D2(idata,odata,Nx,Ny,h)
+function D2_old(idata,odata,Nx,Ny,h)
     for i = 1:Nx
         for j = 1:Ny
             global_index = (i-1)*Ny + j
