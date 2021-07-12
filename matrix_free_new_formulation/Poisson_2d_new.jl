@@ -187,6 +187,7 @@ for k in 1:8
 
     odata = spzeros(Nx*Ny)
     matrix_free_A(b,odata,N_x+1,N_y+1,hx,tau_N,tau_S,tau_W,tau_E,beta)
+    # matrix_free_A_v5(b,odata,N_x+1,N_y+1,hx,tau_N,tau_S,tau_W,tau_E,beta)
 
     @assert A*b ≈ odata
 

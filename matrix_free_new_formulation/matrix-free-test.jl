@@ -150,6 +150,9 @@ function test_mod(x,N)
     return div(2*N-x-3,N-2) - 1
 end
 
+function test_offset(x,N)
+    return (div(2*N-x-9,N-6)-1)*min(x-1,N-x)
+end
 
 
 
