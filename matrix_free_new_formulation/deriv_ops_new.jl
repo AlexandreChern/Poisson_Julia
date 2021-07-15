@@ -454,8 +454,8 @@ function test_GPU_kernel(level)
     odata = randn(Nx*Ny)
     d_u = CuArray(u)
     d_odata = CuArray(odata)
-    TILE_DIM_1 = 2
-    TILE_DIM_2 = 2
+    TILE_DIM_1 = 16
+    TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
 
@@ -498,4 +498,14 @@ function test_GPU_kernel(level)
     @show t_cpu
     @show t_gpu
 
+end
+
+function test_sparse_matrix(A,b)
+    iter_times = 100
+    t3 = time()
+    for i in 1:iter_times
+        A*b
+    end
+    cpu_time = time() - t3
+    @show cpu_time 
 end
