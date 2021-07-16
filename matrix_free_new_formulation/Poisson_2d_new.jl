@@ -19,12 +19,20 @@ using BenchmarkTools
 using MAT
 
 function e(i,n)
-    A = Matrix{Float64}(I,n,n)
-    return A[:,i]
+    # A = Matrix{Float64}(I,n,n)
+    # return A[:,i]
+    out = spzeros(n)
+    out[i] = 1.0
+    return out 
 end
 
 function eyes(n)
-    return Matrix{Float64}(I,n,n)
+    # return Matrix{Float64}(I,n,n)
+    out = spzeros(n,n)
+    for i in 1:n
+        out[i,i] = 1.0
+    end
+    return out
 end
 
 function u(x,y)
@@ -36,8 +44,8 @@ function Diag(A)
     return Diagonal(A[:])
 end
 
-function Operators_2d(i, j, p=2, h_list_x = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8,1/2^9,1/2^10, 1/2^11]),
-			 h_list_y = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11])
+function Operators_2d(i, j, p=2, h_list_x = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]),
+			 h_list_y = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13])
 			 )
     hx = h_list_x[i];
     hy = h_list_y[j];
@@ -58,19 +66,25 @@ function Operators_2d(i, j, p=2, h_list_x = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6,
     (D1y, HIy, H1y, r1y) = diagonal_sbp_D1(p,N_y,xc=(0,1));
     (D2y, S0y, SNy, HI2y, H2y, r2y) = diagonal_sbp_D2(p,N_y,xc=(0,1));
 
-    BSx = sparse(SNx - S0x);
-    BSy = sparse(SNy - S0y);
-
+    # BSx = sparse(SNx - S0x);
+    # BSy = sparse(SNy - S0y);
+    BSx = SNx - S0x
+    BSy = SNy - S0y
 
     # Forming 2d Operators
-    e_1x = sparse(e(1,N_x+1));
-    e_Nx = sparse(e(N_x+1,N_x+1));
-    e_1y = sparse(e(1,N_y+1));
-    e_Ny = sparse(e(N_y+1,N_y+1));
+    # e_1x = sparse(e(1,N_x+1));
+    # e_Nx = sparse(e(N_x+1,N_x+1));
+    # e_1y = sparse(e(1,N_y+1));
+    # e_Ny = sparse(e(N_y+1,N_y+1));
+    e_1x = e(1,N_x+1);
+    e_Nx = e(N_x+1,N_x+1);
+    e_1y = e(1,N_x+1);
+    e_Ny = e(N_y+1,N_y+1);
 
-
-    I_Nx = sparse(eyes(N_x+1));
-    I_Ny = sparse(eyes(N_y+1));
+    # I_Nx = sparse(eyes(N_x+1));
+    # I_Ny = sparse(eyes(N_y+1));
+    I_Nx = eyes(N_x+1);
+    I_Ny = eyes(N_y+1);
 
 
     e_E = kron(e_Nx,I_Ny);
@@ -109,8 +123,8 @@ function Operators_2d(i, j, p=2, h_list_x = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6,
     return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
-h_list_x = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11]
-h_list_y = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11]
+h_list_x = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
+h_list_y = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
 
 rel_errs = []
 iter_errs = []
