@@ -545,6 +545,7 @@ function test_GPU_kernel(level)
     for i in 1:iter_times
         @cuda threads=blockdim blocks=griddim matrix_free_GPU_debug_v2(d_u,d_odata,Nx,Ny,h,alpha1,alpha2,alpha3,alpha4,beta,offset_j,coef_j,Val(TILE_DIM_1), Val(TILE_DIM_2))
     end
+    synchronize()
     t_D2 = time() - t_D2
 
     @show t_cpu

@@ -92,9 +92,13 @@ function matrix_free_cpu_v2(idata,odata,Nx,Ny,h)
     (i,j) = (Nx,Ny)
     odata[i,j] = (idata[i,j] - 2*idata[i-1,j] + idata[i-2,j] + idata[i,j] - 2*idata[i,j-1] + idata[i,j-1]) / 4
     (i,j) = (1,2:Ny-1)
-    odata[i,j] = (idata[i,j] .- 2*idata[i+1,j] .+ idata[i+2,j] .+ idata[i,j .- 1] - 2*idata[i,j] + idata[i,j .+ 1]) / 4
+    odata[i,j] .= (idata[i,j] .- 2*idata[i+1,j] .+ idata[i+2,j] .+ idata[i,j .- 1] .- 2*idata[i,j] .+ idata[i,j .+ 1]) / 4
     (i,j) = (Nx,2:Ny-1)
-    odata[i,j] = (idata[i,j] .- 2*idata[i-1,j] .+ idata[i-2,j] .+ idata[i,j .- 1] - 2*idata[i,j] + idata[i,j .+ 1]) / 4
+    odata[i,j] .= (idata[i,j] .- 2*idata[i-1,j] .+ idata[i-2,j] .+ idata[i,j .- 1] .- 2*idata[i,j] .+ idata[i,j .+ 1]) / 4
+    (i,j) = (2:Nx-1,1)
+    odata[i,j] .= (idata[i.-1,j] .- 2*idata[i,j] .+ idata[i.+1,j] .+ idata[i,j] .- 2*idata[i,j+1] .+ idata[i,j+2]) / 4
+    (i,j) = (2:Nx-1,Ny)
+    odata[i,j] .= (idata[i.-1,j] .- 2*idata[i,j] .+ idata[i.+1,j] .+ idata[i,j] .- 2*idata[i,j-1] .+ idata[i,j - 2]) / 4
 end
 
 function test_matrix_free_cpu(level)
@@ -111,6 +115,15 @@ function test_matrix_free_cpu(level)
     end
     t_cpu = time() - t_cpu
     @show t_cpu
+
+
+    t_convert = time()
+    for i in 1:iter_times
+        cu_out = CUDA.CUSPARSE.CuSparseMatrixCSC(odata)
+    end
+    synchronize()
+    t_convert = time() - t_convert
+    @show t_convert
 end
 
 
@@ -134,11 +147,12 @@ function test_D2_split(level)
 
     iter_times = 100
 
-    t_D2 = time()
-    for i in 1:iter_times
+    t_D2_start = time()
+    for _ in 1:iter_times
         @cuda threads=blockdim blocks=griddim D2_split(cu_A,cu_out,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     end
-    t_D2 = time() - t_D2
+    synchronize()
+    t_D2 = time() - t_D2_start
 
     @show t_D2
 end
