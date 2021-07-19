@@ -1,5 +1,7 @@
+using CUDA: reshape
 include("diagonal_sbp.jl")
 include("deriv_ops_new.jl")
+include("split_matrix_free.jl")
 
 using LinearAlgebra
 using SparseArrays
@@ -196,6 +198,16 @@ for k in 1:8
 
     A = H_tilde*A;
     b = H_tilde*b;
+
+    # testing matrix_split method
+    b_reshaped = reshape(b,Nx,Ny)
+    odata1 = spzeros(Nx,Ny)
+    odata2 = spzeros(Nx,Ny)
+
+    D2_cpu(b_reshaped,odata1,Nx,Ny,hx)
+    matrix_free_cpu_v2(b_reshaped,odata2,Nx,Ny,h)
+
+    @assert reshape(A*b,Nx,Ny) ≈ odata1 + odata2
 
     idata = b
 

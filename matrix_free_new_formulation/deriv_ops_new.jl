@@ -258,7 +258,7 @@ function matrix_free_GPU_debug(idata,odata,Nx,Ny,h,alpha1,alpha2,alpha3,alpha4,b
        
         odata[global_index] = 0
         odata[global_index] = (( (idata[idata_index_x-Ny] - 2*idata[idata_index_x] + idata[idata_index_x + Ny])  + (idata[idata_index_y-1] - 2*idata[idata_index_y] + idata[idata_index_y + 1]) )
-        + abs(offset_y) * 2 * (alpha1 * (1.5*idata[global_index]) - 2*idata[global_index+offset_y] + 0.5*idata[global_index+2*offset_y])
+        + abs(offset_y) * 2 * alpha1 * ( (1.5*idata[global_index]) - 2*idata[global_index+offset_y] + 0.5*idata[global_index+2*offset_y])
         + abs(offset_x) * alpha4 * 2 * (idata[global_index] * h) 
          + coef_j[i] * beta * idata[global_index+offset_j[i]* Ny]  # * (idata[global_index+offset_j[i] * Ny])   # this line is causing issue
          ) / 2^(abs(offset_x) + abs(offset_y))   
@@ -469,7 +469,7 @@ end
 function test_matrix_free(Nx,Ny)
     h = 1/(Nx-1)
     alpha1 = alpha2 = alpha3 = alpha4 = beta = 1
-    alpha1 = alpha2 = -13
+    alpha1 = alpha2 = -13/h
     idata = randn(Nx*Ny)
     odata1 = spzeros(Nx*Ny)
     odata2 = spzeros(Nx*Ny)
