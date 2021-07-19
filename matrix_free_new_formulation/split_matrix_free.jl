@@ -2,15 +2,15 @@ using SparseArrays
 using CUDA
 using Random
 
-# function D2_cpu(idata,odata,Nx,Ny,h)
-#     for i in 1:Nx
-#         for j in 1:Ny
-#             if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
-#                 odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
-#             end
-#         end
-#     end
-# end
+function D2_cpu(idata,odata,Nx,Ny,h)
+    for i in 1:Nx
+        for j in 1:Ny
+            if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
+                odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+            end
+        end
+    end
+end
 
 function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
     tidx = threadIdx().x

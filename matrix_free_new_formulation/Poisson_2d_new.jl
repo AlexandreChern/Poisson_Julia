@@ -1,4 +1,4 @@
-using CUDA: reshape
+using CUDA
 include("diagonal_sbp.jl")
 include("deriv_ops_new.jl")
 include("split_matrix_free.jl")
@@ -205,7 +205,7 @@ for k in 1:8
     odata2 = spzeros(Nx,Ny)
 
     D2_cpu(b_reshaped,odata1,Nx,Ny,hx)
-    matrix_free_cpu_v2(b_reshaped,odata2,Nx,Ny,h)
+    matrix_free_cpu(b_reshaped,odata2,Nx,Ny,hx)
 
     @assert reshape(A*b,Nx,Ny) ≈ odata1 + odata2
 
