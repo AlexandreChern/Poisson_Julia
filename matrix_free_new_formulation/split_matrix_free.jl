@@ -287,7 +287,7 @@ function test_matrix_free_cpu(level)
     odata = spzeros(Nx,Ny)
     matrix_free_cpu(A,odata,Nx,Ny,h)
     t_cpu = time()
-    iter_times = 100
+    iter_times = 1000
     for i in 1:iter_times
         matrix_free_cpu(A,odata,Nx,Ny,h)
     end
@@ -302,6 +302,7 @@ function test_matrix_free_cpu(level)
     synchronize()
     t_convert = time() - t_convert
     @show t_convert
+    nothing
 end
 
 
@@ -323,7 +324,7 @@ function test_D2_split(level)
 
     @cuda threads=blockdim blocks=griddim D2_split(cu_A,cu_out,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 
-    iter_times = 100
+    iter_times = 1000
 
     t_D2_start = time()
     for _ in 1:iter_times
@@ -333,4 +334,5 @@ function test_D2_split(level)
     t_D2 = time() - t_D2_start
 
     @show t_D2
+    nothing
 end
