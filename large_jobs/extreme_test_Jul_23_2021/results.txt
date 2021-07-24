@@ -1,0 +1,50 @@
+julia> include("../../matrix_free_new_formulation/Poisson_2d_new.jl")
+k = 3
+Time to generate operators: 0.29404306411743164
+Finished Assembling A and b
+Finished converting them to CuArray
+Finished running A*b after 1.7806568145751953 seconds
+k = 4
+Time to generate operators: 0.0006020069122314453
+Finished Assembling A and b
+Finished converting them to CuArray
+Finished running A*b after 0.023389101028442383 seconds
+k = 5
+Time to generate operators: 0.002310037612915039
+Finished Assembling A and b
+Finished converting them to CuArray
+Finished running A*b after 0.03426098823547363 seconds
+k = 6
+Time to generate operators: 0.008297920227050781
+Finished Assembling A and b
+Finished converting them to CuArray
+Finished running A*b after 0.08052515983581543 seconds
+k = 7
+Time to generate operators: 0.16471195220947266
+Finished Assembling A and b
+Finished converting them to CuArray
+Finished running A*b after 0.3092060089111328 seconds
+k = 8
+Time to generate operators: 0.24533796310424805
+Finished Assembling A and b
+Finished converting them to CuArray
+Finished running A*b after 0.3882319927215576 seconds
+k = 9
+Time to generate operators: 0.5063199996948242
+Finished Assembling A and b
+Finished converting them to CuArray
+Finished running A*b after 0.7893807888031006 seconds
+k = 10
+Time to generate operators: 1.3524911403656006
+Finished Assembling A and b
+Finished converting them to CuArray
+Finished running A*b after 3.1964471340179443 seconds
+k = 11
+Time to generate operators: 5.599996089935303
+Finished Assembling A and b
+Finished converting them to CuArray
+Finished running A*b after 35.30339503288269 seconds
+Any[]
+Any[]
+Any[]
+Any[]
