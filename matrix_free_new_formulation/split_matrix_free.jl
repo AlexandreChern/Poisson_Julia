@@ -347,13 +347,13 @@ function matrix_free_cpu_v3(idata,odata,Nx,Ny,h)
     # (i,j) = (2:Nx-1,1)
     # odata[i,j] .+= (view(idata,i .- 1,j) .- 2*view(idata,i,j) .+ view(idata,i .+ 1,j) .+ view(idata,i,j) .- 2*view(idata,i,j+1) .+ view(idata,i,j+2)) ./ 2
 
-    j = 1
-    @inbounds Threads.@threads for i in 2:Nx-1
-        odata[i,j] += (idata[i-1,j] - 2*idata[i,j] + idata[i+1,j] + idata[i,j] - 2*idata[i,j+1] + idata[i,j+2]) / 2
-        # odata[i,j] += (2 * beta * (1.5 * idata[i,j] + 2 * alpha2 * idata[i,j]) * h) / 2
-        # odata[i,j+1] += (2 * beta * (-1 * idata[i,j]))
-        # odata[i,j+2] += (0.5 * beta * idata[i,j])
-    end
+    # j = 1
+    # @inbounds for i in 2:Nx-1
+    #     odata[i,j] += (idata[i-1,j] - 2*idata[i,j] + idata[i+1,j] + idata[i,j] - 2*idata[i,j+1] + idata[i,j+2]) / 2
+    #     # odata[i,j] += (2 * beta * (1.5 * idata[i,j] + 2 * alpha2 * idata[i,j]) * h) / 2
+    #     # odata[i,j+1] += (2 * beta * (-1 * idata[i,j]))
+    #     # odata[i,j+2] += (0.5 * beta * idata[i,j])
+    # end
 
     # odata[i,j] .+= (2 * beta * (1.5 * view(idata,i,j)) .+ 2 * alpha2 * view(idata,i,j) * h) ./ 2
     # odata[i,j+1] .+= (2 * beta * (-1 * view(idata,i,j)))
@@ -373,12 +373,21 @@ function test_matrix_free_cpu(level)
     h = 1/(Nx-1)
     Random.seed!(0)
     A = randn(Nx,Ny)
+    A_sparse = spzeros(Nx,Ny)
+    for i in 1:Nx
+        for j in 1:Ny
+            if !(( 4 <= i <= Nx - 4) && (4 <= j <= Ny-4))
+                A_sparse[i,j] = A[i,j]
+            end
+        end
+    end
     odata = spzeros(Nx,Ny)
     matrix_free_cpu(A,odata,Nx,Ny,h)
     t_cpu = time()
     iter_times = 1000
     for i in 1:iter_times
-        matrix_free_cpu_v3(A,odata,Nx,Ny,h)
+        matrix_free_cpu_v3(A_sparse,odata,Nx,Ny,h)
+        # matrix_free_cpu_v3(A,odata,Nx,Ny,h)
     end
     t_cpu = time() - t_cpu
     @show t_cpu
