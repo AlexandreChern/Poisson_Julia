@@ -1,6 +1,7 @@
 using SparseArrays
 using CUDA
 using Random
+using Adapt
 
 function D2_cpu(idata,odata,Nx,Ny,h)
     for i in 1:Nx
@@ -334,5 +335,55 @@ function test_D2_split(level)
     t_D2 = time() - t_D2_start
 
     @show t_D2
+    nothing
+end
+
+
+
+function matrix_free_A(idata,odata)
+    Nx,Ny = size(idata)
+    h = 1/(Nx-1)
+    odata_cpu = spzeros(Nx,Ny)
+    # odata_gpu = CUDA.CUSPARSE.CuSparseMatrixCSC(spzeros(Nx,Ny))
+    odata_gpu = CuArray(zeros(Nx,Ny))
+    # idata_gpu = CUDA.CUSPARSE.CuSparseMatrixCSC(idata)
+    idata_gpu = CUDA.CuArray(idata)
+    TILE_DIM_1 = 16
+    TILE_DIM_2 = 16
+    griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+	blockdim = (TILE_DIM_1,TILE_DIM_2)
+    @cuda threads=blockdim blocks=griddim D2_split(idata_gpu,odata_gpu,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    matrix_free_cpu_v2(idata,odata_cpu,Nx,Ny,h)
+    odata .= adapt(Array,odata_gpu) .+ odata_cpu
+end
+
+function matrix_free_A_v2(idata,odata)
+    Nx,Ny = size(idata)
+    h = 1/(Nx-1)
+    odata_gpu = CuArray(zeros(Nx,Ny))
+    idata_gpu = CUDA.CuArray(idata)
+    TILE_DIM_1 = 16
+    TILE_DIM_2 = 16
+    griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+	blockdim = (TILE_DIM_1,TILE_DIM_2)
+    @cuda threads=blockdim blocks=griddim D2_split(idata_gpu,odata_gpu,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+end
+
+function test_matrix_free_A(level)
+    Nx = Ny = 2^level + 1
+    h = 1/(Nx-1)
+    Random.seed!(0)
+    # idata = sparse(randn(Nx,Ny))
+    idata = randn(Nx,Ny)
+    odata = spzeros(Nx,Ny)
+
+    iter_times = 1000
+    t_start = time()
+    for _ in 1:iter_times
+        matrix_free_A_v2(idata,odata)
+    end
+    synchronize()
+    t = time() - t_start
+    @show t
     nothing
 end
