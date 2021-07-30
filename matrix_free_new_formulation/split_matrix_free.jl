@@ -240,44 +240,132 @@ function matrix_free_cpu_v2(idata,odata,Nx,Ny,h)
 
 
     (i,j) = (1,2:Ny-1)
-    # odata[i,j] .+= ((idata[i,j] .- 2*idata[i+1,j] .+ idata[i+2,j] .+ idata[i,j .- 1] .- 2*idata[i,j] .+ idata[i,j .+ 1] ) ./ 2 # D2
-    #                 # .+ 2 .* alpha3 .* (1.5 * idata[i,j] .- 2*idata[i+1,j] .+ 0.5 * idata[i+2,j]) ./ 2
-    #                 )
-    # odata[i,j] .+= 2 * alpha3 * (1.5 * idata[i,j] .- 2*idata[i+1,j] .+ 0.5 * idata[i+2,j]) ./ 2 # Neumann
-
-    # test @view
     odata[i,j] .+= (view(idata,i,j) .- 2*view(idata,i+1,j) .+ view(idata,i+2,j) .+ view(idata,i,j .-1) .- 2*view(idata,i,j) .+ view(idata,i,j .+ 1)
                     .+ 2 * alpha3 .* (1.5 * view(idata,i,j) .- 2*view(idata,i+1,j) .+ 0.5 * view(idata,i+2,j))) ./ 2
 
     (i,j) = (Nx,2:Ny-1)
-    # odata[i,j] .+= (idata[i,j] .- 2*idata[i-1,j] .+ idata[i-2,j] .+ idata[i,j .- 1] .- 2*idata[i,j] .+ idata[i,j .+ 1]) / 2 # D2
-    # odata[i,j] .+= 2 * alpha4 * (1.5 * idata[i,j] .- 2*idata[i-1,j] .+ 0.5 * idata[i-2,j]) ./ 2 # Neumann
     odata[i,j] .+= ((view(idata,i,j) .- 2*view(idata,i-1,j) .+ view(idata,i-2,j) .+ view(idata,i,j.-1) .- 2*view(idata,i,j) .+ view(idata,i,j.+1))
                     .+ 2 * alpha4 * (1.5 * view(idata,i,j) .- 2*view(idata,i-1,j) .+ 0.5 * view(idata,i-2,j))) ./ 2
 
 
     (i,j) = (2:Nx-1,1)
-    # odata[i,j] .+= (idata[i.-1,j] .- 2*idata[i,j] .+ idata[i.+1,j] .+ idata[i,j] .- 2*idata[i,j+1] .+ idata[i,j+2]) / 2 # D2
     odata[i,j] .+= (view(idata,i .- 1,j) .- 2*view(idata,i,j) .+ view(idata,i .+ 1,j) .+ view(idata,i,j) .- 2*view(idata,i,j+1) .+ view(idata,i,j+2)) ./ 2
 
-    # odata[i,j] .+= (2 * beta * (1.5 * idata[i,j]) .+ 2 * alpha1 * (idata[i,j]) * h) ./ 2 # Dirichlet
-    # odata[i,j+1] .+= (2 * beta * (-1 * idata[i,j])) # Dirichlet
-    # odata[i,j+2] .+= (0.5 * beta * (idata[i,j]))  # Dirichlet
     odata[i,j] .+= (2 * beta * (1.5 * view(idata,i,j)) .+ 2 * alpha2 * view(idata,i,j) * h) ./ 2
     odata[i,j+1] .+= (2 * beta * (-1 * view(idata,i,j)))
     odata[i,j+2] .+= (0.5 * beta * (view(idata,i,j)))
 
 
     (i,j) = (2:Nx-1,Ny)
-    # odata[i,j] .+= (idata[i.-1,j] .- 2*idata[i,j] .+ idata[i.+1,j] .+ idata[i,j] .- 2*idata[i,j-1] .+ idata[i,j - 2]) / 2 # D2
     odata[i,j] .+= (view(idata,i .- 1, j) .- 2*view(idata,i,j) .+ view(idata,i .+1,j) .+ view(idata,i,j) .- 2*view(idata,i,j-1) .+ view(idata,i,j-2)) ./ 2
 
-    # odata[i,j] .+= (2 * beta * (1.5 * idata[i,j]) .+ 2 * alpha1 * (idata[i,j]) * h) ./ 2 # Dirichlet
-    # # odata[i,j-1] .+= (2 * beta * (-1 * idata[i,j])) # Dirichlet
-    # # odata[i,j-2] .+= (0.5 * beta * (idata[i,j])) # Dirichlet
     odata[i,j] .+= (2 * beta * (1.5 * view(idata,i,j)) .+ 2 * alpha1 * view(idata,i,j) * h) ./ 2
     odata[i,j-1] .+= (2 * beta * (-1 * view(idata,i,j)))
     odata[i,j-2] .+= (0.5 * beta * (view(idata,i,j)))
+end
+
+
+function matrix_free_cpu_v3(idata,odata,Nx,Ny,h)
+    # odata .= 0
+    # for i in 1:Nx
+    #     for j in 1:Ny
+    #         if (i == 1) && (j == 1)
+    #             odata[i,j] = (idata[i,j] - 2*idata[i+1,j] + idata[i+2,j] + idata[i,j] - 2*idata[i,j+1] + idata[i,j+1]) / 4
+    #         end
+    #         if (i == 1) && (j == Ny)
+    #             odata[i,j] = (idata[i,j] - 2*idata[i+1,j] + idata[i+2,j] + idata[i,j] - 2*idata[i,j-1] + idata[i,j-1]) / 4
+    #         end
+    #         if (i == Nx) && (j == 1)
+    #             odata[i,j] = (idata[i,j] - 2*idata[i-1,j] + idata[i-2,j] + idata[i,j] - 2*idata[i,j+1] + idata[i,j+1]) / 4
+    #         end
+    #         # if (i == Nx) && (j == Ny)
+    #         #     odata[i,j] = (idata[i,j] - 2*idata[i-1,j] + idata[i-2,j] + idata[i,j] - 2*idata[i,j-1] + idata[i,j-1]) / 4
+    #         # end
+    #     end
+    # end
+    odata .= 0
+    # alpha1 = alpha2 = alpha3 = alpha4 = beta = 1
+    alpha1 = alpha2 = -13/h
+    alpha3 = alpha4 = -1
+    beta = 1
+    (i,j) = (1,1)
+
+    odata[i,j] += (idata[i,j] - 2*idata[i+1,j] + idata[i+2,j] + idata[i,j] - 2*idata[i,j+1] + idata[i,j+2]) / 4 # D2
+
+    odata[i,j] += 2 * alpha3 * (( 1.5* idata[i,j] - 2*idata[i+1,j] + 0.5*idata[i+2,j])) / 4 # Neumann
+
+    odata[i,j] += (2 * beta * (1.5 * idata[i,j]) + 2 * alpha1 * (idata[i,j]) * h) / 4 # Dirichlet
+    odata[i,j+1] += (2 * beta * (-1 * idata[i,j])) / 2 # Dirichlet
+    odata[i,j+2] += (0.5 * beta * (idata[i,j])) / 2 # Dirichlet
+
+
+    (i,j) = (1,Ny)
+    odata[i,j] += (idata[i,j] - 2*idata[i+1,j] + idata[i+2,j] + idata[i,j] - 2*idata[i,j-1] + idata[i,j-2]) / 4 # D2
+    
+    odata[i,j] += 2 * alpha3 * (1.5 * idata[i,j] - 2*idata[i+1,j] + 0.5 * idata[i+2,j]) / 4 # Neumann
+    odata[i,j] += (2 * beta * (1.5 * idata[i,j]) + 2 * alpha2 * (idata[i,j]) * h) / 4 # Dirichlet
+    odata[i,j-1] += (2 * beta * (-1 * idata[i,j])) / 2 # Dirichlet
+    odata[i,j-2] += (0.5 * beta * (idata[i,j])) / 2 # Dirichlet
+
+
+
+    (i,j) = (Nx,1)
+    odata[i,j] += (idata[i,j] - 2*idata[i-1,j] + idata[i-2,j] + idata[i,j] - 2*idata[i,j+1] + idata[i,j+2]) / 4 # D2
+
+    odata[i,j] += 2 * alpha4 * (( 1.5* idata[i,j] - 2*idata[i-1,j] + 0.5*idata[i-2,j])) / 4 # Neumann
+    odata[i,j] += (2 * beta * (1.5 * idata[i,j]) + 2 * alpha1 * (idata[i,j]) * h) / 4 # Dirichlet
+    odata[i,j+1] += (2 * beta * (-1 * idata[i,j])) / 2 # Dirichlet
+    odata[i,j+2] += (0.5 * beta * (idata[i,j])) / 2 # Dirichlet
+
+    (i,j) = (Nx,Ny)
+    odata[i,j] += (idata[i,j] - 2*idata[i-1,j] + idata[i-2,j] + idata[i,j] - 2*idata[i,j-1] + idata[i,j-2]) / 4 # D2
+
+    odata[i,j] += 2 * alpha4 * (1.5 * idata[i,j] - 2*idata[i-1,j] + 0.5 * idata[i-2,j]) / 4 # Neumann
+    odata[i,j] += (2 * beta * (1.5 * idata[i,j]) + 2 * alpha2 * (idata[i,j]) * h) / 4 # Dirichlet
+    odata[i,j-1] += (2 * beta * (-1 * idata[i,j])) / 2 # Dirichlet
+    odata[i,j-2] += (0.5 * beta * (idata[i,j])) / 2 # Dirichlet
+
+
+    # (i,j) = (1,2:Ny-1)
+    i = 1
+    # @inbounds Threads.@threads 
+    @inbounds for j in 2:Ny-1
+        # odata[i,j] += (view(idata,i,j) - 2*view(idata,i+1,j) + view(idata,i+2,j) + view(idata,i,j-1) - 2*view(idata,i,j) + view(idata,i,j + 1)
+        #             + 2 * alpha3 * (1.5 * view(idata,i,j) - 2*view(idata,i+1,j) + 0.5 * view(idata,i+2,j))) / 2
+        odata[i,j] += (idata[i,j] - 2*idata[i+1,j] + idata[i+2,j] + idata[i,j-1] - 2*idata[i,j] + idata[i,j+1] + 2 * alpha3 * (1.5*idata[i,j] - 2*idata[i+1,j] + 0.5*idata[i+2,j])) / 2
+    end
+
+    # (i,j) = (Nx,2:Ny-1)
+    # odata[i,j] .+= ((view(idata,i,j) .- 2*view(idata,i-1,j) .+ view(idata,i-2,j) .+ view(idata,i,j.-1) .- 2*view(idata,i,j) .+ view(idata,i,j.+1))
+    #                 .+ 2 * alpha4 * (1.5 * view(idata,i,j) .- 2*view(idata,i-1,j) .+ 0.5 * view(idata,i-2,j))) ./ 2
+
+    i = Nx
+    @inbounds for j in 2:Ny-1
+        odata[i,j] += (idata[i,j] - 2*idata[i-1,j] + idata[i-2,j] + idata[i,j-1] - 2*idata[i,j] + idata[i,j+1] + 2 * alpha4 * (1.5*idata[i,j] - 2*idata[i-1,j] + 0.5*idata[i-2,j])) / 2
+    end
+
+    # (i,j) = (2:Nx-1,1)
+    # odata[i,j] .+= (view(idata,i .- 1,j) .- 2*view(idata,i,j) .+ view(idata,i .+ 1,j) .+ view(idata,i,j) .- 2*view(idata,i,j+1) .+ view(idata,i,j+2)) ./ 2
+
+    j = 1
+    @inbounds Threads.@threads for i in 2:Nx-1
+        odata[i,j] += (idata[i-1,j] - 2*idata[i,j] + idata[i+1,j] + idata[i,j] - 2*idata[i,j+1] + idata[i,j+2]) / 2
+        # odata[i,j] += (2 * beta * (1.5 * idata[i,j] + 2 * alpha2 * idata[i,j]) * h) / 2
+        # odata[i,j+1] += (2 * beta * (-1 * idata[i,j]))
+        # odata[i,j+2] += (0.5 * beta * idata[i,j])
+    end
+
+    # odata[i,j] .+= (2 * beta * (1.5 * view(idata,i,j)) .+ 2 * alpha2 * view(idata,i,j) * h) ./ 2
+    # odata[i,j+1] .+= (2 * beta * (-1 * view(idata,i,j)))
+    # odata[i,j+2] .+= (0.5 * beta * (view(idata,i,j)))
+
+
+    # (i,j) = (2:Nx-1,Ny)
+    # odata[i,j] .+= (view(idata,i .- 1, j) .- 2*view(idata,i,j) .+ view(idata,i .+1,j) .+ view(idata,i,j) .- 2*view(idata,i,j-1) .+ view(idata,i,j-2)) ./ 2
+
+    # odata[i,j] .+= (2 * beta * (1.5 * view(idata,i,j)) .+ 2 * alpha1 * view(idata,i,j) * h) ./ 2
+    # odata[i,j-1] .+= (2 * beta * (-1 * view(idata,i,j)))
+    # odata[i,j-2] .+= (0.5 * beta * (view(idata,i,j)))
 end
 
 function test_matrix_free_cpu(level)
@@ -290,7 +378,7 @@ function test_matrix_free_cpu(level)
     t_cpu = time()
     iter_times = 1000
     for i in 1:iter_times
-        matrix_free_cpu(A,odata,Nx,Ny,h)
+        matrix_free_cpu_v3(A,odata,Nx,Ny,h)
     end
     t_cpu = time() - t_cpu
     @show t_cpu
@@ -360,13 +448,13 @@ end
 function matrix_free_A_v2(idata,odata)
     Nx,Ny = size(idata)
     h = 1/(Nx-1)
-    odata_gpu = CuArray(zeros(Nx,Ny))
-    idata_gpu = CUDA.CuArray(idata)
+    # odata_gpu = CuArray(zeros(Nx,Ny))
+    # idata_gpu = CUDA.CuArray(idata)
     TILE_DIM_1 = 16
     TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim blocks=griddim D2_split(idata_gpu,odata_gpu,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 end
 
 function test_matrix_free_A(level)
@@ -374,13 +462,19 @@ function test_matrix_free_A(level)
     h = 1/(Nx-1)
     Random.seed!(0)
     # idata = sparse(randn(Nx,Ny))
-    idata = randn(Nx,Ny)
-    odata = spzeros(Nx,Ny)
+    idata = CuArray(randn(Nx,Ny))
+    # odata = spzeros(Nx,Ny)
+    odata = CuArray(randn(Nx,Ny))
+
+    idata_cpu = zeros(Nx,Ny)
+    odata_cpu = zeros(Nx,Ny)
+
 
     iter_times = 1000
     t_start = time()
     for _ in 1:iter_times
         matrix_free_A_v2(idata,odata)
+        matrix_free_cpu_v2(copyto!(idata_cpu,idata),odata_cpu,Nx,Ny,h)
     end
     synchronize()
     t = time() - t_start
