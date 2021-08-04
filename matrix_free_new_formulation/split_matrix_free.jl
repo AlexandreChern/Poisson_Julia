@@ -532,6 +532,12 @@ function test_matrix_free_A(level)
 
     iter_times = 1000
 
+    #precompile functions
+    matrix_free_A_v2(idata,odata)
+    matrix_free_cpu_v3(idata_cpu,odata_cpu,Nx,Ny,h)
+
+
+
     # Evaluating only D2
     t_start_D2 = time()
     for _ in 1:iter_times
