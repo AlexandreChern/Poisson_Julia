@@ -1,4 +1,4 @@
-using SparseArrays
+using SparseArrays 
 using CUDA
 using Random
 using Adapt
@@ -328,44 +328,51 @@ function matrix_free_cpu_v3(idata,odata,Nx,Ny,h)
 
     # (i,j) = (1,2:Ny-1)
     i = 1
-    # @inbounds Threads.@threads 
+    idata_N = view(idata,1:3,1:Ny)
+    # Threads.@threads for j in 2:Ny-1
     @inbounds for j in 2:Ny-1
-        # odata[i,j] += (view(idata,i,j) - 2*view(idata,i+1,j) + view(idata,i+2,j) + view(idata,i,j-1) - 2*view(idata,i,j) + view(idata,i,j + 1)
-        #             + 2 * alpha3 * (1.5 * view(idata,i,j) - 2*view(idata,i+1,j) + 0.5 * view(idata,i+2,j))) / 2
-        odata[i,j] += (idata[i,j] - 2*idata[i+1,j] + idata[i+2,j] + idata[i,j-1] - 2*idata[i,j] + idata[i,j+1] + 2 * alpha3 * (1.5*idata[i,j] - 2*idata[i+1,j] + 0.5*idata[i+2,j])) / 2
+        odata[1,j] += (idata_N[1,j] - 2*idata_N[2,j] + idata_N[3,j] + idata_N[1,j-1] - 2* idata_N[1,j] + idata_N[1,j+1] + 2 * alpha3 * (1.5 * idata_N[1,j] - 2*idata_N[2,j] + 0.5*idata_N[3,j])) / 2
     end
-
-    # (i,j) = (Nx,2:Ny-1)
-    # odata[i,j] .+= ((view(idata,i,j) .- 2*view(idata,i-1,j) .+ view(idata,i-2,j) .+ view(idata,i,j.-1) .- 2*view(idata,i,j) .+ view(idata,i,j.+1))
-    #                 .+ 2 * alpha4 * (1.5 * view(idata,i,j) .- 2*view(idata,i-1,j) .+ 0.5 * view(idata,i-2,j))) ./ 2
+    # synchronize()
 
     i = Nx
+    idata_S = view(idata,Nx-2:Nx,1:Ny)
+    # Threads.@threads for j in 2:Ny-1
     @inbounds for j in 2:Ny-1
-        odata[i,j] += (idata[i,j] - 2*idata[i-1,j] + idata[i-2,j] + idata[i,j-1] - 2*idata[i,j] + idata[i,j+1] + 2 * alpha4 * (1.5*idata[i,j] - 2*idata[i-1,j] + 0.5*idata[i-2,j])) / 2
+        odata[i,j] += (idata_S[3,j] - 2*idata_S[2,j] + idata_S[1,j] + idata_S[3,j-1] - 2* idata_S[3,j] + idata_S[3,j+1] + 2 * alpha4 * (1.5 * idata_S[3,j] - 2*idata_S[2,j] + 0.5*idata_S[1,j])) / 2
+    end
+    # synchronize()
+
+    j = 1
+    idata_W = view(idata,1:Nx,1:3)
+
+    @inbounds for i in 2:Nx-1
+        odata[i,j] += (idata_W[i-1,1] - 2*idata_W[i,1] + idata_W[i+1,1] + idata_W[i,1] - 2*idata_W[i,2] + idata_W[i,3]) / 2
+        odata[i,j] += (2 * beta * (1.5 * idata_W[i,1]) + 2 * alpha2 * idata_W[i,1] * h) / 2
+        odata[i,j+1] += (2 * beta * (-1 * idata_W[i,1]))
+        odata[i,j+2] += (0.5 * beta * idata_W[i,1])
     end
 
+
+    # # Code from previous section
+
     # (i,j) = (2:Nx-1,1)
-    # odata[i,j] .+= (view(idata,i .- 1,j) .- 2*view(idata,i,j) .+ view(idata,i .+ 1,j) .+ view(idata,i,j) .- 2*view(idata,i,j+1) .+ view(idata,i,j+2)) ./ 2
+    # # odata[i,j] .+= (view(idata,i .- 1,j) .- 2*view(idata,i,j) .+ view(idata,i .+ 1,j) .+ view(idata,i,j) .- 2*view(idata,i,j+1) .+ view(idata,i,j+2)) ./ 2
 
-    # j = 1
-    # @inbounds for i in 2:Nx-1
-    #     odata[i,j] += (idata[i-1,j] - 2*idata[i,j] + idata[i+1,j] + idata[i,j] - 2*idata[i,j+1] + idata[i,j+2]) / 2
-    #     # odata[i,j] += (2 * beta * (1.5 * idata[i,j] + 2 * alpha2 * idata[i,j]) * h) / 2
-    #     # odata[i,j+1] += (2 * beta * (-1 * idata[i,j]))
-    #     # odata[i,j+2] += (0.5 * beta * idata[i,j])
-    # end
-
-    # odata[i,j] .+= (2 * beta * (1.5 * view(idata,i,j)) .+ 2 * alpha2 * view(idata,i,j) * h) ./ 2
-    # odata[i,j+1] .+= (2 * beta * (-1 * view(idata,i,j)))
-    # odata[i,j+2] .+= (0.5 * beta * (view(idata,i,j)))
+    # # odata[i,j] .+= (2 * beta * (1.5 * view(idata,i,j)) .+ 2 * alpha2 * view(idata,i,j) * h) ./ 2
+    # # odata[i,j+1] .+= (2 * beta * (-1 * view(idata,i,j)))
+    # # odata[i,j+2] .+= (0.5 * beta * (view(idata,i,j)))
+    # # End Code
 
 
-    # (i,j) = (2:Nx-1,Ny)
-    # odata[i,j] .+= (view(idata,i .- 1, j) .- 2*view(idata,i,j) .+ view(idata,i .+1,j) .+ view(idata,i,j) .- 2*view(idata,i,j-1) .+ view(idata,i,j-2)) ./ 2
-
-    # odata[i,j] .+= (2 * beta * (1.5 * view(idata,i,j)) .+ 2 * alpha1 * view(idata,i,j) * h) ./ 2
-    # odata[i,j-1] .+= (2 * beta * (-1 * view(idata,i,j)))
-    # odata[i,j-2] .+= (0.5 * beta * (view(idata,i,j)))
+    j = Ny
+    idata_E = view(idata,1:Nx,Ny-2:Ny)
+    @inbounds for i in 2:Nx-1
+        odata[i,j] += (idata_E[i-1,3] - 2*idata_E[i,3] + idata_E[i+1,3] + idata_E[i,3] - 2*idata_E[i,2] + idata_E[i,1]) / 2
+        odata[i,j] += (2 * beta * (1.5 * idata_E[i,3]) + 2 * alpha1 * idata_E[i,3] * h) / 2
+        odata[i,j-1] += (2 * beta * (-1 * idata_E[i,3]))
+        odata[i,j-2] += (0.5 * beta * idata_E[i,3])
+    end
 end
 
 function test_matrix_free_cpu(level)
@@ -382,16 +389,30 @@ function test_matrix_free_cpu(level)
         end
     end
     odata = spzeros(Nx,Ny)
+    odata_test = spzeros(Nx,Ny)
+    matrix_free_cpu_v3(A,odata_test,Nx,Ny,h)
     matrix_free_cpu(A,odata,Nx,Ny,h)
+    @show Array(odata)
+    @show Array(odata_test)
     t_cpu = time()
     iter_times = 1000
     for i in 1:iter_times
-        matrix_free_cpu_v3(A_sparse,odata,Nx,Ny,h)
+        matrix_free_cpu_v2(A_sparse,odata,Nx,Ny,h)
+        odata .= 0
         # matrix_free_cpu_v3(A,odata,Nx,Ny,h)
     end
     t_cpu = time() - t_cpu
     @show t_cpu
 
+    t_cpu_v3 = time()
+    iter_times = 1000
+    for i in 1:iter_times
+        matrix_free_cpu_v3(A,odata,Nx,Ny,h)
+        odata .= 0
+        # matrix_free_cpu_v3(A,odata,Nx,Ny,h)
+    end
+    t_cpu_v3 = time() - t_cpu_v3
+    @show t_cpu_v3
 
     t_convert = time()
     for i in 1:iter_times
