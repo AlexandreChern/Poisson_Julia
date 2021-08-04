@@ -403,6 +403,7 @@ function test_matrix_free_cpu(level)
         end
     end
     odata = spzeros(Nx,Ny)
+    odata_v3 = spzeros(Nx,Ny)
 
     # # make sure matrix_free_cpu_v3 equals matrix_free_cpu
     # odata_test = spzeros(Nx,Ny)
@@ -413,23 +414,24 @@ function test_matrix_free_cpu(level)
     # @assert odata ≈ odata_test
     # # end test
 
-    t_cpu = time()
-    iter_times = 1000
-    for i in 1:iter_times
-        matrix_free_cpu_v2(A_sparse,odata,Nx,Ny,h)
-        odata .= 0
-        # matrix_free_cpu_v3(A,odata,Nx,Ny,h)
-    end
-    t_cpu = time() - t_cpu
-    @show t_cpu
+    # t_cpu = time()
+    # iter_times = 1000
+    # for i in 1:iter_times
+    #     matrix_free_cpu_v2(A_sparse,odata,Nx,Ny,h)
+    #     odata .= 0
+    #     # matrix_free_cpu_v3(A,odata,Nx,Ny,h)
+    # end
+    # t_cpu = time() - t_cpu
+    # @show t_cpu
 
     t_cpu_v3 = time()
     iter_times = 1000
     for i in 1:iter_times
-        matrix_free_cpu_v3(A,odata,Nx,Ny,h)
-        odata .= 0
+        matrix_free_cpu_v3(A,odata_v3,Nx,Ny,h)
+        odata_v3 .= 0
         # matrix_free_cpu_v3(A,odata,Nx,Ny,h)
     end
+    synchronize()
     t_cpu_v3 = time() - t_cpu_v3
     @show t_cpu_v3
 
@@ -516,14 +518,20 @@ function test_matrix_free_A(level)
     odata = CuArray(randn(Nx,Ny))
 
     idata_cpu = zeros(Nx,Ny)
-    odata_cpu = zeros(Nx,Ny)
+    odata_cpu = spzeros(Nx,Ny)
+    copyto!(idata_cpu,idata)
 
 
     iter_times = 1000
     t_start = time()
     for _ in 1:iter_times
         matrix_free_A_v2(idata,odata)
-        matrix_free_cpu_v2(copyto!(idata_cpu,idata),odata_cpu,Nx,Ny,h)
+        # matrix_free_cpu_v2(copyto!(idata_cpu,idata),odata_cpu,Nx,Ny,h)
+        # matrix_free_cpu_v3(copyto!(idata_cpu,idata),odata_cpu,Nx,Ny,h)
+    end
+    
+    for _ in 1:iter_times
+        matrix_free_cpu_v3(idata_cpu,odata_cpu,Nx,Ny,h)
     end
     synchronize()
     t = time() - t_start
