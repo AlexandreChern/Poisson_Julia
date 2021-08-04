@@ -584,6 +584,9 @@ function test_matrix_free_A(level)
     # End evaluating time in Data IO
     t_copy_data = ( time() - t_copy_data ) * 1000 / iter_times_copy_data
     @show t_copy_data 
+    
+    CUDA.unsafe_free!(idata)
+    CUDA.unsafe_free!(odata)
     nothing
 end
 
@@ -591,3 +594,4 @@ end
 
 test_matrix_free_A(13)
 test_matrix_free_A(14)
+test_matrix_free_A(15)
