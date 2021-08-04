@@ -1,0 +1,55 @@
+julia> include("split_matrix_free.jl")
+
+Starting Test
+2D Domain Size: 8193 by 8193
+Size of the solution matrix (GPU): 537001992 Bytes
+Size of the solution matrix (CPU): 537001992 Bytes
+
+Evaluting time to do one A * b
+Timing results in ms
+
+t_D2 = 11.183487892150879
+t_boundary = 0.837583065032959
+t_total = 11.034675121307373
+t_copy_data = 46.32445573806763
+
+Starting Test
+2D Domain Size: 16385 by 16385
+Size of the solution matrix (GPU): 2147745800 Bytes
+Size of the solution matrix (CPU): 2147745800 Bytes
+
+Evaluting time to do one A * b
+Timing results in ms
+
+t_D2 = 44.43989896774292
+t_boundary = 1.6372759342193604
+t_total = 44.47640085220337
+t_copy_data = 183.63590240478516
+
+Starting Test
+2D Domain Size: 32769 by 32769
+ERROR: LoadError: Out of GPU memory trying to allocate 8.000 GiB
+Effective GPU memory usage: 34.59% (4.124 GiB/11.921 GiB)
+CUDA allocator usage: 0 bytes
+Memory pool usage: 0 bytes (0 bytes allocated, 0 bytes cached)
+
+Stacktrace:
+ [1] #alloc#176
+   @ ~/.julia/packages/CUDA/lwSps/src/pool.jl:267 [inlined]
+ [2] alloc
+   @ ~/.julia/packages/CUDA/lwSps/src/pool.jl:259 [inlined]
+ [3] CuArray{Float64, 2}(#unused#::UndefInitializer, dims::Tuple{Int64, Int64})
+   @ CUDA ~/.julia/packages/CUDA/lwSps/src/array.jl:28
+ [4] CuArray
+   @ ~/.julia/packages/CUDA/lwSps/src/array.jl:241 [inlined]
+ [5] CuArray
+   @ ~/.julia/packages/CUDA/lwSps/src/array.jl:249 [inlined]
+ [6] test_matrix_free_A(level::Int64)
+   @ Main /gpfs/home/yiminc/version-control/Poisson_Julia/matrix_free_new_formulation/split_matrix_free.jl:519
+ [7] top-level scope
+   @ /gpfs/home/yiminc/version-control/Poisson_Julia/matrix_free_new_formulation/split_matrix_free.jl:597
+ [8] include(fname::String)
+   @ Base.MainInclude ./client.jl:444
+ [9] top-level scope
+   @ REPL[1]:1
+in expression starting at /gpfs/home/yiminc/version-control/Poisson_Julia/matrix_free_new_formulation/split_matrix_free.jl:597
