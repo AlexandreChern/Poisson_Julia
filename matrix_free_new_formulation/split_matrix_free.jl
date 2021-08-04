@@ -511,6 +511,8 @@ end
 function test_matrix_free_A(level)
     Nx = Ny = 2^level + 1
     h = 1/(Nx-1)
+    println("")
+    println("Starting Test")
     println("2D Domain Size: $Nx by $Ny")
     Random.seed!(0)
     # idata = sparse(randn(Nx,Ny))
