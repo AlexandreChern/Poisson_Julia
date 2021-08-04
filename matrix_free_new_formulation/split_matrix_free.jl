@@ -389,7 +389,7 @@ function matrix_free_cpu_v3(idata,odata,Nx,Ny,h)
     # odata[:,end-2:end] .+= odata_E_T'
 end
 
-function test_matrix_free_cpu(level)
+function test_matrix_free_boundary(level)
     Nx = Ny = 2^level+1
     h = 1/(Nx-1)
     Random.seed!(0)
@@ -511,30 +511,75 @@ end
 function test_matrix_free_A(level)
     Nx = Ny = 2^level + 1
     h = 1/(Nx-1)
+    println("2D Domain Size: $Nx by $Ny")
     Random.seed!(0)
     # idata = sparse(randn(Nx,Ny))
     idata = CuArray(randn(Nx,Ny))
     # odata = spzeros(Nx,Ny)
     odata = CuArray(randn(Nx,Ny))
+    println("Size of the solution matrix (GPU): ", sizeof(idata), " Bytes")
 
     idata_cpu = zeros(Nx,Ny)
     odata_cpu = spzeros(Nx,Ny)
     copyto!(idata_cpu,idata)
+    println("Size of the solution matrix (CPU): ", sizeof(idata_cpu), " Bytes")
 
+    println("")
+
+    println("Evaluting time to do one A * b")
+    println("Timing results in ms")
+    println("")
 
     iter_times = 1000
-    t_start = time()
+
+    # Evaluating only D2
+    t_start_D2 = time()
     for _ in 1:iter_times
         matrix_free_A_v2(idata,odata)
-        # matrix_free_cpu_v2(copyto!(idata_cpu,idata),odata_cpu,Nx,Ny,h)
-        # matrix_free_cpu_v3(copyto!(idata_cpu,idata),odata_cpu,Nx,Ny,h)
+    end
+    synchronize()
+    t_D2 = (time() - t_start_D2) * 1000 / iter_times
+    @show t_D2
+    # End evaluating D2
+
+
+    # Evaluating only boundary
+    t_start_boundary = time()
+    for _ in 1:iter_times
+        matrix_free_cpu_v3(idata_cpu,odata_cpu,Nx,Ny,h)
+    end
+    t_boundary = (time() - t_start_boundary) * 1000 / iter_times
+    @show t_boundary
+    # End evaluating boundary
+
+
+    # Evaluating Both in asynchronous way
+    t_start_total = time()
+    for _ in 1:iter_times
+        matrix_free_A_v2(idata,odata)
     end
     
     for _ in 1:iter_times
         matrix_free_cpu_v3(idata_cpu,odata_cpu,Nx,Ny,h)
     end
     synchronize()
-    t = time() - t_start
-    @show t
+    t_total = (time() - t_start_total) * 1000 / iter_times
+    @show t_total 
+    # End evaluating both in asynchrnous way
+
+    # Evaluating time in Data IO
+    t_copy_data = time()
+    iter_times_copy_data = 20
+    for _ in 1:iter_times_copy_data
+        copyto!(idata_cpu,idata)
+    end
+    # End evaluating time in Data IO
+    t_copy_data = ( time() - t_copy_data ) * 1000 / iter_times_copy_data
+    @show t_copy_data 
     nothing
 end
+
+
+
+test_matrix_free_A(13)
+test_matrix_free_A(14)
