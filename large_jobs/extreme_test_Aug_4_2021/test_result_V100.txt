@@ -1,0 +1,50 @@
+[yiminc@n241 matrix_free_new_formulation]$ julia
+               _
+   _       _ _(_)_     |  Documentation: https://docs.julialang.org
+  (_)     | (_) (_)    |
+   _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Version 1.6.2 (2021-07-14)
+ _/ |\__'_|_|_|\__'_|  |  Official https://julialang.org/ release
+|__/                   |
+
+julia> include("split_matrix_free.jl")
+
+Starting Test
+2D Domain Size: 8193 by 8193
+Size of the solution matrix (GPU): 537001992 Bytes
+Size of the solution matrix (CPU): 537001992 Bytes
+
+Evaluting time to do one A * b
+Timing results in ms
+
+t_D2 = 1.4970049858093262
+t_boundary = 0.8069188594818115
+t_total = 1.4971160888671875
+t_copy_data = 111.998450756073
+
+Starting Test
+2D Domain Size: 16385 by 16385
+Size of the solution matrix (GPU): 2147745800 Bytes
+Size of the solution matrix (CPU): 2147745800 Bytes
+
+Evaluting time to do one A * b
+Timing results in ms
+
+t_D2 = 6.43491792678833
+t_boundary = 1.7497279644012451
+t_total = 6.435215950012207
+t_copy_data = 447.1750497817993
+
+Starting Test
+2D Domain Size: 32769 by 32769
+Size of the solution matrix (GPU): 8590458888 Bytes
+Size of the solution matrix (CPU): 8590458888 Bytes
+
+Evaluting time to do one A * b
+Timing results in ms
+
+t_D2 = 27.858755826950073
+t_boundary = 3.4614861011505127
+t_total = 27.859820127487183
+t_copy_data = 1788.4019017219543
