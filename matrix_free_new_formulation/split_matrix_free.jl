@@ -584,7 +584,28 @@ function test_matrix_free_A(level)
     # End evaluating time in Data IO
     t_copy_data = ( time() - t_copy_data ) * 1000 / iter_times_copy_data
     @show t_copy_data 
-    
+
+    # # Evaluating time in Data IO with CartesianIndices This is slow
+    # t_copy_data_Cartesian = time()
+    # iter_times_copy_data = 20
+    # for _ in 1:iter_times_copy_data
+    #     copyto!(idata_cpu,CartesianIndices((1:1,1:Ny)),idata,CartesianIndices((1:1,1:Ny)))
+    # end
+    #  # End evaluating time in Data IO
+    #  t_copy_data_Cartesian = ( time() - t_copy_data_Cartesian ) * 1000 / iter_times_copy_data
+    #  @show t_copy_data_Cartesian 
+
+    # Copy part of the data 
+    # Copy part of the data is fast
+    t_copy_data_part = time()
+    iter_times_copy_data = 20
+    for _ in 1:iter_times_copy_data
+        copyto!(idata_cpu[1,:],idata[1,:])
+    end
+    # End evaluating time in Data IO
+    t_copy_data_part = ( time() - t_copy_data_part ) * 1000 / iter_times_copy_data
+    @show t_copy_data_part 
+
     CUDA.unsafe_free!(idata)
     CUDA.unsafe_free!(odata)
     nothing
