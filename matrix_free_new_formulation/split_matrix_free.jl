@@ -575,6 +575,18 @@ function test_matrix_free_A(level)
     @show t_total 
     # End evaluating both in asynchrnous way
 
+    # Test reduction
+    t_reduction = time()
+    for _ in 1:iter_times
+        reduce(+,idata)
+    end
+    synchronize()
+    t_reduction = (time() - t_reduction ) * 1000 / iter_times
+    @show t_reduction
+    # End reduction test
+
+    # End reduction test
+
     # Evaluating time in Data IO
     t_copy_data = time()
     iter_times_copy_data = 20
@@ -605,6 +617,10 @@ function test_matrix_free_A(level)
     # End evaluating time in Data IO
     t_copy_data_part = ( time() - t_copy_data_part ) * 1000 / iter_times_copy_data
     @show t_copy_data_part 
+
+
+   
+
 
     CUDA.unsafe_free!(idata)
     CUDA.unsafe_free!(odata)
