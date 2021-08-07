@@ -31,6 +31,23 @@ end
 
 
 
+function Boundary_GPU(idata,odata,Nx,Ny,h::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1,TILE_DIM2}
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+    global_index = (i-1)*Ny+j
+
+    idata_N = idata[]
+    idata_S = 
+    idata_W = 
+    idata_E =
+
+    nothing
+end
+
 # function matrix_free_cpu_old(idata,odata,Nx,Ny,h)
 #     (Nx,Ny) = size(idata)
 #     # odata = spzeros(Nx,Ny)
@@ -578,7 +595,8 @@ function test_matrix_free_A(level)
     # Test reduction
     t_reduction = time()
     for _ in 1:iter_times
-        reduce(+,idata)
+        # reduce(+,idata)
+        sum(idata)
     end
     synchronize()
     t_reduction = (time() - t_reduction ) * 1000 / iter_times
@@ -589,7 +607,7 @@ function test_matrix_free_A(level)
 
     # Evaluating time in Data IO
     t_copy_data = time()
-    iter_times_copy_data = 20
+    iter_times_copy_data = 40
     for _ in 1:iter_times_copy_data
         copyto!(idata_cpu,idata)
     end
@@ -601,7 +619,7 @@ function test_matrix_free_A(level)
     # t_copy_data_Cartesian = time()
     # iter_times_copy_data = 20
     # for _ in 1:iter_times_copy_data
-    #     copyto!(idata_cpu,CartesianIndices((1:1,1:Ny)),idata,CartesianIndices((1:1,1:Ny)))
+    #     copyto!(idata_cpu,CartesianIndices((1,1:Ny)),idata,CartesianIndices((1,1:Ny)))
     # end
     #  # End evaluating time in Data IO
     #  t_copy_data_Cartesian = ( time() - t_copy_data_Cartesian ) * 1000 / iter_times_copy_data
@@ -610,9 +628,13 @@ function test_matrix_free_A(level)
     # Copy part of the data 
     # Copy part of the data is fast
     t_copy_data_part = time()
-    iter_times_copy_data = 20
+    iter_times_copy_data = 40
     for _ in 1:iter_times_copy_data
-        copyto!(idata_cpu[1,:],idata[1,:])
+        # idata_cpu[1:3,:] .= idata[1:3,:]
+        # copyto!(idata_cpu[1:3,:],idata[1:3,:])
+        # copyto!(idata_cpu[:,1:3],idata[:,1:3])
+        # copyto!(idata_cpu[8:10,:],idata[8:10,:])
+        # idata[1:3,:] .= idata[:,1:3]'
     end
     # End evaluating time in Data IO
     t_copy_data_part = ( time() - t_copy_data_part ) * 1000 / iter_times_copy_data
@@ -632,3 +654,51 @@ end
 test_matrix_free_A(13)
 test_matrix_free_A(14)
 test_matrix_free_A(15)
+
+
+function test_copy_data(level)
+    Nx = Ny = 2^level + 1
+    h = 1/(Nx-1)
+    println("")
+    println("Starting Test")
+    println("2D Domain Size: $Nx by $Ny")
+    Random.seed!(0)
+    # idata = sparse(randn(Nx,Ny))
+    idata = CuArray(randn(Nx,Ny))
+    # odata = spzeros(Nx,Ny)
+    odata = CuArray(randn(Nx,Ny))
+    println("Size of the solution matrix (GPU): ", sizeof(idata), " Bytes")
+
+    idata_cpu = zeros(Nx,Ny)
+    odata_cpu = spzeros(Nx,Ny)
+    copyto!(idata_cpu,idata)
+    println("Size of the solution matrix (CPU): ", sizeof(idata_cpu), " Bytes")
+
+
+    A = randn(Nx,Ny)
+    A[2:end-1,2:end-1] .= 0
+    B = spzeros(Nx,Ny)
+    B .= A
+    C = CuArray(randn(Nx,Ny))
+    @show A
+    @show B
+    # D = CuArray(randn(Nx,Ny))
+    # D = CUDA.CUSPARSE.CuSparseMatrixCSC(D)
+
+    t_copy_dense = time()
+    iter_times_copy_data = 40
+    for _ in 1:iter_times_copy_data
+        copyto!(C,A)
+    end
+    t_copy_dense = ( time() - t_copy_dense ) * 1000 / iter_times_copy_data
+    @show t_copy_dense
+
+    t_copy_sparse = time()
+    iter_times_copy_data = 40
+    for _ in 1:iter_times_copy_data
+        copyto!(C,B[1,:])
+    end
+    t_copy_sparse = ( time() - t_copy_sparse ) * 1000 / iter_times_copy_data
+    @show t_copy_sparse
+
+end
