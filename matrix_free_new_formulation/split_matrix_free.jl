@@ -680,8 +680,8 @@ function test_copy_data(level)
     B = spzeros(Nx,Ny)
     B .= A
     C = CuArray(randn(Nx,Ny))
-    @show A
-    @show B
+    # @show A
+    # @show B
     # D = CuArray(randn(Nx,Ny))
     # D = CUDA.CUSPARSE.CuSparseMatrixCSC(D)
 
@@ -696,9 +696,10 @@ function test_copy_data(level)
     t_copy_sparse = time()
     iter_times_copy_data = 40
     for _ in 1:iter_times_copy_data
-        copyto!(C,B[1,:])
+        # copyto!(C,B[1,:])
+        copyto!(C,A[1,:])
     end
     t_copy_sparse = ( time() - t_copy_sparse ) * 1000 / iter_times_copy_data
     @show t_copy_sparse
-
+    # @show typeof(C)
 end
