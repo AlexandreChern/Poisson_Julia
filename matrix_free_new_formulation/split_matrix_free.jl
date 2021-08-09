@@ -402,8 +402,8 @@ function matrix_free_cpu_v3(idata,odata,Nx,Ny,h)
     #     odata[i,j-2] += (0.5 * beta * idata_E[i,3])
     # end
 
-    # odata[:,1:3] .+= odata_W_T'
-    # odata[:,end-2:end] .+= CPU_OUT_E_T'
+    odata[:,1:3] .+= odata_W_T'
+    odata[:,end-2:end] .+= CPU_OUT_E_T'
 end
 
 function matrix_free_cpu_v4(GPU_Array,odata,Nx,Ny,h)
@@ -413,7 +413,9 @@ function matrix_free_cpu_v4(GPU_Array,odata,Nx,Ny,h)
     odata .= 0
 
     CPU_W = zeros(Nx,3)
+    CPU_W_T = zeros(3,Nx)
     CPU_E = zeros(Nx,3)
+    CPU_E_T = zeros(3,Nx)
     CPU_N = zeros(3,Ny)
     CPU_S = zeros(3,Ny)
 
@@ -428,8 +430,13 @@ function matrix_free_cpu_v4(GPU_Array,odata,Nx,Ny,h)
     copyto!(CPU_N,GPU_Array[1:3,:])
     copyto!(CPU_S,GPU_Array[end-2:end,:])
 
-    CPU_W_T = CPU_W'
-    CPU_E_T = CPU_E'
+    # copyto!(CPU_W,view(GPU_Array,1:Nx,1:3))
+    # copyto!(CPU_E,view(GPU_Array,1:Nx,Ny-2:Ny))
+    # copyto!(CPU_N,view(GPU_Array,1:3,:))
+    # copyto!(CPU_S,view(GPU_Array,Nx-2:Nx,:))
+
+    CPU_W_T .= CPU_W'
+    CPU_E_T .= CPU_E'
     CPU_OUT_W_T = zeros(3,Ny)
     CPU_OUT_E_T = zeros(3,Ny)
 
@@ -478,43 +485,43 @@ function matrix_free_cpu_v4(GPU_Array,odata,Nx,Ny,h)
         CPU_OUT_E_T[1,i] += (0.5 * beta * CPU_E_T[3,i])
     end
 
-    (i,j) = (1,1)
+    # (i,j) = (1,1)
 
 
-    odata[i,j] += (CPU_W[i,j] - 2*CPU_W[i+1,j] + CPU_W[i+2,j] + CPU_W[i,j] - 2*CPU_W[i,j+1] + CPU_W[i,j+2]) / 4 # D2
+    # odata[i,j] += (CPU_W[i,j] - 2*CPU_W[i+1,j] + CPU_W[i+2,j] + CPU_W[i,j] - 2*CPU_W[i,j+1] + CPU_W[i,j+2]) / 4 # D2
 
-    odata[i,j] += 2 * alpha3 * (( 1.5* CPU_W[i,j] - 2*CPU_W[i+1,j] + 0.5*CPU_W[i+2,j])) / 4 # Neumann
+    # odata[i,j] += 2 * alpha3 * (( 1.5* CPU_W[i,j] - 2*CPU_W[i+1,j] + 0.5*CPU_W[i+2,j])) / 4 # Neumann
 
-    odata[i,j] += (2 * beta * (1.5 * CPU_W[i,j]) + 2 * alpha1 * (CPU_W[i,j]) * h) / 4 # Dirichlet
-    odata[i,j+1] += (2 * beta * (-1 * CPU_W[i,j])) / 2 # Dirichlet
-    odata[i,j+2] += (0.5 * beta * (CPU_W[i,j])) / 2 # Dirichlet
+    # odata[i,j] += (2 * beta * (1.5 * CPU_W[i,j]) + 2 * alpha1 * (CPU_W[i,j]) * h) / 4 # Dirichlet
+    # odata[i,j+1] += (2 * beta * (-1 * CPU_W[i,j])) / 2 # Dirichlet
+    # odata[i,j+2] += (0.5 * beta * (CPU_W[i,j])) / 2 # Dirichlet
 
 
-    (i,j) = (1,Ny)
-    odata[i,j] += (CPU_E[i,3] - 2*CPU_E[i+1,3] + CPU_E[i+2,3] + CPU_E[i,3] - 2*CPU_E[i,2] + CPU_E[i,1]) / 4 # D2
+    # (i,j) = (1,Ny)
+    # odata[i,j] += (CPU_E[i,3] - 2*CPU_E[i+1,3] + CPU_E[i+2,3] + CPU_E[i,3] - 2*CPU_E[i,2] + CPU_E[i,1]) / 4 # D2
     
-    odata[i,j] += 2 * alpha3 * (1.5 * CPU_E[i,3] - 2*CPU_E[i+1,3] + 0.5 * CPU_E[i+2,3]) / 4 # Neumann
-    odata[i,j] += (2 * beta * (1.5 * CPU_E[i,3]) + 2 * alpha2 * (CPU_E[i,3]) * h) / 4 # Dirichlet
-    odata[i,j-1] += (2 * beta * (-1 * CPU_E[i,3])) / 2 # Dirichlet
-    odata[i,j-2] += (0.5 * beta * (CPU_E[i,3])) / 2 # Dirichlet
+    # odata[i,j] += 2 * alpha3 * (1.5 * CPU_E[i,3] - 2*CPU_E[i+1,3] + 0.5 * CPU_E[i+2,3]) / 4 # Neumann
+    # odata[i,j] += (2 * beta * (1.5 * CPU_E[i,3]) + 2 * alpha2 * (CPU_E[i,3]) * h) / 4 # Dirichlet
+    # odata[i,j-1] += (2 * beta * (-1 * CPU_E[i,3])) / 2 # Dirichlet
+    # odata[i,j-2] += (0.5 * beta * (CPU_E[i,3])) / 2 # Dirichlet
 
 
 
-    (i,j) = (Nx,1)
-    odata[i,j] += (CPU_W[i,j] - 2*CPU_W[i-1,j] + CPU_W[i-2,j] + CPU_W[i,j] - 2*CPU_W[i,j+1] + CPU_W[i,j+2]) / 4 # D2
+    # (i,j) = (Nx,1)
+    # odata[i,j] += (CPU_W[i,j] - 2*CPU_W[i-1,j] + CPU_W[i-2,j] + CPU_W[i,j] - 2*CPU_W[i,j+1] + CPU_W[i,j+2]) / 4 # D2
 
-    odata[i,j] += 2 * alpha4 * (( 1.5* CPU_W[i,j] - 2*CPU_W[i-1,j] + 0.5*CPU_W[i-2,j])) / 4 # Neumann
-    odata[i,j] += (2 * beta * (1.5 * CPU_W[i,j]) + 2 * alpha1 * (CPU_W[i,j]) * h) / 4 # Dirichlet
-    odata[i,j+1] += (2 * beta * (-1 * CPU_W[i,j])) / 2 # Dirichlet
-    odata[i,j+2] += (0.5 * beta * (CPU_W[i,j])) / 2 # Dirichlet
+    # odata[i,j] += 2 * alpha4 * (( 1.5* CPU_W[i,j] - 2*CPU_W[i-1,j] + 0.5*CPU_W[i-2,j])) / 4 # Neumann
+    # odata[i,j] += (2 * beta * (1.5 * CPU_W[i,j]) + 2 * alpha1 * (CPU_W[i,j]) * h) / 4 # Dirichlet
+    # odata[i,j+1] += (2 * beta * (-1 * CPU_W[i,j])) / 2 # Dirichlet
+    # odata[i,j+2] += (0.5 * beta * (CPU_W[i,j])) / 2 # Dirichlet
 
-    (i,j) = (Nx,Ny)
-    odata[i,j] += (CPU_E[Nx,3] - 2*CPU_E[Nx-1,3] + CPU_E[Nx-2,3] + CPU_E[Nx,3] - 2*CPU_E[Nx,2] + CPU_E[Nx,1]) / 4 # D2
+    # (i,j) = (Nx,Ny)
+    # odata[i,j] += (CPU_E[Nx,3] - 2*CPU_E[Nx-1,3] + CPU_E[Nx-2,3] + CPU_E[Nx,3] - 2*CPU_E[Nx,2] + CPU_E[Nx,1]) / 4 # D2
 
-    odata[i,j] += 2 * alpha4 * (1.5 * CPU_E[Nx,3] - 2*CPU_E[Nx-1,3] + 0.5 * CPU_E[Nx-2,3]) / 4 # Neumann
-    odata[i,j] += (2 * beta * (1.5 * CPU_E[Nx,3]) + 2 * alpha2 * (CPU_E[Nx,3]) * h) / 4 # Dirichlet
-    odata[i,j-1] += (2 * beta * (-1 * CPU_E[Nx,3])) / 2 # Dirichlet
-    odata[i,j-2] += (0.5 * beta * (CPU_E[Nx,3])) / 2 # Dirichlet
+    # odata[i,j] += 2 * alpha4 * (1.5 * CPU_E[Nx,3] - 2*CPU_E[Nx-1,3] + 0.5 * CPU_E[Nx-2,3]) / 4 # Neumann
+    # odata[i,j] += (2 * beta * (1.5 * CPU_E[Nx,3]) + 2 * alpha2 * (CPU_E[Nx,3]) * h) / 4 # Dirichlet
+    # odata[i,j-1] += (2 * beta * (-1 * CPU_E[Nx,3])) / 2 # Dirichlet
+    # odata[i,j-2] += (0.5 * beta * (CPU_E[Nx,3])) / 2 # Dirichlet
 
 
     CuArray(CPU_OUT_W_T)
@@ -522,6 +529,8 @@ function matrix_free_cpu_v4(GPU_Array,odata,Nx,Ny,h)
     # CPU_OUT_W .= CPU_OUT_W_T'
     copyto!(view(odata,1:Nx,1:3),CuArray(CPU_OUT_W_T'))
     copyto!(view(odata,1:Nx,Ny-2:Ny),CuArray(CPU_OUT_E_T'))
+    copyto!(view(odata,1:3,1:Ny),CuArray(CPU_OUT_N))
+    copyto!(view(odata,Nx-2:Nx,1:Ny),CuArray(CPU_OUT_S))
 end
 
 function matrix_free_cpu_v5(GPU_Array,odata,Nx,Ny,h)
@@ -767,6 +776,7 @@ function test_matrix_free_A(level)
     idata = CuArray(randn(Nx,Ny))
     # odata = spzeros(Nx,Ny)
     odata = CuArray(randn(Nx,Ny))
+    odata_boundary = CUDA.zeros(Nx,Ny)
     println("Size of the solution matrix (GPU): ", sizeof(idata), " Bytes")
 
     idata_cpu = zeros(Nx,Ny)
@@ -785,6 +795,7 @@ function test_matrix_free_A(level)
     #precompile functions
     matrix_free_A_v2(idata,odata)
     matrix_free_cpu_v3(idata_cpu,odata_cpu,Nx,Ny,h)
+    matrix_free_cpu_v4(idata,odata_boundary,Nx,Ny,h)
 
 
 
@@ -852,25 +863,7 @@ function test_matrix_free_A(level)
     iter_times_copy_data = 100
     for _ in 1:iter_times_copy_data
         # matrix_free_cpu_v4(idata,odata_cpu,Nx,Ny,h)
-        matrix_free_cpu_v4(idata,odata,Nx,Ny,h)
-
-        
-        # CPU_W = zeros(Nx,3)
-        # CPU_E = zeros(Nx,3)
-
-        # CPU_N = zeros(3,Ny)
-        # CPU_S = zeros(3,Ny)
-
-
-        # copyto!(CPU_W,idata[:,1:3])
-        # copyto!(CPU_E,idata[:,end-2:end])
-        # copyto!(CPU_N,idata[1:3,:])
-        # copyto!(CPU_S,idata[end-2:end,:])
-
-        # idata_cpu[:,1:3] .= CPU_W
-        # idata_cpu[:,end-2:end] .= CPU_E
-        # idata_cpu[1:3,:] .= CPU_N
-        # idata_cpu[end-2:end,:] .= CPU_S
+        matrix_free_cpu_v4(idata,odata_boundary,Nx,Ny,h)
     end
     # End evaluating time in Data IO
     t_copy_data_part = ( time() - t_copy_data_part ) * 1000 / iter_times_copy_data
