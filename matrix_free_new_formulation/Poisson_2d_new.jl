@@ -1,11 +1,6 @@
-using CUDA
 include("diagonal_sbp.jl")
 include("deriv_ops_new.jl")
 include("split_matrix_free.jl")
-
-using LinearAlgebra
-using SparseArrays
-using Plots
 
 # using CUDAdrv
 # CUDAdrv.CuDevice(0)
@@ -15,6 +10,9 @@ using Plots
 # Manufactured Solution: u(x,y) = sin(πx .+ πy) 
 
 # using CuArrays, CUDAnative
+using LinearAlgebra
+using SparseArrays
+using Plots
 using CUDA
 using IterativeSolvers
 using BenchmarkTools
@@ -201,6 +199,7 @@ for k in 2:8
 
     # testing matrix_split method
     b_reshaped = reshape(b,Nx,Ny)
+    b_reshaped_GPU = CuArray(b_reshaped)
     odata1 = spzeros(Nx,Ny)
     odata2 = spzeros(Nx,Ny)
 
@@ -217,6 +216,11 @@ for k in 2:8
 
     @assert A*b ≈ odata
 
+    odata_gpu = CUDA.zeros(Nx,Ny)
+    matrix_free_A_v3(b_reshaped_GPU,odata_gpu)
+
+    @assert odata1 + odata2 ≈ odata_gpu
+
     # file = matopen("../data/A_$N_x.mat","w")
     # write(file,"A",A)
     # close(file)
@@ -232,25 +236,25 @@ for k in 2:8
 
 
     # A_d = CuArrays.CUSPARSE.CuSparseMatrixCSC(A);
-    A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
-    # A_d = CuArray(A);
-    b_d = CuArray(b);
-    init_guess = CuArray(randn(length(b)))
+    # A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
+    # # A_d = CuArray(A);
+    # b_d = CuArray(b);
+    # init_guess = CuArray(randn(length(b)))
 
-    num_sol = reshape(A\b,N_y+1,N_x+1)
-    # @show num_sol
-    cu_sol = reshape(cg!(init_guess,A_d,b_d),N_y+1,N_x+1)
-    cu_sol = collect(cu_sol)
-    err = (num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:])
-    iter_err = (cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:])
-    @show err
-    @show iter_err
-    rel_err = √err
-    # @show rel_err
-    iter_err = √iter_err
+    # num_sol = reshape(A\b,N_y+1,N_x+1)
+    # # @show num_sol
+    # cu_sol = reshape(cg!(init_guess,A_d,b_d),N_y+1,N_x+1)
+    # cu_sol = collect(cu_sol)
+    # err = (num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:])
+    # iter_err = (cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:])
+    # @show err
     # @show iter_err
-    push!(rel_errs,rel_err)
-    push!(iter_errs,iter_err)
+    # rel_err = √err
+    # # @show rel_err
+    # iter_err = √iter_err
+    # # @show iter_err
+    # push!(rel_errs,rel_err)
+    # push!(iter_errs,iter_err)
 end
 
 println(rel_errs)
