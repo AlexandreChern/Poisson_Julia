@@ -604,7 +604,10 @@ function matrix_free_A_v2(idata,odata)
 end
 
 function matrix_free_A_v3(idata,odata)
+    # final version for CG
+    # odata .= 0
     Nx,Ny = size(idata)
+    odata_D2 = CUDA.zeros(Nx,Ny)
     odata_boundary = CuArray(zeros(Nx,Ny))
     h = 1/(Nx-1)
     # odata_gpu = CuArray(zeros(Nx,Ny))
@@ -613,10 +616,66 @@ function matrix_free_A_v3(idata,odata)
     TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim D2_split(idata,odata_D2,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     matrix_free_cpu_optimized(idata,odata_boundary,Nx,Ny,h)
     synchronize()
-    return odata + odata_boundary
+    odata .= odata_D2 .+ odata_boundary
+    # return odata
+end
+
+function CG_GPU(b_reshaped_GPU,x_GPU)
+    (Nx,Ny) = size(b_reshaped_GPU)
+    odata = CUDA.zeros(Nx,Ny)
+    matrix_free_A_v3(x_GPU,odata)
+    r_GPU = b_reshaped_GPU - odata
+    p_GPU = copy(r_GPU)
+    rsold_GPU = sum(r_GPU .* r_GPU)
+    Ap_GPU = CUDA.zeros(Nx,Ny)
+    for i in 1:Nx*Ny
+    # for i in 1:2
+        @show i
+        @show rsold_GPU
+        matrix_free_A_v3(p_GPU,Ap_GPU)
+        alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
+        x_GPU .= x_GPU + alpha_GPU * p_GPU
+        r_GPU .= r_GPU - alpha_GPU * Ap_GPU
+        rsnew_GPU = sum(r_GPU .* r_GPU)
+        if sqrt(rsnew_GPU) < 1e-10
+            break
+        end
+        p_GPU = r_GPU + (rsnew_GPU/rsold_GPU) * p_GPU
+        rsold_GPU = rsnew_GPU
+    end
+end
+
+function CG_CPU(A,b,x)
+    r = b - A * x;
+    p = r;
+    rsold = r' * r
+
+    for i = 1:length(b)
+    # for i = 1:2
+        @show i
+        @show rsold
+        Ap = A * p;
+        alpha = rsold / (p' * Ap)
+        x .= x .+ alpha * p;
+        r .= r .- alpha * Ap;
+        rsnew = r' * r
+        if sqrt(rsnew) < 1e-10
+              break
+        end
+        p = r + (rsnew / rsold) * p;
+        rsold = rsnew
+    end
+end
+
+
+function test_CG()
+    x = zeros(Nx*Ny)
+    x_GPU = CUDA.zeros(Nx,Ny)
+    CG_GPU(b_reshaped_GPU,x_GPU)
+    CG_CPU(A,b,x)
 end
 
 
