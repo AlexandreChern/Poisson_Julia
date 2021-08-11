@@ -221,6 +221,12 @@ for k in 2:8
 
     @assert odata1 + odata2 ≈ odata_gpu
 
+    x = zeros(Nx*Ny)
+    x_GPU = CUDA.zeros(Nx,Ny)
+    CG_GPU(b_reshaped_GPU,x_GPU)
+    CG_CPU(A,b,x)
+
+
     # file = matopen("../data/A_$N_x.mat","w")
     # write(file,"A",A)
     # close(file)
