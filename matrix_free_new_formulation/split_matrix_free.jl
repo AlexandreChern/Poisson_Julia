@@ -603,12 +603,13 @@ function matrix_free_A_v2(idata,odata)
     @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 end
 
-function matrix_free_A_v3(idata,odata)
+function matrix_free_A_v3(idata,odata,odata_D2_GPU,odata_boundary_GPU)
     # final version for CG
     # odata .= 0
     Nx,Ny = size(idata)
-    odata_D2 = CUDA.zeros(Nx,Ny)
-    odata_boundary = CuArray(zeros(Nx,Ny))
+    # odata_D2 = CUDA.zeros(Nx,Ny)
+    # odata_boundary = CUDA.zeros(Nx,Ny)
+    # odata_boundary = CuArray(zeros(Nx,Ny))
     h = 1/(Nx-1)
     # odata_gpu = CuArray(zeros(Nx,Ny))
     # idata_gpu = CUDA.CuArray(idata)
@@ -616,17 +617,20 @@ function matrix_free_A_v3(idata,odata)
     TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim blocks=griddim D2_split(idata,odata_D2,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
-    matrix_free_cpu_optimized(idata,odata_boundary,Nx,Ny,h)
+    @cuda threads=blockdim blocks=griddim D2_split(idata,odata_D2_GPU,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    matrix_free_cpu_optimized(idata,odata_boundary_GPU,Nx,Ny,h)
     synchronize()
-    odata .= odata_D2 .+ odata_boundary
+    # odata .= odata_D2_GPU .+ odata_boundary_GPU
+    copyto!(odata,odata_D2_GPU + odata_boundary_GPU)
     # return odata
 end
 
 function CG_GPU(b_reshaped_GPU,x_GPU)
     (Nx,Ny) = size(b_reshaped_GPU)
     odata = CUDA.zeros(Nx,Ny)
-    matrix_free_A_v3(x_GPU,odata)
+    odata_D2_GPU = CUDA.zeros(Nx,Ny)
+    odata_boundary_GPU = CUDA.zeros(Nx,Ny)
+    matrix_free_A_v3(x_GPU,odata,odata_D2_GPU,odata_boundary_GPU)
     r_GPU = b_reshaped_GPU - odata
     p_GPU = copy(r_GPU)
     rsold_GPU = sum(r_GPU .* r_GPU)
@@ -635,7 +639,7 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     # for i in 1:2
         # @show i
         # @show rsold_GPU
-        matrix_free_A_v3(p_GPU,Ap_GPU)
+        matrix_free_A_v3(p_GPU,Ap_GPU,odata_D2_GPU,odata_boundary_GPU)
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
         x_GPU .= x_GPU + alpha_GPU * p_GPU
         r_GPU .= r_GPU - alpha_GPU * Ap_GPU
@@ -690,7 +694,8 @@ function test_matrix_free_A(level)
     idata = CuArray(randn(Nx,Ny))
     # odata = spzeros(Nx,Ny)
     odata = CuArray(randn(Nx,Ny))
-    odata_boundary = CUDA.zeros(Nx,Ny)
+    odata_D2_GPU = CUDA.zeros(Nx,Ny)
+    odata_boundary_GPU = CUDA.zeros(Nx,Ny)
     println("Size of the solution matrix (GPU): ", sizeof(idata), " Bytes")
 
     idata_cpu = zeros(Nx,Ny)
@@ -712,11 +717,15 @@ function test_matrix_free_A(level)
     iter_times = 1000
 
     #precompile functions
-    matrix_free_A_v3(idata,odata)
-    matrix_free_cpu_v3(idata_cpu,odata_cpu,Nx,Ny,h)
-    matrix_free_cpu_optimized(idata,odata_boundary,Nx,Ny,h)
 
-    @assert odata_cpu ≈ odata_boundary
+   
+    # odata_boundary = CUDA.zeros(Nx,Ny)
+
+    matrix_free_A_v3(idata,odata,odata_D2_GPU,odata_boundary_GPU)
+    matrix_free_cpu_v3(idata_cpu,odata_cpu,Nx,Ny,h)
+    matrix_free_cpu_optimized(idata,odata_boundary_GPU,Nx,Ny,h)
+
+    @assert odata_cpu ≈ Array(odata_boundary_GPU)
 
 
 
@@ -756,6 +765,8 @@ function test_matrix_free_A(level)
     @show t_total 
     # End evaluating both in asynchrnous way
 
+   
+
     # Test reduction
     t_reduction = time()
     for _ in 1:iter_times
@@ -780,16 +791,28 @@ function test_matrix_free_A(level)
     @show t_copy_data 
 
     
-    t_copy_data_part = time()
+    t_boundary_data_part = time()
     iter_times_copy_data = 100
     for _ in 1:iter_times_copy_data
         # matrix_free_cpu_v4(idata,odata_cpu,Nx,Ny,h)
-        matrix_free_cpu_v4(idata,odata_boundary,Nx,Ny,h)
+        matrix_free_cpu_optimized(idata,odata_boundary_GPU,Nx,Ny,h)
     end
     # End evaluating time in Data IO
-    t_copy_data_part = ( time() - t_copy_data_part ) * 1000 / iter_times_copy_data
-    @show t_copy_data_part 
+    t_boundary_data_part = ( time() - t_boundary_data_part ) * 1000 / iter_times_copy_data
+    @show t_boundary_data_part 
 
+
+     # Evaluating final matrix-free A
+
+   
+     t_start_A = time()
+     for _ in 1:iter_times
+         matrix_free_A_v3(idata,odata,odata_D2_GPU,odata_boundary_GPU)
+     end
+     synchronize()
+     t_A = (time() - t_start_A) * 1000 / iter_times
+     @show t_A 
+     # End evaluating matrix-free A in asynchrnous way
 
 
     CUDA.unsafe_free!(idata)

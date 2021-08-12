@@ -202,6 +202,8 @@ for k in 2:8
     b_reshaped_GPU = CuArray(b_reshaped)
     odata1 = spzeros(Nx,Ny)
     odata2 = spzeros(Nx,Ny)
+    odata_D2_GPU = CUDA.zeros(Nx,Ny)
+    odata_boundary_GPU = CUDA.zeros(Nx,Ny)
 
     D2_cpu(b_reshaped,odata1,Nx,Ny,hx)
     matrix_free_cpu(b_reshaped,odata2,Nx,Ny,hx)
@@ -217,16 +219,16 @@ for k in 2:8
     @assert A*b ≈ odata
 
     odata_gpu = CUDA.zeros(Nx,Ny)
-    matrix_free_A_v3(b_reshaped_GPU,odata_gpu)
+    matrix_free_A_v3(b_reshaped_GPU,odata_gpu,odata_D2_GPU,odata_boundary_GPU)
 
-    @assert odata1 + odata2 ≈ odata_gpu
+    @assert odata1 + odata2 ≈ Array(odata_gpu)
 
     x = zeros(Nx*Ny)
     x_GPU = CUDA.zeros(Nx,Ny)
     CG_GPU(b_reshaped_GPU,x_GPU)
     CG_CPU(A,b,x)
 
-    iter_times = 10
+    iter_times = 2
     t_CG_CPU = time()
     for i in 1:iter_times
         x = zeros(Nx*Ny)
@@ -235,13 +237,14 @@ for k in 2:8
     t_CG_CPU = (time() - t_CG_CPU ) * 1000 / iter_times 
     @show t_CG_CPU
 
-    iter_times = 10
+    # iter_times = 10
     t_CG_GPU = time()
     for i in 1:iter_times
         x_GPU = CUDA.zeros(Nx,Ny)
         CG_GPU(b_reshaped_GPU,x_GPU)
     end
     t_CG_GPU = (time() - t_CG_GPU ) * 1000 / iter_times 
+    @show t_CG_GPU
 
     # file = matopen("../data/A_$N_x.mat","w")
     # write(file,"A",A)
