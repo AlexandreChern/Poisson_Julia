@@ -200,28 +200,30 @@ for k in 2:8
     # testing matrix_split method
     b_reshaped = reshape(b,Nx,Ny)
     b_reshaped_GPU = CuArray(b_reshaped)
-    odata1 = spzeros(Nx,Ny)
-    odata2 = spzeros(Nx,Ny)
-    odata_D2_GPU = CUDA.zeros(Nx,Ny)
-    odata_boundary_GPU = CUDA.zeros(Nx,Ny)
+    
+    # odata1 = spzeros(Nx,Ny)
+    # odata2 = spzeros(Nx,Ny)
+    # odata_D2_GPU = CUDA.zeros(Nx,Ny)
+    # odata_boundary_GPU = CUDA.zeros(Nx,Ny)
 
-    D2_cpu(b_reshaped,odata1,Nx,Ny,hx)
-    matrix_free_cpu(b_reshaped,odata2,Nx,Ny,hx)
+    # D2_cpu(b_reshaped,odata1,Nx,Ny,hx)
+    # matrix_free_cpu(b_reshaped,odata2,Nx,Ny,hx)
 
-    @assert reshape(A*b,Nx,Ny) ≈ odata1 + odata2
+    # @assert reshape(A*b,Nx,Ny) ≈ odata1 + odata2
 
-    idata = b
+    # idata = b
 
-    odata = spzeros(Nx*Ny)
-    matrix_free_A(b,odata,N_x+1,N_y+1,hx,tau_N,tau_S,tau_W,tau_E,beta)
-    # matrix_free_A_v5(b,odata,N_x+1,N_y+1,hx,tau_N,tau_S,tau_W,tau_E,beta)
+    # odata = spzeros(Nx*Ny)
+    # matrix_free_A(b,odata,N_x+1,N_y+1,hx,tau_N,tau_S,tau_W,tau_E,beta)
+    # # matrix_free_A_v5(b,odata,N_x+1,N_y+1,hx,tau_N,tau_S,tau_W,tau_E,beta)
 
-    @assert A*b ≈ odata
+    # @assert A*b ≈ odata
 
-    odata_gpu = CUDA.zeros(Nx,Ny)
-    matrix_free_A_v3(b_reshaped_GPU,odata_gpu,odata_D2_GPU,odata_boundary_GPU)
+    # odata_gpu = CUDA.zeros(Nx,Ny)
+    # matrix_free_A_v3(b_reshaped_GPU,odata_gpu,odata_D2_GPU,odata_boundary_GPU)
+    # matrix_free_A_v4(b_reshaped_GPU,odata_gpu)
 
-    @assert odata1 + odata2 ≈ Array(odata_gpu)
+    # @assert odata1 + odata2 ≈ Array(odata_gpu)
 
     x = zeros(Nx*Ny)
     x_GPU = CUDA.zeros(Nx,Ny)
