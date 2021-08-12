@@ -174,7 +174,11 @@ function test_matrix_free_A(level)
     TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
+    @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    matrix_free_A(idata,odata)
 
+
+    iter_times = 1000
     # Evaluating only D2
     t_start_D2 = time()
     for _ in 1:iter_times
