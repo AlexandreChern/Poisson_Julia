@@ -1,6 +1,6 @@
 include("diagonal_sbp.jl")
 include("deriv_ops_new.jl")
-include("split_matrix_free.jl")
+include("split_matrix_free_dev.jl")
 
 # using CUDAdrv
 # CUDAdrv.CuDevice(0)
