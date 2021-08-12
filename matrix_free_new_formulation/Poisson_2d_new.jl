@@ -248,6 +248,14 @@ for k in 2:9
     t_CG_GPU = (time() - t_CG_GPU ) * 1000 / iter_times 
     @show t_CG_GPU
 
+
+    t_CG_CPU_Iterative_Solvers = time()
+    for i in 1:iter_times
+        cg(A,b)
+    end
+    t_CG_CPU_Iterative_Solvers = time()
+    @show t_CG_CPU_Iterative_Solvers
+
     # file = matopen("../data/A_$N_x.mat","w")
     # write(file,"A",A)
     # close(file)
