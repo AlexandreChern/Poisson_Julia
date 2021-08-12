@@ -801,7 +801,7 @@ function CG_CPU(A,b,x)
     r = b - A * x;
     p = r;
     rsold = r' * r
-
+    # Ap = p
     for i = 1:length(b)
     # for i = 1:2
         # @show i
