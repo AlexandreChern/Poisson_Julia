@@ -634,6 +634,7 @@ function matrix_free_A_v4(idata,odata)
     # odata .= 0
     Nx,Ny = size(idata)
     h = 1/(Nx-1)
+    # odata = CUDA.zeros(Nx,Ny)
     TILE_DIM_1 = 16
     TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
@@ -973,6 +974,7 @@ function test_matrix_free_A(level)
 
     CUDA.unsafe_free!(idata)
     CUDA.unsafe_free!(odata)
+    CUDA.unsafe_free!(odata_boundary_GPU)
     nothing
 end
 
