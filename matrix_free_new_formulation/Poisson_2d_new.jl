@@ -129,7 +129,7 @@ h_list_y = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^
 rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
-for k in 2:8
+for k in 2:9
     i = j  = k
     println("k = ", k)
     hx = h_list_x[i]
