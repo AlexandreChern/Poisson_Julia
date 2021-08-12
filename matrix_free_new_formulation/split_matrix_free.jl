@@ -834,9 +834,9 @@ function test_matrix_free_A(level)
     # idata = sparse(randn(Nx,Ny))
     idata = CuArray(randn(Nx,Ny))
     # odata = spzeros(Nx,Ny)
-    odata = CuArray(randn(Nx,Ny))
-    odata_v4 = CuArray(randn(Nx,Ny))
-    odata_D2_GPU = CUDA.zeros(Nx,Ny)
+    odata = CUDA.zeros(Nx,Ny)
+    # odata_v4 = CUDA.zeros(Nx,Ny)
+    # odata_D2_GPU = CUDA.zeros(Nx,Ny)
     odata_boundary_GPU = CUDA.zeros(Nx,Ny)
     println("Size of the solution matrix (GPU): ", sizeof(idata), " Bytes")
 
@@ -863,8 +863,8 @@ function test_matrix_free_A(level)
    
     # odata_boundary = CUDA.zeros(Nx,Ny)
 
-    matrix_free_A_v3(idata,odata,odata_D2_GPU,odata_boundary_GPU)
-    matrix_free_A_v4(idata,odata_v4)
+    # matrix_free_A_v3(idata,odata,odata_D2_GPU,odata_boundary_GPU)
+    matrix_free_A_v4(idata,odata)
     matrix_free_cpu_v3(idata_cpu,odata_cpu,Nx,Ny,h)
     matrix_free_cpu_optimized(idata,odata_boundary_GPU,Nx,Ny,h)
 
@@ -948,13 +948,13 @@ function test_matrix_free_A(level)
      # Evaluating final matrix-free A
 
    
-     t_start_A = time()
-     for _ in 1:iter_times
-         matrix_free_A_v3(idata,odata,odata_D2_GPU,odata_boundary_GPU)
-     end
-     synchronize()
-     t_A = (time() - t_start_A) * 1000 / iter_times
-     @show t_A 
+    #  t_start_A = time()
+    #  for _ in 1:iter_times
+    #      matrix_free_A_v3(idata,odata,odata_D2_GPU,odata_boundary_GPU)
+    #  end
+    #  synchronize()
+    #  t_A = (time() - t_start_A) * 1000 / iter_times
+    #  @show t_A 
      # End evaluating matrix-free A in asynchrnous way
 
     #  iter_times = 1

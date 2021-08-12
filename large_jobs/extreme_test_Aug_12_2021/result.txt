@@ -1,0 +1,18 @@
+julia> test_matrix_free_A(14)
+
+Starting Test
+2D Domain Size: 16385 by 16385
+Size of the solution matrix (GPU): 2147745800 Bytes
+Size of the solution matrix (CPU): 2147745800 Bytes
+
+Evaluting time to do one A * b
+Timing results in ms
+
+t_D2 = 44.509192943573
+t_boundary = 11.364813089370728
+t_total = 44.575039863586426
+t_reduction = 22.484258890151978
+t_copy_data = 186.89544200897217
+t_boundary_data_part = 23.659610748291016
+t_A = 95.90996408462524
+t_A_v4 = 67.41283988952637
