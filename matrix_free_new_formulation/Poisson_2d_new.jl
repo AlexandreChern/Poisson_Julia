@@ -226,6 +226,22 @@ for k in 2:8
     CG_GPU(b_reshaped_GPU,x_GPU)
     CG_CPU(A,b,x)
 
+    iter_times = 10
+    t_CG_CPU = time()
+    for i in 1:iter_times
+        x = zeros(Nx*Ny)
+        CG_CPU(A,b,x)
+    end
+    t_CG_CPU = (time() - t_CG_CPU ) * 1000 / iter_times 
+    @show t_CG_CPU
+
+    iter_times = 10
+    t_CG_GPU = time()
+    for i in 1:iter_times
+        x_GPU = CUDA.zeros(Nx,Ny)
+        CG_GPU(b_reshaped_GPU,x_GPU)
+    end
+    t_CG_GPU = (time() - t_CG_GPU ) * 1000 / iter_times 
 
     # file = matopen("../data/A_$N_x.mat","w")
     # write(file,"A",A)

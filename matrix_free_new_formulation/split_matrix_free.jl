@@ -633,8 +633,8 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     Ap_GPU = CUDA.zeros(Nx,Ny)
     for i in 1:Nx*Ny
     # for i in 1:2
-        @show i
-        @show rsold_GPU
+        # @show i
+        # @show rsold_GPU
         matrix_free_A_v3(p_GPU,Ap_GPU)
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
         x_GPU .= x_GPU + alpha_GPU * p_GPU
@@ -655,8 +655,8 @@ function CG_CPU(A,b,x)
 
     for i = 1:length(b)
     # for i = 1:2
-        @show i
-        @show rsold
+        # @show i
+        # @show rsold
         Ap = A * p;
         alpha = rsold / (p' * Ap)
         x .= x .+ alpha * p;
