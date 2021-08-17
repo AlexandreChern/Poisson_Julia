@@ -230,7 +230,7 @@ for k in 2:9
     CG_GPU(b_reshaped_GPU,x_GPU)
     CG_CPU(A,b,x)
 
-    iter_times = 2
+    iter_times = 5
     t_CG_CPU = time()
     for i in 1:iter_times
         x = zeros(Nx*Ny)

@@ -2,6 +2,7 @@ using SparseArrays
 using CUDA
 using Random
 using Adapt
+using LinearAlgebra
 
 
 function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
@@ -12,11 +13,11 @@ function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where 
     j = (blockIdx().y - 1) * TILE_DIM2 + tidy
 
     global_index = (i-1)*Ny+j
-    if 0 <= i <= Nx && 1 <= j <= Ny
-        odata[i,j] = 0
+    @inbounds if 0 <= i <= Nx && 1 <= j <= Ny
+        odata[i,j] = 0 # maybe do this on local memory
     end
 
-    if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
+    @inbounds if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
         odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
     end 
 
@@ -199,6 +200,9 @@ function test_matrix_free_A(level)
     t_A = (time() - t_start_A) * 1000 / iter_times
     @show t_A 
 
+    through_put = sizeof(idata) * 1e-6 / t_D2
+    @show through_put
+
 end
 
 function CG_GPU(b_reshaped_GPU,x_GPU)
@@ -212,34 +216,43 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     p_GPU = copy(r_GPU)
     rsold_GPU = sum(r_GPU .* r_GPU)
     Ap_GPU = CUDA.zeros(Nx,Ny)
+    num_iter_steps = 0
     for i in 1:Nx*Ny
-    # for i in 1:2
+    # for i in 1:2071
+        num_iter_steps += 1
         # @show i
         # @show rsold_GPU
         # matrix_free_A_v3(p_GPU,Ap_GPU,odata_D2_GPU,odata_boundary_GPU)
         matrix_free_A_v4(p_GPU,Ap_GPU)
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
-        x_GPU .= x_GPU + alpha_GPU * p_GPU
-        r_GPU .= r_GPU - alpha_GPU * Ap_GPU
+        # x_GPU .= x_GPU .+ alpha_GPU * p_GPU
+        x_GPU .+= alpha_GPU * p_GPU
+        # r_GPU .= r_GPU .- alpha_GPU * Ap_GPU
+        r_GPU .-= alpha_GPU * Ap_GPU
+        # CUDA.CUBLAS.axpy!()
         rsnew_GPU = sum(r_GPU .* r_GPU)
         if sqrt(rsnew_GPU) < 1e-10
             break
         end
-        p_GPU = r_GPU + (rsnew_GPU/rsold_GPU) * p_GPU
+        p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) * p_GPU
         rsold_GPU = rsnew_GPU
     end
+    @show num_iter_steps
 end
 
 function CG_CPU(A,b,x)
     r = b - A * x;
     p = r;
     rsold = r' * r
+    # Ap = spzeros(length(b))
+    Ap = similar(b)
 
     for i = 1:length(b)
     # for i = 1:2
         # @show i
         # @show rsold
-        Ap = A * p;
+        # Ap = A * p;
+        mul!(Ap,A,p)
         alpha = rsold / (p' * Ap)
         x .= x .+ alpha * p;
         r .= r .- alpha * Ap;
