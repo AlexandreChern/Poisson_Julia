@@ -229,6 +229,7 @@ for k in 2:9
     x_GPU = CUDA.zeros(Nx,Ny)
     CG_GPU(b_reshaped_GPU,x_GPU)
     CG_CPU(A,b,x)
+    cg(A,b)
 
     iter_times = 5
     t_CG_CPU = time()

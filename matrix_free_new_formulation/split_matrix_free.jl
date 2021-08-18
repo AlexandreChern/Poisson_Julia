@@ -271,15 +271,15 @@ function test_matrix_free_A(level)
     @show t_D2
     # End evaluating D2
 
-      # Evaluating only D2_naive
-      t_start_D2_naive = time()
-      for _ in 1:iter_times
-          @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
-      end
-      synchronize()
-      t_D2_naive = (time() - t_start_D2_naive) * 1000 / iter_times
-      @show t_D2_naive
-      # End evaluating D2
+    # Evaluating only D2_naive
+    t_start_D2_naive = time()
+    for _ in 1:iter_times
+        @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    end
+    synchronize()
+    t_D2_naive = (time() - t_start_D2_naive) * 1000 / iter_times
+    @show t_D2_naive
+    # End evaluating D2_naive
 
     t_start_A = time()
     for _ in 1:iter_times
