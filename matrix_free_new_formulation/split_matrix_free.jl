@@ -227,12 +227,12 @@ function matrix_free_A(idata,odata)
     synchronize()
 
     # Copy W & E boundary
-    copyto!(view(odata,1:Nx,1:3),view(odata,1:Nx,1:3) .+ CuArray(CPU_OUT_W_T)')
-    copyto!(view(odata,1:Nx,Ny-2:Ny),view(odata,1:Nx,Ny-2:Ny) .+ CuArray(CPU_OUT_E_T)')
+    copyto!(view(odata,1:Nx,1:3),view(odata,1:Nx,1:3) + CuArray(CPU_OUT_W_T)')
+    copyto!(view(odata,1:Nx,Ny-2:Ny),view(odata,1:Nx,Ny-2:Ny) + CuArray(CPU_OUT_E_T)')
 
     # Copy N & S boundary
-    copyto!(view(odata,1,1:Ny),view(odata,1,1:Ny) .+ CuArray(CPU_OUT_N[1,:]))
-    copyto!(view(odata,Nx,1:Ny),view(odata,Nx,1:Ny) .+ CuArray(CPU_OUT_S[end,:]))
+    copyto!(view(odata,1,1:Ny),view(odata,1,1:Ny) + CuArray(CPU_OUT_N[1,:]))
+    copyto!(view(odata,Nx,1:Ny),view(odata,Nx,1:Ny) + CuArray(CPU_OUT_S[end,:]))
     nothing
 end
 
@@ -260,15 +260,15 @@ function test_matrix_free_A(level)
 
 
     iter_times = 1000
-    # Evaluating only D2
-    t_start_D2 = time()
-    for _ in 1:iter_times
-        @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
-    end
-    synchronize()
-    t_D2 = (time() - t_start_D2) * 1000 / iter_times
-    @show t_D2
-    # End evaluating D2
+    # # Evaluating only D2
+    # t_start_D2 = time()
+    # for _ in 1:iter_times
+    #     @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    # end
+    # synchronize()
+    # t_D2 = (time() - t_start_D2) * 1000 / iter_times
+    # @show t_D2
+    # # End evaluating D2
 
     # Evaluating only D2_naive
     t_start_D2_naive = time()
@@ -288,7 +288,7 @@ function test_matrix_free_A(level)
     t_A = (time() - t_start_A) * 1000 / iter_times
     @show t_A 
 
-    through_put = sizeof(idata) * 1e-6 / t_D2
+    through_put = sizeof(idata) * 1e-6 / t_D2_naive
     @show through_put
 
 end
