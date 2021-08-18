@@ -62,9 +62,9 @@ function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where 
 
     sync_threads()
 
-    # @inbounds if 2 <= i <= Nx -1 && 2 <= j <= Ny - 1 &&  1 <= si <= TILE_DIM1 + 1 && 1 <= sj <= TILE_DIM2 + 1 
-    #     odata[i,j] = (tile[si-1,sj] + tile[si+1,sj] + tile[si,sj-1] + tile[si,sj+1] - 4*tile[si,sj])
-    # end 
+    @inbounds if 2 <= i <= Nx -1 && 2 <= j <= Ny - 1 &&  1 <= si <= TILE_DIM1 + 1 && 1 <= sj <= TILE_DIM2 + 1 
+        odata[i,j] = (tile[si-1,sj] + tile[si+1,sj] + tile[si,sj-1] + tile[si,sj+1] - 4*tile[si,sj])
+    end 
 
     nothing
 end
@@ -106,19 +106,11 @@ function matrix_free_A(idata,odata)
     # CPU_OUT_S = zeros(3,Ny)
 
     CPU_W = Array{Float64,2}(undef,Nx,3)
-    CPU_W_T = Array{Float64,2}(undef,3,Nx)
-    CPU_E = Array{Float64,2}(undef,Nx,3)
-    CPU_E_T = Array{Float64,2}(undef,3,Nx)
+    CPU_E = Array{Float64,2}(undef,Nx,3)   
     CPU_N = Array{Float64,2}(undef,3,Ny)
     CPU_S = Array{Float64,2}(undef,3,Ny)
 
-
-    
-
-    CPU_OUT_W = Array{Float64,2}(undef,Nx,3)
-    CPU_OUT_E = Array{Float64,2}(undef,Nx,3)
-    CPU_OUT_N = Array{Float64,2}(undef,3,Ny)
-    CPU_OUT_S = Array{Float64,2}(undef,3,Ny)
+   
 
     # copyto!(CPU_W,idata[:,1:3])
     # copyto!(CPU_E,idata[:,end-2:end])
@@ -131,6 +123,13 @@ function matrix_free_A(idata,odata)
     copyto!(CPU_S,view(idata,Nx-2:Nx,:))
 
     @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+
+    CPU_OUT_W = Array{Float64,2}(undef,Nx,3)
+    CPU_OUT_E = Array{Float64,2}(undef,Nx,3)
+    CPU_OUT_N = Array{Float64,2}(undef,3,Ny)
+    CPU_OUT_S = Array{Float64,2}(undef,3,Ny)
+    CPU_W_T = Array{Float64,2}(undef,3,Nx)
+    CPU_E_T = Array{Float64,2}(undef,3,Nx)
 
     ## CPU Calculation
 
@@ -300,7 +299,7 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     # odata_D2_GPU = CUDA.zeros(Nx,Ny)
     # odata_boundary_GPU = CUDA.zeros(Nx,Ny)
     # matrix_free_A_v3(x_GPU,odata,odata_D2_GPU,odata_boundary_GPU)
-    matrix_free_A_v4(x_GPU,odata)
+    matrix_free_A(x_GPU,odata)
     r_GPU = b_reshaped_GPU - odata
     p_GPU = copy(r_GPU)
     rsold_GPU = sum(r_GPU .* r_GPU)
@@ -312,7 +311,7 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
         # @show i
         # @show rsold_GPU
         # matrix_free_A_v3(p_GPU,Ap_GPU,odata_D2_GPU,odata_boundary_GPU)
-        matrix_free_A_v4(p_GPU,Ap_GPU)
+        matrix_free_A(p_GPU,Ap_GPU)
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
         # x_GPU .= x_GPU .+ alpha_GPU * p_GPU
         x_GPU .+= alpha_GPU * p_GPU
