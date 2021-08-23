@@ -281,7 +281,7 @@ end
 
 
 
-function test_matrix_free_A(level)
+function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     Nx = Ny = 2^level + 1
     h = 1/(Nx-1)
     println("")
@@ -291,8 +291,8 @@ function test_matrix_free_A(level)
     idata = CuArray(randn(Nx,Ny))
     odata = CUDA.zeros(Nx,Ny)
 
-    TILE_DIM_1 = 16
-    TILE_DIM_2 = 16
+    # TILE_DIM_1 = 16
+    # TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
     @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
