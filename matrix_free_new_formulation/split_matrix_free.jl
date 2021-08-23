@@ -31,23 +31,16 @@ function D2_split_naive_v2(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2
     tidx = threadIdx().x
     tidy = threadIdx().y
 
-    STRIDE = 8
-    NUM_ELEM = div(TILE_DIM1,STRIDE)
-    i0 = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
     j = (blockIdx().y - 1) * TILE_DIM2 + tidy
 
-    if 0 <= i0 <= Nx && 1 <= j <= Ny
-        @inbounds  odata[i0,j] = 0 # maybe do this on local memory
-    end
-
-    if 2 <= j <= Ny - 1
-        @unroll for k = 0:NUM_ELEM-1
-            i = i0 + k*STRIDE
-            if 2 <= i <= Nx-1
-                @inbounds  odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
-            end
+    if i <= Nx && j <= Ny
+        if i == 0 || i == Nx || j == 1 || j == Ny
+            @inbounds odata[i,j] == 0
+        else
+            @inbounds   odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
         end
-    end 
+    end
 
     nothing
 end
@@ -326,6 +319,17 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     t_D2_naive = t_D2_naive * 1000 / iter_times
     @show t_D2_naive
     # End evaluating D2_naive
+
+     # Evaluating only D2_naive_v2
+     t_D2_naive_v2 = @elapsed begin
+        for _ in 1:iter_times
+            @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+        end
+        synchronize()
+    end
+    
+    t_D2_naive_v2 = t_D2_naive_v2 * 1000 / iter_times
+    @show t_D2_naive_v2
 
     t_A = @elapsed begin
         for _ in 1:iter_times
