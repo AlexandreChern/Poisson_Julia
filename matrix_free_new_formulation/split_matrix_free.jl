@@ -302,7 +302,8 @@ function test_matrix_free_A(level)
     matrix_free_A(idata,odata)
 
 
-    iter_times = 1000
+    iter_times = div(1000,max(2.0^(level-9),1))
+    @show iter_times
     # # # Evaluating only D2
     # t_start_D2 = time()
     # for _ in 1:iter_times
