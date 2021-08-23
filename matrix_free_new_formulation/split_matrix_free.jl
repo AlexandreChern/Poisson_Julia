@@ -254,11 +254,14 @@ function matrix_free_A(idata,odata)
 
     ## End CPU calculation
 
+    @inbounds CPU_OUT_E .= CPU_OUT_E_T'
+    @inbounds CPU_OUT_W .= CPU_OUT_W_T'
+
     synchronize()
 
-    # Copy W & E boundary
-    copyto!(view(odata,1:Nx,1:3),view(odata,1:Nx,1:3) + CuArray(CPU_OUT_W_T)')
-    copyto!(view(odata,1:Nx,Ny-2:Ny),view(odata,1:Nx,Ny-2:Ny) + CuArray(CPU_OUT_E_T)')
+    ## Copy W & E boundary
+    copyto!(view(odata,1:Nx,1:3),view(odata,1:Nx,1:3) + CuArray(CPU_OUT_W))
+    copyto!(view(odata,1:Nx,Ny-2:Ny),view(odata,1:Nx,Ny-2:Ny) + CuArray(CPU_OUT_E))
 
     # Copy N & S boundary
     copyto!(view(odata,1,1:Ny),view(odata,1,1:Ny) + CuArray(CPU_OUT_N[1,:]))
