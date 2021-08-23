@@ -4,7 +4,7 @@
 using CUDA
 using Printf
 using StaticArrays
-using GPUifyLoops: @unroll
+using KernelAbstractions.Extras: @unroll
 
 function transpose_cpu!(b, a)
     N = size(a, 1)
