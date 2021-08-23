@@ -152,8 +152,6 @@ function matrix_free_A(idata,odata)
     # copyto!(CPU_N,view(idata,1:3,:))
     # copyto!(CPU_S,view(idata,Nx-2:Nx,:))
 
-    @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
-
     CPU_W = Array{Float64,2}(undef,Nx,3)
     CPU_E = Array{Float64,2}(undef,Nx,3)   
     CPU_N = Array{Float64,2}(undef,3,Ny)
@@ -163,6 +161,8 @@ function matrix_free_A(idata,odata)
     copyto!(CPU_E,view(idata,:,Ny-2:Ny))
     copyto!(CPU_N,view(idata,1:3,:))
     copyto!(CPU_S,view(idata,Nx-2:Nx,:))
+
+    @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 
     CPU_OUT_W = Array{Float64,2}(undef,Nx,3)
     CPU_OUT_E = Array{Float64,2}(undef,Nx,3)
