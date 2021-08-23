@@ -1,4 +1,6 @@
 using SparseArrays 
+using KernelAbstractions
+using KernelAbstractions.Extras
 using CUDA
 using Random
 using Adapt
@@ -11,12 +13,40 @@ function D2_split_naive(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) 
     i = (blockIdx().x - 1) * TILE_DIM1 + tidx
     j = (blockIdx().y - 1) * TILE_DIM2 + tidy
 
-    @inbounds if 0 <= i <= Nx && 1 <= j <= Ny
-        odata[i,j] = 0 # maybe do this on local memory
+    if 0 <= i <= Nx && 1 <= j <= Ny
+        @inbounds   odata[i,j] = 0 # maybe do this on local memory
+        # odata[i,j] = 0 # maybe do this on local memory
     end
 
-    @inbounds if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
-        odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+    if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
+        @inbounds   odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+        # odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+    end 
+
+    nothing
+end
+
+
+function D2_split_naive_v2(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    STRIDE = 8
+    NUM_ELEM = div(TILE_DIM1,STRIDE)
+    i0 = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+    if 0 <= i0 <= Nx && 1 <= j <= Ny
+        @inbounds  odata[i0,j] = 0 # maybe do this on local memory
+    end
+
+    if 2 <= j <= Ny - 1
+        @unroll for k = 0:NUM_ELEM-1
+            i = i0 + k*STRIDE
+            if 2 <= i <= Nx-1
+                @inbounds  odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+            end
+        end
     end 
 
     nothing
@@ -26,7 +56,7 @@ function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where 
     tidx = threadIdx().x
     tidy = threadIdx().y
 
-    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    i0 = (blockIdx().x - 1) * TILE_DIM1 + tidx
     j = (blockIdx().y - 1) * TILE_DIM2 + tidy
 
     si = tidx + 1
@@ -38,13 +68,13 @@ function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where 
     tile = @cuStaticSharedMem(eltype(idata), (TILE_DIM1+2, TILE_DIM2+2))
 
     global_index = (i-1)*Ny+j
-    @inbounds if 0 <= i <= Nx && 1 <= j <= Ny
-        odata[i,j] = 0 # maybe do this on local memory
+    if 0 <= i <= Nx && 1 <= j <= Ny
+        @inbounds  odata[i0,j] = 0 # maybe do this on local memory
     end
 
 
-    @inbounds if 1 <= i <= Nx && 1 <= j <= Ny
-        tile[si,sj] = idata[i,j]
+    if 1 <= i <= Nx && 1 <= j <= Ny
+        @inbounds  tile[si,sj] = idata[i,j]
     end
     sync_threads()
 
@@ -62,8 +92,8 @@ function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where 
 
     sync_threads()
 
-    @inbounds if 2 <= i <= Nx -1 && 2 <= j <= Ny - 1 &&  1 <= si <= TILE_DIM1 + 1 && 1 <= sj <= TILE_DIM2 + 1 
-        odata[i,j] = (tile[si-1,sj] + tile[si+1,sj] + tile[si,sj-1] + tile[si,sj+1] - 4*tile[si,sj])
+    if 2 <= i <= Nx -1 && 2 <= j <= Ny - 1 &&  1 <= si <= TILE_DIM1 + 1 && 1 <= sj <= TILE_DIM2 + 1 
+        @inbounds odata[i,j] = (tile[si-1,sj] + tile[si+1,sj] + tile[si,sj-1] + tile[si,sj+1] - 4*tile[si,sj])
     end 
 
     nothing
@@ -252,7 +282,7 @@ function test_matrix_free_A(level)
     TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 
     boundary_data = boundary_containers(zeros(Nx,3),zeros(3,Nx),zeros(Nx,3),zeros(3,Nx),zeros(3,Ny),zeros(3,Ny),zeros(Nx,3),zeros(Nx,3),zeros(3,Ny),zeros(3,Ny))
@@ -261,14 +291,15 @@ function test_matrix_free_A(level)
 
     iter_times = 1000
     # # Evaluating only D2
-    # t_start_D2 = time()
-    # for _ in 1:iter_times
-    #     @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
-    # end
-    # synchronize()
-    # t_D2 = (time() - t_start_D2) * 1000 / iter_times
-    # @show t_D2
-    # # End evaluating D2
+    t_start_D2 = time()
+    for _ in 1:iter_times
+        # @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+        @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    end
+    synchronize()
+    t_D2 = (time() - t_start_D2) * 1000 / iter_times
+    @show t_D2
+    # End evaluating D2
 
     # Evaluating only D2_naive
     t_start_D2_naive = time()
