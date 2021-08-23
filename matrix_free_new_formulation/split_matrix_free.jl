@@ -56,7 +56,7 @@ function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where 
     tidx = threadIdx().x
     tidy = threadIdx().y
 
-    i0 = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
     j = (blockIdx().y - 1) * TILE_DIM2 + tidy
 
     si = tidx + 1
@@ -68,12 +68,12 @@ function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where 
     tile = @cuStaticSharedMem(eltype(idata), (TILE_DIM1+2, TILE_DIM2+2))
 
     global_index = (i-1)*Ny+j
-    if 0 <= i0 <= Nx && 1 <= j <= Ny
-        @inbounds  odata[i0,j] = 0 # maybe do this on local memory
+    if 0 <= i <= Nx && 1 <= j <= Ny
+        @inbounds  odata[i,j] = 0 # maybe do this on local memory
     end
 
 
-    if 1 <= i0 <= Nx && 1 <= j <= Ny
+    if 1 <= i <= Nx && 1 <= j <= Ny
         @inbounds  tile[si,sj] = idata[i,j]
     end
     sync_threads()
@@ -91,7 +91,6 @@ function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where 
     # end
 
     sync_threads()
-    i = i0
 
     if 2 <= i <= Nx -1 && 2 <= j <= Ny - 1 &&  1 <= si <= TILE_DIM1 + 1 && 1 <= sj <= TILE_DIM2 + 1 
         @inbounds odata[i,j] = (tile[si-1,sj] + tile[si+1,sj] + tile[si,sj-1] + tile[si,sj+1] - 4*tile[si,sj])
