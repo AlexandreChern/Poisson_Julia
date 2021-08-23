@@ -37,9 +37,10 @@ function D2_split_naive_v2(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2
     if i <= Nx && j <= Ny
         if i == 1 || i == Nx || j == 1 || j == Ny
             @inbounds odata[i,j] == 0
-        else
-            @inbounds   odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
-        end
+       else
+           @inbounds   odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+       end
+     #   @inbounds odata[i,j] = idata[i,j]
     end
 
     nothing
@@ -276,6 +277,7 @@ end
 
 function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     Nx = Ny = 2^level + 1
+    memsize = sizeof(Float64) * Nx * Ny / 1024^3
     h = 1/(Nx-1)
     println("")
     println("Starting Test")
@@ -286,16 +288,18 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
 
     # TILE_DIM_1 = 16
     # TILE_DIM_2 = 16
-    griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
-	blockdim = (TILE_DIM_1,TILE_DIM_2)
+    #griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+    griddim = (cld(Nx,TILE_DIM_1),cld(Ny,TILE_DIM_2))
+    blockdim = (TILE_DIM_1,TILE_DIM_2)
     @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
-
+    synchronize()
     # boundary_data = boundary_containers(zeros(Nx,3),zeros(3,Nx),zeros(Nx,3),zeros(3,Nx),zeros(3,Ny),zeros(3,Ny),zeros(Nx,3),zeros(Nx,3),zeros(3,Ny),zeros(3,Ny))
     matrix_free_A(idata,odata)
 
 
-    iter_times = max(div(1000,max(2.0^(level-9),1)),100)
+    #iter_times = max(div(1000,max(2.0^(level-9),1)),100)
+    iter_times = 1000
     @show iter_times
     # # # Evaluating only D2
     # t_start_D2 = time()
@@ -340,7 +344,10 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     t_A = t_A * 1000 / iter_times
     @show t_A 
 
-    through_put = sizeof(idata) * 1e-6 / t_D2_naive
+    #through_put = sizeof(idata) * 1e-6 / t_D2_naive_v2
+    @show sizeof(idata)
+    @show memsize
+    through_put = 2 * memsize / (t_D2_naive_v2/1000)
     @show through_put
 
 end
