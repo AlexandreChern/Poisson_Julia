@@ -198,8 +198,6 @@ function matrix_free_A(idata,odata)
 
     CPU_W_T .= CPU_W'
     CPU_E_T .= CPU_E'
-    # CPU_OUT_W_T = zeros(3,Ny)
-    # CPU_OUT_E_T = zeros(3,Ny)
     CPU_OUT_W_T = Array{Float64,2}(undef,3,Ny)
     CPU_OUT_E_T = Array{Float64,2}(undef,3,Ny)
 
@@ -299,6 +297,7 @@ function matrix_free_A(idata,odata)
     # Copy N & S boundary
     copyto!(view(odata,1,1:Ny),view(odata,1,1:Ny) + CuArray(CPU_OUT_N[1,:]))
     copyto!(view(odata,Nx,1:Ny),view(odata,Nx,1:Ny) + CuArray(CPU_OUT_S[end,:]))
+    synchronize()
     nothing
 end
 
@@ -313,7 +312,7 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     println("2D Domain Size: $Nx by $Ny")
     Random.seed!(0)
     idata = CuArray(randn(Nx,Ny))
-    odata = CUDA.zeros(Nx,Ny)
+    odata = similar(idata)
 
     # Random.seed!(0)
     # a = rand(Float64, Nx, Ny)
@@ -411,36 +410,35 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
 end
 
 function CG_GPU(b_reshaped_GPU,x_GPU)
-    (Nx,Ny) = size(b_reshaped_GPU)
-    odata = CUDA.zeros(Nx,Ny)
+    (Nx,Ny) = size(b_reshaped_GPU);
+    odata = CUDA.zeros(Nx,Ny);
     # odata_D2_GPU = CUDA.zeros(Nx,Ny)
     # odata_boundary_GPU = CUDA.zeros(Nx,Ny)
     # matrix_free_A_v3(x_GPU,odata,odata_D2_GPU,odata_boundary_GPU)
-    matrix_free_A(x_GPU,odata)
-    r_GPU = b_reshaped_GPU - odata
-    p_GPU = copy(r_GPU)
+    matrix_free_A(x_GPU,odata);
+    r_GPU = b_reshaped_GPU - odata;
+    p_GPU = copy(r_GPU);
     rsold_GPU = sum(r_GPU .* r_GPU)
-    Ap_GPU = CUDA.zeros(Nx,Ny)
+    Ap_GPU = CUDA.zeros(Nx,Ny);
     num_iter_steps = 0
-    for i in 1:Nx*Ny
-    # for i in 1:2071
+    # for i in 1:Nx*Ny
+    @show rsold_GPU
+    for i in 1:20
         num_iter_steps += 1
-        # @show i
-        # @show rsold_GPU
-        # matrix_free_A_v3(p_GPU,Ap_GPU,odata_D2_GPU,odata_boundary_GPU)
-        matrix_free_A(p_GPU,Ap_GPU)
+        matrix_free_A(p_GPU,Ap_GPU);
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
-        # x_GPU .= x_GPU .+ alpha_GPU * p_GPU
-        x_GPU .+= alpha_GPU * p_GPU
-        # r_GPU .= r_GPU .- alpha_GPU * Ap_GPU
-        r_GPU .-= alpha_GPU * Ap_GPU
+        x_GPU = x_GPU + alpha_GPU * p_GPU;
+        r_GPU = r_GPU - alpha_GPU * Ap_GPU;
+        # r_GPU .-= alpha_GPU * Ap_GPU
+        # x_GPU .+= alpha_GPU * p_GPU
         # CUDA.CUBLAS.axpy!()
         rsnew_GPU = sum(r_GPU .* r_GPU)
-        if sqrt(rsnew_GPU) < 1e-10
-            break
-        end
-        p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) * p_GPU
+        # if sqrt(rsnew_GPU) < 1e-10
+        #     break
+        # end
+        p_GPU = r_GPU + (rsnew_GPU/rsold_GPU) * p_GPU;
         rsold_GPU = rsnew_GPU
+        @show rsold_GPU
     end
     @show num_iter_steps
 end
@@ -450,22 +448,24 @@ function CG_CPU(A,b,x)
     p = r;
     rsold = r' * r
     # Ap = spzeros(length(b))
-    Ap = similar(b)
+    Ap = similar(b);
 
-    for i = 1:length(b)
-    # for i = 1:2
-        # @show i
-        # @show rsold
-        # Ap = A * p;
-        mul!(Ap,A,p)
+    num_iter_steps = 0
+    @show rsold
+    # for _ = 1:length(b)
+    for _ in 1:20
+        num_iter_steps += 1
+        mul!(Ap,A,p);
         alpha = rsold / (p' * Ap)
         x .= x .+ alpha * p;
         r .= r .- alpha * Ap;
         rsnew = r' * r
-        if sqrt(rsnew) < 1e-10
-              break
-        end
+        # if sqrt(rsnew) < 1e-10
+        #       break
+        # end
         p = r + (rsnew / rsold) * p;
         rsold = rsnew
+        @show rsold
     end
+    # @show num_iter_steps
 end

@@ -578,7 +578,7 @@ end
 
 
 
-function matrix_free_A(idata,odata)
+function matrix_free_A_v1(idata,odata)
     Nx,Ny = size(idata)
     h = 1/(Nx-1)
     odata_cpu = spzeros(Nx,Ny)
@@ -769,7 +769,7 @@ function matrix_free_A_v4(idata,odata)
     nothing
 end
 
-function CG_GPU(b_reshaped_GPU,x_GPU)
+function CG_GPU_dev(b_reshaped_GPU,x_GPU)
     (Nx,Ny) = size(b_reshaped_GPU)
     odata = CUDA.zeros(Nx,Ny)
     # odata_D2_GPU = CUDA.zeros(Nx,Ny)
@@ -780,11 +780,14 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     p_GPU = copy(r_GPU)
     rsold_GPU = sum(r_GPU .* r_GPU)
     Ap_GPU = CUDA.zeros(Nx,Ny)
-    for i in 1:Nx*Ny
-    # for i in 1:2
+    num_steps = 0
+    @show rsold_GPU
+    # for i in 1:Nx*Ny
+    for i in 1:20
         # @show i
         # @show rsold_GPU
         # matrix_free_A_v3(p_GPU,Ap_GPU,odata_D2_GPU,odata_boundary_GPU)
+        num_steps += 1
         matrix_free_A_v4(p_GPU,Ap_GPU)
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
         x_GPU .= x_GPU + alpha_GPU * p_GPU
@@ -795,10 +798,12 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
         end
         p_GPU = r_GPU + (rsnew_GPU/rsold_GPU) * p_GPU
         rsold_GPU = rsnew_GPU
+        # @show rsold_GPU
     end
+    # @show num_steps
 end
 
-function CG_CPU(A,b,x)
+function CG_CPU_dev(A,b,x)
     r = b - A * x;
     p = r;
     rsold = r' * r
@@ -817,6 +822,7 @@ function CG_CPU(A,b,x)
         end
         p = r + (rsnew / rsold) * p;
         rsold = rsnew
+        # @show rsold
     end
 end
 

@@ -213,49 +213,65 @@ for k in 2:9
 
     # idata = b
 
-    # odata = spzeros(Nx*Ny)
-    # matrix_free_A(b,odata,N_x+1,N_y+1,hx,tau_N,tau_S,tau_W,tau_E,beta)
-    # # matrix_free_A_v5(b,odata,N_x+1,N_y+1,hx,tau_N,tau_S,tau_W,tau_E,beta)
 
     # @assert A*b ≈ odata
 
-    # odata_gpu = CUDA.zeros(Nx,Ny)
+    # odata_gpu = CuArray(zeros(Nx,Ny))
+    odata_gpu = CUDA.zeros(Nx,Ny)
     # matrix_free_A_v3(b_reshaped_GPU,odata_gpu,odata_D2_GPU,odata_boundary_GPU)
-    # matrix_free_A_v4(b_reshaped_GPU,odata_gpu)
+    matrix_free_A_v4(b_reshaped_GPU,odata_gpu)
+    @show norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu))
+    @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu)
 
     # @assert odata1 + odata2 ≈ Array(odata_gpu)
 
-    x = zeros(Nx*Ny)
-    x_GPU = CUDA.zeros(Nx,Ny)
-    CG_GPU(b_reshaped_GPU,x_GPU)
-    CG_CPU(A,b,x)
-    cg(A,b)
 
-    iter_times = 5
-    t_CG_CPU = time()
-    for i in 1:iter_times
-        x = zeros(Nx*Ny)
-        CG_CPU(A,b,x)
-    end
-    t_CG_CPU = (time() - t_CG_CPU ) * 1000 / iter_times 
-    @show t_CG_CPU
+    ## TEST CG
+    # x = zeros(Nx*Ny);
+    # CG_CPU(A,b,x)
 
-    # iter_times = 10
-    t_CG_GPU = time()
-    for i in 1:iter_times
-        x_GPU = CUDA.zeros(Nx,Ny)
-        CG_GPU(b_reshaped_GPU,x_GPU)
-    end
-    t_CG_GPU = (time() - t_CG_GPU ) * 1000 / iter_times 
-    @show t_CG_GPU
+    # x_GPU = CUDA.zeros(Nx,Ny);
+    # x_GPU = CuArray(zeros(Nx,Ny));
+    # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+
+    # x_GPU = CUDA.zeros(Nx,Ny);
+    # CG_GPU(b_reshaped_GPU,x_GPU)
+
+    
+
+    # x_GPU = CuArray(zeros(Nx,Ny))
+    # CG_CPU_dev(A,b,x)
+    
+    # cg(A,b)
+
+    # iter_times = 5
+    # t_CG_CPU = time()
+    # for i in 1:iter_times
+    #     x = zeros(Nx*Ny)
+    #     CG_CPU_dev(A,b,x)
+    # end
+    # t_CG_CPU = (time() - t_CG_CPU ) * 1000 / iter_times 
+    # @show t_CG_CPU
+
+    # # iter_times = 10
+    # t_CG_GPU = time()
+    # for i in 1:iter_times
+    #     x_GPU = CUDA.zeros(Nx,Ny)
+    #     CG_GPU_dev(b_reshaped_GPU,x_GPU)
+    # end
+    # t_CG_GPU = (time() - t_CG_GPU ) * 1000 / iter_times 
+    # @show t_CG_GPU
 
 
-    t_CG_CPU_Iterative_Solvers = time()
-    for i in 1:iter_times
-        cg(A,b)
-    end
-    t_CG_CPU_Iterative_Solvers = (time() - t_CG_CPU_Iterative_Solvers ) * 1000 / iter_times 
-    @show t_CG_CPU_Iterative_Solvers
+    # t_CG_CPU_Iterative_Solvers = time()
+    # for i in 1:iter_times
+    #     cg(A,b)
+    # end
+    # t_CG_CPU_Iterative_Solvers = (time() - t_CG_CPU_Iterative_Solvers ) * 1000 / iter_times 
+    # @show t_CG_CPU_Iterative_Solvers
+
+
+    ## End testing CG
 
     # file = matopen("../data/A_$N_x.mat","w")
     # write(file,"A",A)
