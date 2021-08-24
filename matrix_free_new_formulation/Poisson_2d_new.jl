@@ -1,6 +1,7 @@
 include("diagonal_sbp.jl")
 include("deriv_ops_new.jl")
 include("split_matrix_free_dev.jl")
+include("split_matrix_free.jl")
 
 # using CUDAdrv
 # CUDAdrv.CuDevice(0)
@@ -129,77 +130,80 @@ h_list_y = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^
 rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
-for k in 2:9
+for k in 2:8
     i = j  = k
     println("k = ", k)
-    hx = h_list_x[i]
-    hy = h_list_y[j]
+    hx = h_list_x[i];
+    hy = h_list_y[j];
 
-    x = range(0,step=hx,1)
-    y = range(0,step=hy,1)
-    m_list = 1 ./h_list_x
-    n_list = 1 ./h_list_y
+    x = range(0,step=hx,1);
+    y = range(0,step=hy,1);
+    m_list = 1 ./h_list_x;
+    n_list = 1 ./h_list_y;
 
     # Matrix Size
-    N_x = Integer(m_list[i])
-    N_y = Integer(n_list[j])
+    N_x = Integer(m_list[i]);
+    N_y = Integer(n_list[j]);
 
-    Nx = N_x + 1
-    Ny = N_y + 1
+    Nx = N_x + 1;
+    Ny = N_y + 1;
 
     # 2D operators
-    (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j)
+    (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j);
 
 
      # Analytical Solutions
-    analy_sol = u(x,y')
+    analy_sol = u(x,y');
 
     # Penalty Parameters
-    tau_E = -13/hx
-    tau_W = -13/hx
-    tau_N = -1
-    tau_S = -1
+    tau_E = -13/hx;
+    tau_W = -13/hx;
+    tau_N = -1;
+    tau_S = -1;
 
-    beta = 1
+    beta = 1;
 
     # Forming SAT terms
 
     ## Formulation 1
-    SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W
-    SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
+    SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W;
+    SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E;
     
     # SAT_S = tau_S*HI_y*E_S*D1_y
     # SAT_N = tau_N*HI_y*E_N*D1_y
 
-    SAT_S = tau_S*HI_y*E_S*BS_y
-    SAT_N = tau_N*HI_y*E_N*BS_y
+    SAT_S = tau_S*HI_y*E_S*BS_y;
+    SAT_N = tau_N*HI_y*E_N*BS_y;
 
-    SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W
-    SAT_E_r = tau_E*HI_x*E_E*e_E + beta*HI_x*BS_x'*E_E*e_E
-    SAT_S_r = tau_S*HI_y*E_S*e_S
-    SAT_N_r = tau_N*HI_y*E_N*e_N
-
-
-    (alpha1,alpha2,alpha3,alpha4,beta) = (tau_N,tau_S,tau_W,tau_E,beta)
+    SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W;
+    SAT_E_r = tau_E*HI_x*E_E*e_E + beta*HI_x*BS_x'*E_E*e_E;
+    SAT_S_r = tau_S*HI_y*E_S*e_S;
+    SAT_N_r = tau_N*HI_y*E_N*e_N;
 
 
-    g_W = sin.(π*y)
-    g_E = -sin.(π*y)
-    g_S = -π*cos.(π*x)
+    (alpha1,alpha2,alpha3,alpha4,beta) = (tau_N,tau_S,tau_W,tau_E,beta);
+
+
+    g_W = sin.(π*y);
+    g_E = -sin.(π*y);
+    g_S = -π*cos.(π*x);
     # g_N = -π*cos.(π*x)
-    g_N = π*cos.(π*x .+ π)
+    g_N = π*cos.(π*x .+ π);
 
     # Solving with CPU
-    A = D2 + SAT_W + SAT_E + SAT_S + SAT_N
+    A = D2 + SAT_W + SAT_E + SAT_S + SAT_N;
 
-    b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
+    b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N;
 
     A = H_tilde*A;
     b = H_tilde*b;
 
+    A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
+    b_d = CuArray(b)
+
     # testing matrix_split method
-    b_reshaped = reshape(b,Nx,Ny)
-    b_reshaped_GPU = CuArray(b_reshaped)
+    b_reshaped = reshape(b,Nx,Ny);
+    b_reshaped_GPU = CuArray(b_reshaped);
     
     # odata1 = spzeros(Nx,Ny)
     # odata2 = spzeros(Nx,Ny)
@@ -217,30 +221,38 @@ for k in 2:9
     # @assert A*b ≈ odata
 
     # odata_gpu = CuArray(zeros(Nx,Ny))
-    odata_gpu_v4 = CUDA.zeros(Nx,Ny)
-    odata_gpu = CUDA.zeros(Nx,Ny)
-    # matrix_free_A_v3(b_reshaped_GPU,odata_gpu,odata_D2_GPU,odata_boundary_GPU)
-    matrix_free_A_v4(b_reshaped_GPU,odata_gpu_v4)
-    @show norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu_v4))
-    @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu_v4)
 
-    matrix_free_A(b_reshaped_GPU,odata_gpu)
-    @show  norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu))
+    ## Checking matrix_free_A function
+    odata_gpu_v4 = CUDA.zeros(Nx,Ny);
+    odata_gpu = CUDA.zeros(Nx,Ny);
+    # matrix_free_A_v3(b_reshaped_GPU,odata_gpu,odata_D2_GPU,odata_boundary_GPU)
+    matrix_free_A_v4(b_reshaped_GPU,odata_gpu_v4);
+    @show norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu_v4));
+    @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu_v4);
+
+    matrix_free_A(b_reshaped_GPU,odata_gpu);
+    @show  norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu);)
     # @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu)
 
     # @assert odata1 + odata2 ≈ Array(odata_gpu)
 
+    ## End checking matrix_free_A function
+
 
     ## TEST CG
+
     # x = zeros(Nx*Ny);
-    # CG_CPU(A,b,x)
+    # CG_CPU(A,b,x);
 
-    # x_GPU = CUDA.zeros(Nx,Ny);
+    # # x_GPU = CUDA.zeros(Nx,Ny);
+    # # x_GPU = CuArray(zeros(Nx,Ny));
+    # # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+
+    # # x_GPU = CUDA.zeros(Nx,Ny);
     # x_GPU = CuArray(zeros(Nx,Ny));
-    # CG_GPU_dev(b_reshaped_GPU,x_GPU)
-
+    # CG_GPU(b_reshaped_GPU,x_GPU);
     # x_GPU = CUDA.zeros(Nx,Ny);
-    # CG_GPU(b_reshaped_GPU,x_GPU)
+    # CG_GPU(b_reshaped_GPU,x_GPU);
 
     
 
@@ -249,35 +261,54 @@ for k in 2:9
     
     # cg(A,b)
 
-    # iter_times = 5
-    # t_CG_CPU = time()
-    # for i in 1:iter_times
-    #     x = zeros(Nx*Ny)
-    #     CG_CPU_dev(A,b,x)
-    # end
-    # t_CG_CPU = (time() - t_CG_CPU ) * 1000 / iter_times 
-    # @show t_CG_CPU
+    iter_times = 5
+    t_CG_CPU = time()
+    for i in 1:iter_times
+        x = zeros(Nx*Ny)
+        CG_CPU_dev(A,b,x)
+    end
+    t_CG_CPU = (time() - t_CG_CPU ) * 1000 / iter_times 
+    @show t_CG_CPU
 
-    # # iter_times = 10
-    # t_CG_GPU = time()
-    # for i in 1:iter_times
-    #     x_GPU = CUDA.zeros(Nx,Ny)
-    #     CG_GPU_dev(b_reshaped_GPU,x_GPU)
-    # end
-    # t_CG_GPU = (time() - t_CG_GPU ) * 1000 / iter_times 
-    # @show t_CG_GPU
+    t_CG_CPU_elapsed = @elapsed begin
+        for i in 1:iter_times
+            x = zeros(Nx*Ny)
+            CG_CPU_dev(A,b,x)
+        end
+    end
+    t_CG_CPU_elapsed = t_CG_CPU_elapsed * 1000 / iter_times
+    @show t_CG_CPU_elapsed
+
+    t_CG_GPU = time()
+    for i in 1:iter_times
+        x_GPU = CuArray(zeros(Nx,Ny))
+        CG_GPU_dev(b_reshaped_GPU,x_GPU)
+    end
+    t_CG_GPU = (time() - t_CG_GPU ) * 1000 / iter_times 
+    @show t_CG_GPU
 
 
-    # t_CG_CPU_Iterative_Solvers = time()
-    # for i in 1:iter_times
-    #     cg(A,b)
-    # end
-    # t_CG_CPU_Iterative_Solvers = (time() - t_CG_CPU_Iterative_Solvers ) * 1000 / iter_times 
-    # @show t_CG_CPU_Iterative_Solvers
+    t_CG_CPU_Iterative_Solvers = time()
+    for i in 1:iter_times
+        cg(A,b,log=true)
+    end
+    t_CG_CPU_Iterative_Solvers = (time() - t_CG_CPU_Iterative_Solvers ) * 1000 / iter_times 
+    @show t_CG_CPU_Iterative_Solvers
+
+
+    t_CG_GPU_Iterative_Solvers = time()
+    for i in 1:iter_times
+        cg(A_d,b_d,log=true)
+    end
+    t_CG_GPU_Iterative_Solvers = (time() - t_CG_GPU_Iterative_Solvers ) * 1000 / iter_times 
+    @show t_CG_GPU_Iterative_Solvers
+
+    
 
 
     ## End testing CG
 
+    ## Writting file
     # file = matopen("../data/A_$N_x.mat","w")
     # write(file,"A",A)
     # close(file)
@@ -285,11 +316,6 @@ for k in 2:9
     # file = matopen("../data/b_$N_x.mat","w")
     # write(file,"b",b)
     # close(file)
-
-
-    # A_d = cu(A)
-    # b_d = cu(b)
-    # init_guess = cu(rand(length(b)));
 
 
     # A_d = CuArrays.CUSPARSE.CuSparseMatrixCSC(A);

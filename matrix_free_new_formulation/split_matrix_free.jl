@@ -145,27 +145,21 @@ function matrix_free_A(idata,odata)
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
 
-    CPU_W = zeros(Nx,3)
-    CPU_W_T = zeros(3,Nx)
-    CPU_E = zeros(Nx,3)
-    CPU_E_T = zeros(3,Nx)
-    CPU_N = zeros(3,Ny)
-    CPU_S = zeros(3,Ny)
+    # CPU_W = zeros(Nx,3)
+    # CPU_W_T = zeros(3,Nx)
+    # CPU_E = zeros(Nx,3)
+    # CPU_E_T = zeros(3,Nx)
+    # CPU_N = zeros(3,Ny)
+    # CPU_S = zeros(3,Ny)
 
 
-    CPU_OUT_W = zeros(Nx,3)
-    CPU_OUT_W_T = zeros(3,Nx)
-    CPU_OUT_E = zeros(Nx,3)
-    CPU_OUT_E_T = zeros(3,Nx)
-    CPU_OUT_N = zeros(3,Ny)
-    CPU_OUT_S = zeros(3,Ny)
 
-    # CPU_W = Array{Float64,2}(undef,Nx,3)
-    # CPU_W_T = Array{Float64,2}(undef,3,Nx)
-    # CPU_E = Array{Float64,2}(undef,Nx,3)
-    # CPU_E_T = Array{Float64,2}(undef,3,Nx)   
-    # CPU_N = Array{Float64,2}(undef,3,Ny)
-    # CPU_S = Array{Float64,2}(undef,3,Ny)
+    CPU_W = Array{Float64,2}(undef,Nx,3)
+    CPU_W_T = Array{Float64,2}(undef,3,Nx)
+    CPU_E = Array{Float64,2}(undef,Nx,3)
+    CPU_E_T = Array{Float64,2}(undef,3,Nx)   
+    CPU_N = Array{Float64,2}(undef,3,Ny)
+    CPU_S = Array{Float64,2}(undef,3,Ny)
 
     # CPU_OUT_W = Array{Float64,2}(undef,Nx,3)
     # CPU_OUT_W_T = Array{Float64,2}(undef,3,Nx)
@@ -182,6 +176,12 @@ function matrix_free_A(idata,odata)
     @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 
     
+    CPU_OUT_W = zeros(Nx,3)
+    CPU_OUT_W_T = zeros(3,Nx)
+    CPU_OUT_E = zeros(Nx,3)
+    CPU_OUT_E_T = zeros(3,Nx)
+    CPU_OUT_N = zeros(3,Ny)
+    CPU_OUT_S = zeros(3,Ny)
     
     
 
@@ -391,24 +391,24 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     rsold_GPU = sum(r_GPU .* r_GPU)
     Ap_GPU = CUDA.zeros(Nx,Ny);
     num_iter_steps = 0
-    # for i in 1:Nx*Ny
-    @show rsold_GPU
-    for i in 1:20
+    # @show rsold_GPU
+    for i in 1:Nx*Ny
+    # for i in 1:20
         num_iter_steps += 1
         matrix_free_A(p_GPU,Ap_GPU);
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
-        x_GPU = x_GPU + alpha_GPU * p_GPU;
-        r_GPU = r_GPU - alpha_GPU * Ap_GPU;
-        # r_GPU .-= alpha_GPU * Ap_GPU
-        # x_GPU .+= alpha_GPU * p_GPU
+        # x_GPU = x_GPU + alpha_GPU * p_GPU;
+        # r_GPU = r_GPU - alpha_GPU * Ap_GPU;
+        r_GPU .-= alpha_GPU * Ap_GPU
+        x_GPU .+= alpha_GPU * p_GPU
         # CUDA.CUBLAS.axpy!()
         rsnew_GPU = sum(r_GPU .* r_GPU)
-        # if sqrt(rsnew_GPU) < 1e-10
-        #     break
-        # end
-        p_GPU = r_GPU + (rsnew_GPU/rsold_GPU) * p_GPU;
+        if sqrt(rsnew_GPU) < sqrt(eps(real(eltype(b_reshaped_GPU))))
+            break
+        end
+        p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) * p_GPU;
         rsold_GPU = rsnew_GPU
-        @show rsold_GPU
+        # @show rsold_GPU
     end
     @show num_iter_steps
 end
@@ -421,21 +421,21 @@ function CG_CPU(A,b,x)
     Ap = similar(b);
 
     num_iter_steps = 0
-    @show rsold
-    # for _ = 1:length(b)
-    for _ in 1:20
+    # @show rsold
+    for _ = 1:length(b)
+    # for _ in 1:20
         num_iter_steps += 1
         mul!(Ap,A,p);
         alpha = rsold / (p' * Ap)
         x .= x .+ alpha * p;
         r .= r .- alpha * Ap;
         rsnew = r' * r
-        # if sqrt(rsnew) < 1e-10
-        #       break
-        # end
+        if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
+              break
+        end
         p = r + (rsnew / rsold) * p;
         rsold = rsnew
-        @show rsold
+        # @show rsold
     end
-    # @show num_iter_steps
+    @show num_iter_steps
 end

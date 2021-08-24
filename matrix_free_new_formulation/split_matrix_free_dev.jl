@@ -780,20 +780,20 @@ function CG_GPU_dev(b_reshaped_GPU,x_GPU)
     p_GPU = copy(r_GPU)
     rsold_GPU = sum(r_GPU .* r_GPU)
     Ap_GPU = CUDA.zeros(Nx,Ny)
-    num_steps = 0
-    @show rsold_GPU
+    # num_steps = 0
+    # @show rsold_GPU
     # for i in 1:Nx*Ny
     for i in 1:20
         # @show i
         # @show rsold_GPU
         # matrix_free_A_v3(p_GPU,Ap_GPU,odata_D2_GPU,odata_boundary_GPU)
-        num_steps += 1
+        # num_steps += 1
         matrix_free_A_v4(p_GPU,Ap_GPU)
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
         x_GPU .= x_GPU + alpha_GPU * p_GPU
         r_GPU .= r_GPU - alpha_GPU * Ap_GPU
         rsnew_GPU = sum(r_GPU .* r_GPU)
-        if sqrt(rsnew_GPU) < 1e-10
+        if sqrt(rsnew_GPU) <  sqrt(eps(real(eltype(b_reshaped_GPU))))
             break
         end
         p_GPU = r_GPU + (rsnew_GPU/rsold_GPU) * p_GPU
@@ -817,7 +817,7 @@ function CG_CPU_dev(A,b,x)
         x .= x .+ alpha * p;
         r .= r .- alpha * Ap;
         rsnew = r' * r
-        if sqrt(rsnew) < 1e-10
+        if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
               break
         end
         p = r + (rsnew / rsold) * p;
