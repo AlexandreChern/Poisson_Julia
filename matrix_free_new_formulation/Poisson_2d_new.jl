@@ -131,7 +131,7 @@ rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
 println("################### BEGIN TEST #########################")
-for k in 3:8
+for k in 3:10
     
     println()
     i = j  = k
@@ -228,16 +228,19 @@ for k in 3:8
 
     # odata_gpu = CuArray(zeros(Nx,Ny))
 
-    ## Checking matrix_free_A function
-    odata_gpu_v4 = CUDA.zeros(Nx,Ny);
-    odata_gpu = CUDA.zeros(Nx,Ny);
-    # matrix_free_A_v3(b_reshaped_GPU,odata_gpu,odata_D2_GPU,odata_boundary_GPU)
-    matrix_free_A_v4(b_reshaped_GPU,odata_gpu_v4);
-    @show norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu_v4));
-    @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu_v4);
+    # ## Checking matrix_free_A function
+    # odata_gpu_v4 = CUDA.zeros(Nx,Ny);
+    # odata_gpu = CUDA.zeros(Nx,Ny);
+    # # matrix_free_A_v3(b_reshaped_GPU,odata_gpu,odata_D2_GPU,odata_boundary_GPU)
+    # matrix_free_A_v4(b_reshaped_GPU,odata_gpu_v4);
+    # @show norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu_v4));
+    # @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu_v4);
 
-    matrix_free_A(b_reshaped_GPU,odata_gpu);
-    @show  norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu);)
+    # matrix_free_A(b_reshaped_GPU,odata_gpu);
+    # @show  norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu);)
+    # ## End checking matrix_free_A function
+
+
     # @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu)
 
     # @assert odata1 + odata2 ≈ Array(odata_gpu)
@@ -268,7 +271,8 @@ for k in 3:8
     # cg(A,b)
 
     iter_times = 5
-    println("Timing results in ms")
+    println()
+    println("Starting Timing, results in ms")
 
     t_CG_CPU = @elapsed begin
         for i in 1:iter_times
@@ -365,10 +369,13 @@ for k in 3:8
     CG_GPU_sol = Array(x_GPU) 
     err_CG_GPU =  (CG_GPU_sol[:] - analy_sol[:])' * H_tilde * (CG_GPU_sol[:] - analy_sol[:])
 
+    CG_CPU_IterativeSolvers_sol = cg(A,b)
+    err_CG_CPU_IterativeSolvers_sol =  (CG_CPU_IterativeSolvers_sol[:] - analy_sol[:])' * H_tilde * (CG_CPU_IterativeSolvers_sol[:] - analy_sol[:])
     println("Printing Out Errors")
     @show err_direct
     @show err_CG_CPU
     @show err_CG_GPU
+    @show err_CG_CPU_IterativeSolvers_sol
     # @show err
     # @show iter_err
     # rel_err = √err
