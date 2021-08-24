@@ -150,6 +150,22 @@ function copy_naive!(b, a)
     return nothing
 end
 
+function copy_naive!_v2(odata,idata,Nx,Ny,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+    #Nx = size(idata,1)
+    #Ny = size(idata,2)
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+    if i <= Nx && j <= Ny
+           @inbounds odata[i,j] = idata[i,j]
+    end
+
+    nothing
+end
+
 
 # Arguments after semicolon are keyword arguments
 function main(; N = 1024, FT = Float32, tile_dim = 32, stride = 8, num_reps = 1000)
@@ -160,6 +176,7 @@ function main(; N = 1024, FT = Float32, tile_dim = 32, stride = 8, num_reps = 10
     @printf("Memory required: %f GiB\n", memsize)
 
     # Host arrays
+    Random.seed!(0)
     a = rand(FT, N, N)
     b = similar(a)
 
@@ -176,15 +193,18 @@ function main(; N = 1024, FT = Float32, tile_dim = 32, stride = 8, num_reps = 10
     # Copy Naive
     nblocks = (cld(N, tile_dim), cld(N, tile_dim))
     @cuda threads=(tile_dim, tile_dim) blocks=nblocks copy_naive!(d_b, d_a)
+    @cuda threads=(tile_dim, tile_dim) blocks=nblocks copy_naive!_v2(d_b,d_a,N,N,Val(tile_dim),Val(tile_dim))
     @assert Array(d_b) == a
     synchronize()
     time = @elapsed begin
-        for n = 1:num_reps
-            @cuda threads=(tile_dim, tile_dim) blocks=nblocks copy_naive!(d_b, d_a)
+        for _ = 1:num_reps
+            #@cuda threads=(tile_dim, tile_dim) blocks=nblocks copy_naive!(d_b, d_a)
+            @cuda threads=(tile_dim,tile_dim) blocks=nblocks copy_naive!_v2(d_b,d_a,N,N,Val(tile_dim),Val(tile_dim))
         end
         synchronize()
     end
     avg_time = time / num_reps
+    println("average time: $avg_time")
     bndw = 2 * memsize / avg_time
     @printf("copy_naive:      %f GiB / s\n", bndw)
 
@@ -194,7 +214,7 @@ function main(; N = 1024, FT = Float32, tile_dim = 32, stride = 8, num_reps = 10
     @assert Array(d_b) == a'
     synchronize()
     time = @elapsed begin
-        for n = 1:num_reps
+        for _ = 1:num_reps
             @cuda threads=(tile_dim, tile_dim) blocks=nblocks transpose_naive!(d_b, d_a)
         end
         synchronize()
