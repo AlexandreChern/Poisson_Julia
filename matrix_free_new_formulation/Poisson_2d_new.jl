@@ -217,11 +217,16 @@ for k in 2:9
     # @assert A*b ≈ odata
 
     # odata_gpu = CuArray(zeros(Nx,Ny))
+    odata_gpu_v4 = CUDA.zeros(Nx,Ny)
     odata_gpu = CUDA.zeros(Nx,Ny)
     # matrix_free_A_v3(b_reshaped_GPU,odata_gpu,odata_D2_GPU,odata_boundary_GPU)
-    matrix_free_A_v4(b_reshaped_GPU,odata_gpu)
-    @show norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu))
-    @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu)
+    matrix_free_A_v4(b_reshaped_GPU,odata_gpu_v4)
+    @show norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu_v4))
+    @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu_v4)
+
+    matrix_free_A(b_reshaped_GPU,odata_gpu)
+    @show  norm(reshape(A*b,Nx,Ny) .- Array(odata_gpu))
+    # @assert reshape(A*b,Nx,Ny) ≈ Array(odata_gpu)
 
     # @assert odata1 + odata2 ≈ Array(odata_gpu)
 

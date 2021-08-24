@@ -13,7 +13,7 @@ function D2_cpu(idata,odata,Nx,Ny,h)
     end
 end
 
-function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+function D2_split_dev(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
     tidx = threadIdx().x
     tidy = threadIdx().y
 
@@ -561,13 +561,13 @@ function test_D2_split(level)
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
 
-    @cuda threads=blockdim blocks=griddim D2_split(cu_A,cu_out,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim D2_split_dev(cu_A,cu_out,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 
     iter_times = 1000
 
     t_D2_start = time()
     for _ in 1:iter_times
-        @cuda threads=blockdim blocks=griddim D2_split(cu_A,cu_out,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+        @cuda threads=blockdim blocks=griddim D2_split_dev(cu_A,cu_out,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     end
     synchronize()
     t_D2 = time() - t_D2_start
@@ -590,7 +590,7 @@ function matrix_free_A_v1(idata,odata)
     TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim blocks=griddim D2_split(idata_gpu,odata_gpu,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim D2_split_dev(idata_gpu,odata_gpu,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     matrix_free_cpu_v2(idata,odata_cpu,Nx,Ny,h)
     odata .= adapt(Array,odata_gpu) .+ odata_cpu
 end
@@ -604,7 +604,7 @@ function matrix_free_A_v2(idata,odata)
     TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim D2_split_dev(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 end
 
 function matrix_free_A_v3(idata,odata,odata_D2_GPU,odata_boundary_GPU)
@@ -621,7 +621,7 @@ function matrix_free_A_v3(idata,odata,odata_D2_GPU,odata_boundary_GPU)
     TILE_DIM_2 = 16
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim blocks=griddim D2_split(idata,odata_D2_GPU,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim D2_split_dev(idata,odata_D2_GPU,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     matrix_free_cpu_optimized(idata,odata_boundary_GPU,Nx,Ny,h)
     synchronize()
     odata .= odata_D2_GPU .+ odata_boundary_GPU
@@ -662,7 +662,7 @@ function matrix_free_A_v4(idata,odata)
     # copyto!(CPU_N,GPU_Array[1:3,:])
     # copyto!(CPU_S,GPU_Array[end-2:end,:])
 
-    @cuda threads=blockdim blocks=griddim D2_split(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim D2_split_dev(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 
     CPU_W_T .= CPU_W'
     CPU_E_T .= CPU_E'
