@@ -5,6 +5,7 @@ using CUDA
 using Random
 using Adapt
 using LinearAlgebra
+using Printf
 
 function D2_split_naive(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
     tidx = threadIdx().x
@@ -35,15 +36,43 @@ function D2_split_naive_v2(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2
     j = (blockIdx().y - 1) * TILE_DIM2 + tidy
 
     if i <= Nx && j <= Ny
-        if i == 1 || i == Nx || j == 1 || j == Ny
-            @inbounds odata[i,j] == 0
-       else
-           @inbounds   odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
-       end
-     #   @inbounds odata[i,j] = idata[i,j]
+    #     if i == 1 || i == Nx || j == 1 || j == Ny
+    #         @inbounds odata[i,j] == 0
+    #    else
+    #        @inbounds   odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+    #    end
+       @inbounds odata[i,j] = idata[i,j]
     end
 
     nothing
+end
+
+function copy_naive!(b, a)
+    N = size(a, 1)
+
+    # which thread are we in our block
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    # which block of threads are we in
+    bidx = blockIdx().x
+    bidy = blockIdx().y
+
+    # What is the size of the thread block
+    dimx = blockDim().x
+    dimy = blockDim().y
+
+    # what index am I in the global thread space
+    i = tidx + dimx * (bidx - 1)
+    j = tidy + dimy * (bidy - 1)
+
+    if i <= N && j <= N
+        # aval = a[i, j]
+        # b[i, j] = aval
+        @inbounds b[i, j] = a[i, j]
+    end
+
+    return nothing
 end
 
 function D2_split(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
@@ -286,6 +315,13 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     idata = CuArray(randn(Nx,Ny))
     odata = CUDA.zeros(Nx,Ny)
 
+    # Random.seed!(0)
+    # a = rand(Float64, Nx, Ny)
+    # b = similar(a)
+    # d_a = CuArray(a)
+    # d_b = similar(d_a)
+    # d_b = CUDA.zeros(Nx,Ny)
+
     # TILE_DIM_1 = 16
     # TILE_DIM_2 = 16
     #griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
@@ -293,6 +329,8 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     blockdim = (TILE_DIM_1,TILE_DIM_2)
     @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim copy_naive!(odata,idata)
+    # @cuda threads=blockdim blocks=griddim copy_naive!(d_b,d_a)
     synchronize()
     # boundary_data = boundary_containers(zeros(Nx,3),zeros(3,Nx),zeros(Nx,3),zeros(3,Nx),zeros(3,Ny),zeros(3,Ny),zeros(Nx,3),zeros(Nx,3),zeros(3,Ny),zeros(3,Ny))
     matrix_free_A(idata,odata)
@@ -335,6 +373,26 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     t_D2_naive_v2 = t_D2_naive_v2 * 1000 / iter_times
     @show t_D2_naive_v2
 
+    synchronize()
+    t_copy_naive = @elapsed begin
+        for _ = 1:iter_times
+            #@cuda threads=(tile_dim, tile_dim) blocks=nblocks copy_naive!(d_b, d_a)
+            @cuda threads=blockdim blocks=griddim copy_naive!(odata,idata)
+        end
+        synchronize()
+    end
+    avg_time =  t_copy_naive / iter_times
+    println("average time: $avg_time")
+    bndw = 2 * memsize / avg_time
+    @printf("copy_naive:      %f GiB / s\n", bndw)
+
+    t_copy_naive = t_copy_naive * 1000 / iter_times
+    @show t_copy_naive
+
+   
+
+    
+
     t_A = @elapsed begin
         for _ in 1:iter_times
             matrix_free_A(idata,odata)
@@ -348,7 +406,7 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     @show sizeof(idata)
     @show memsize
     through_put = 2 * memsize / (t_D2_naive_v2/1000)
-    @show through_put
+    @printf("copy_naive:      %f GiB / s\n", through_put)
 
 end
 

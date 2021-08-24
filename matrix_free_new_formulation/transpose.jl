@@ -198,8 +198,8 @@ function main(; N = 1024, FT = Float32, tile_dim = 32, stride = 8, num_reps = 10
     synchronize()
     time = @elapsed begin
         for _ = 1:num_reps
-            #@cuda threads=(tile_dim, tile_dim) blocks=nblocks copy_naive!(d_b, d_a)
-            @cuda threads=(tile_dim,tile_dim) blocks=nblocks copy_naive!_v2(d_b,d_a,N,N,Val(tile_dim),Val(tile_dim))
+            @cuda threads=(tile_dim, tile_dim) blocks=nblocks copy_naive!(d_b, d_a)
+            # @cuda threads=(tile_dim,tile_dim) blocks=nblocks copy_naive!_v2(d_b,d_a,N,N,Val(tile_dim),Val(tile_dim))
         end
         synchronize()
     end
