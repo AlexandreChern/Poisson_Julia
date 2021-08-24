@@ -410,7 +410,7 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
         rsold_GPU = rsnew_GPU
         # @show rsold_GPU
     end
-    @show num_iter_steps
+    # @show num_iter_steps
 end
 
 function CG_CPU(A,b,x)
@@ -437,5 +437,5 @@ function CG_CPU(A,b,x)
         rsold = rsnew
         # @show rsold
     end
-    @show num_iter_steps
+    # @show num_iter_steps
 end

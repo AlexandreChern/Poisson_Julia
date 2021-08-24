@@ -45,8 +45,8 @@ function Diag(A)
     return Diagonal(A[:])
 end
 
-function Operators_2d(i, j, p=2, h_list_x = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]),
-			 h_list_y = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13])
+function Operators_2d(i, j, p=2, h_list_x = ([1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]),
+			 h_list_y = ([1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13])
 			 )
     hx = h_list_x[i];
     hy = h_list_y[j];
@@ -124,15 +124,19 @@ function Operators_2d(i, j, p=2, h_list_x = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6,
     return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
-h_list_x = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
-h_list_y = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
+h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
+h_list_y = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
 
 rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
-for k in 2:8
+println("################### BEGIN TEST #########################")
+for k in 3:8
+    
+    println()
     i = j  = k
     println("k = ", k)
+   
     hx = h_list_x[i];
     hy = h_list_y[j];
 
@@ -147,6 +151,8 @@ for k in 2:8
 
     Nx = N_x + 1;
     Ny = N_y + 1;
+
+    println("Nx = $Nx, Ny=$Ny")
 
     # 2D operators
     (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j);
@@ -262,48 +268,68 @@ for k in 2:8
     # cg(A,b)
 
     iter_times = 5
-    t_CG_CPU = time()
-    for i in 1:iter_times
-        x = zeros(Nx*Ny)
-        CG_CPU_dev(A,b,x)
-    end
-    t_CG_CPU = (time() - t_CG_CPU ) * 1000 / iter_times 
-    @show t_CG_CPU
+    println("Timing results in ms")
 
-    t_CG_CPU_elapsed = @elapsed begin
+    t_CG_CPU = @elapsed begin
         for i in 1:iter_times
             x = zeros(Nx*Ny)
             CG_CPU_dev(A,b,x)
         end
     end
-    t_CG_CPU_elapsed = t_CG_CPU_elapsed * 1000 / iter_times
-    @show t_CG_CPU_elapsed
+    t_CG_CPU = t_CG_CPU * 1000 / iter_times
+    @show t_CG_CPU
 
-    t_CG_GPU = time()
-    for i in 1:iter_times
-        x_GPU = CuArray(zeros(Nx,Ny))
-        CG_GPU_dev(b_reshaped_GPU,x_GPU)
+    t_CG_GPU = @elapsed begin
+        for i in 1:iter_times
+            x_GPU = CuArray(zeros(Nx,Ny))
+            # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+            CG_GPU(b_reshaped_GPU,x_GPU)
+        end
     end
-    t_CG_GPU = (time() - t_CG_GPU ) * 1000 / iter_times 
+    t_CG_GPU = t_CG_GPU * 1000 / iter_times 
     @show t_CG_GPU
 
 
-    t_CG_CPU_Iterative_Solvers = time()
-    for i in 1:iter_times
-        cg(A,b,log=true)
+    t_CG_CPU_IterativeSolvers = @elapsed begin
+        for i in 1:iter_times
+            cg(A,b)
+        end
     end
-    t_CG_CPU_Iterative_Solvers = (time() - t_CG_CPU_Iterative_Solvers ) * 1000 / iter_times 
-    @show t_CG_CPU_Iterative_Solvers
+    t_CG_CPU_IterativeSolvers = t_CG_CPU_IterativeSolvers * 1000 / iter_times
+    @show t_CG_CPU_IterativeSolvers
 
 
-    t_CG_GPU_Iterative_Solvers = time()
-    for i in 1:iter_times
-        cg(A_d,b_d,log=true)
+    t_CG_GPU_IterativeSolvers = @elapsed begin
+        for i in 1:iter_times
+            cg(A_d,b_d)
+        end
     end
-    t_CG_GPU_Iterative_Solvers = (time() - t_CG_GPU_Iterative_Solvers ) * 1000 / iter_times 
-    @show t_CG_GPU_Iterative_Solvers
+    t_CG_GPU_IterativeSolvers = t_CG_GPU_IterativeSolvers * 1000 / iter_times 
+    @show t_CG_GPU_IterativeSolvers
 
-    
+    t_direct = @elapsed begin
+        for i in 1:iter_times
+            A\b
+        end
+    end
+    t_direct = t_direct * 1000 / iter_times
+    @show t_direct
+
+    A_lu = lu(A)
+
+    t_direct_lu_decomposed = @elapsed begin
+        for i in 1:iter_times
+            A_lu\b
+        end
+    end
+    t_direct_lu_decomposed = t_direct_lu_decomposed * 1000 / iter_times
+    @show t_direct_lu_decomposed
+
+    println("End time comparison\n")
+
+
+
+
 
 
     ## End testing CG
@@ -324,12 +350,25 @@ for k in 2:8
     # b_d = CuArray(b);
     # init_guess = CuArray(randn(length(b)))
 
-    # num_sol = reshape(A\b,N_y+1,N_x+1)
-    # # @show num_sol
-    # cu_sol = reshape(cg!(init_guess,A_d,b_d),N_y+1,N_x+1)
-    # cu_sol = collect(cu_sol)
-    # err = (num_sol[:] - analy_sol[:])' * H_tilde * (num_sol[:] - analy_sol[:])
-    # iter_err = (cu_sol[:] - analy_sol[:])' * H_tilde * (cu_sol[:] - analy_sol[:])
+    ##  Checking errors
+    direct_sol = reshape(A\b,N_y+1,N_x+1)
+    err_direct = (direct_sol[:] - analy_sol[:])' * H_tilde * (direct_sol[:] - analy_sol[:])
+
+    x = zeros(Nx*Ny)
+    CG_CPU_dev(A,b,x)
+    CG_CPU_sol = x
+    err_CG_CPU =  (CG_CPU_sol[:] - analy_sol[:])' * H_tilde * (CG_CPU_sol[:] - analy_sol[:])
+
+
+    x_GPU = CuArray(zeros(Nx,Ny))
+    CG_GPU_dev(b_reshaped_GPU,x_GPU)
+    CG_GPU_sol = Array(x_GPU) 
+    err_CG_GPU =  (CG_GPU_sol[:] - analy_sol[:])' * H_tilde * (CG_GPU_sol[:] - analy_sol[:])
+
+    println("Printing Out Errors")
+    @show err_direct
+    @show err_CG_CPU
+    @show err_CG_GPU
     # @show err
     # @show iter_err
     # rel_err = √err
@@ -340,8 +379,3 @@ for k in 2:8
     # push!(iter_errs,iter_err)
 end
 
-println(rel_errs)
-println(log2.(rel_errs))
-
-println(iter_errs)
-println(log2.(iter_errs))
