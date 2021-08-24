@@ -270,6 +270,13 @@ for k in 3:10
     
     # cg(A,b)
 
+    x = zeros(Nx*Ny)
+    CG_CPU_dev(A,b,x)
+
+    x_GPU = CuArray(zeros(Nx,Ny))
+    # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+    CG_GPU(b_reshaped_GPU,x_GPU)
+
     iter_times = 5
     println()
     println("Starting Timing, results in ms")
