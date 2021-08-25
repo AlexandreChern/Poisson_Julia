@@ -475,8 +475,8 @@ function matrix_free_A_full_GPU(idata,odata)
     
 
     # tile_dim_1d = 16
-    tile_dim_1d = 64
-    # tile_dim_1d = 128
+    # tile_dim_1d = 16
+    tile_dim_1d = 16
     griddim_1d = cld(Nx,tile_dim_1d)
     # @show tile_dim_1d
     # @show griddim_1d
@@ -499,7 +499,7 @@ function matrix_free_A_full_GPU(idata,odata)
     @cuda threads=tile_dim_1d blocks=griddim_1d SBP_S!(view(idata,Nx-2:Nx,:),GPU_OUT_S,alpha1,alpha2,alpha4,beta,h)
     @cuda threads=tile_dim_1d blocks=griddim_1d SBP_W!(view(idata,:,1:3),GPU_OUT_W,alpha1,beta,h)
     @cuda threads=tile_dim_1d blocks=griddim_1d SBP_E!(view(idata,:,Ny-2:Ny),GPU_OUT_E,alpha2,beta,h)
-    # synchronize()
+    synchronize()
     
 
     # show(stdout, "text/plain", odata)

@@ -131,7 +131,7 @@ rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
 println("################### BEGIN TEST #########################")
-for k in 3:8
+for k in 3:9
     
     println()
     i = j  = k
