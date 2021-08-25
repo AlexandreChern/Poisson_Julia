@@ -474,8 +474,12 @@ function matrix_free_A_full_GPU(idata,odata)
 
     
 
-    tile_dim_1d = 256
+    # tile_dim_1d = 16
+    tile_dim_1d = 64
+    # tile_dim_1d = 128
     griddim_1d = cld(Nx,tile_dim_1d)
+    # @show tile_dim_1d
+    # @show griddim_1d
 
     # @cuda threads=tile_dim_1d blocks=griddim_1d SBP_N!(GPU_N,GPU_OUT_N,alpha1,alpha2,alpha3,beta,h)
     # @cuda threads=tile_dim_1d blocks=griddim_1d SBP_S!(GPU_S,GPU_OUT_S,alpha1,alpha2,alpha4,beta,h)
@@ -542,7 +546,7 @@ function matrix_free_A_full_GPU(idata,odata)
     copyto!(view(odata,1,1:Ny), view(odata,1,1:Ny) + view(GPU_OUT_N,1,:))
     copyto!(view(odata,Nx,1:Ny), view(odata,Nx,1:Ny) + view(GPU_OUT_S,1,:))
 
-    # synchronize()
+    synchronize()
     # show(stdout, "text/plain", odata)
     # println()
     nothing
@@ -587,6 +591,7 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     # boundary_data = boundary_containers(zeros(Nx,3),zeros(3,Nx),zeros(Nx,3),zeros(3,Nx),zeros(3,Ny),zeros(3,Ny),zeros(Nx,3),zeros(Nx,3),zeros(3,Ny),zeros(3,Ny))
     matrix_free_A(idata,odata)
     matrix_free_A_full_GPU(idata,odata_full_GPU)
+    # @show odata - odata_full_GPU
     @show norm(odata-odata_full_GPU)
 
 
@@ -683,9 +688,11 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
         end
         p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) * p_GPU;
         rsold_GPU = rsnew_GPU
-        # @show rsold_GPU
+        # if i < 20
+        #     @show rsold_GPU
+        # end
     end
-    # @show num_iter_steps
+    @show num_iter_steps
 end
 
 function CG_full_GPU(b_reshaped_GPU,x_GPU)
@@ -699,7 +706,8 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
     r_GPU = b_reshaped_GPU - odata;
     p_GPU = copy(r_GPU);
     rsold_GPU = sum(r_GPU .* r_GPU)
-    Ap_GPU = CUDA.zeros(Nx,Ny);
+    # Ap_GPU = CUDA.zeros(Nx,Ny);
+    Ap_GPU = CuArray(zeros(Nx,Ny))
     num_iter_steps = 0
     # @show rsold_GPU
     for i in 1:Nx*Ny
@@ -718,9 +726,11 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
         end
         p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) * p_GPU;
         rsold_GPU = rsnew_GPU
-        # @show rsold_GPU
+        # if i < 20
+        #     @show rsold_GPU
+        # end
     end
-    # @show num_iter_steps
+    @show num_iter_steps
 end
 
 function CG_CPU(A,b,x)
