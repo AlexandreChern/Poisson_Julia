@@ -176,13 +176,21 @@ function matrix_free_A(idata,odata)
     @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 
     
-    CPU_OUT_W = zeros(Nx,3)
-    CPU_OUT_W_T = zeros(3,Nx)
-    CPU_OUT_E = zeros(Nx,3)
-    CPU_OUT_E_T = zeros(3,Nx)
-    CPU_OUT_N = zeros(3,Ny)
-    CPU_OUT_S = zeros(3,Ny)
+    # CPU_OUT_W = zeros(Nx,3)
+    # CPU_OUT_W_T = zeros(3,Nx)
+    # CPU_OUT_E = zeros(Nx,3)
+    # CPU_OUT_E_T = zeros(3,Nx)
+    # CPU_OUT_N = zeros(3,Ny)
+    # CPU_OUT_S = zeros(3,Ny)
     
+    
+    CPU_OUT_W = Array{Float64,2}(undef,Nx,3)
+    CPU_OUT_W_T = Array{Float64,2}(undef,3,Nx)
+    CPU_OUT_E = Array{Float64,2}(undef,Nx,3)
+    CPU_OUT_E_T = Array{Float64,2}(undef,3,Nx)
+    CPU_OUT_N = Array{Float64,2}(undef,3,Ny)
+    CPU_OUT_S = Array{Float64,2}(undef,3,Ny)
+
     
 
     ## CPU Calculation
@@ -292,6 +300,167 @@ function matrix_free_A(idata,odata)
     nothing
 end
 
+function matrix_free_A_full_GPU(idata,odata)
+    # odata .= 0
+    Nx,Ny = size(idata)
+    h = 1/(Nx-1)
+    TILE_DIM_1 = 16
+    TILE_DIM_2 = 16
+    griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+	blockdim = (TILE_DIM_1,TILE_DIM_2)
+
+    # CPU_W = zeros(Nx,3)
+    # CPU_W_T = zeros(3,Nx)
+    # CPU_E = zeros(Nx,3)
+    # CPU_E_T = zeros(3,Nx)
+    # CPU_N = zeros(3,Ny)
+    # CPU_S = zeros(3,Ny)
+
+
+
+    GPU_W = CuArray{Float64,2}(undef,Nx,3)
+    GPU_W_T = CuArray{Float64,2}(undef,3,Nx)
+    GPU_E = CuArray{Float64,2}(undef,Nx,3)
+    GPU_E_T = CuArray{Float64,2}(undef,3,Nx)   
+    GPU_N = CuArray{Float64,2}(undef,3,Ny)
+    GPU_S = CuArray{Float64,2}(undef,3,Ny)
+
+    # CPU_OUT_W = Array{Float64,2}(undef,Nx,3)
+    # CPU_OUT_W_T = Array{Float64,2}(undef,3,Nx)
+    # CPU_OUT_E = Array{Float64,2}(undef,Nx,3)
+    # CPU_OUT_E_T = Array{Float64,2}(undef,3,Nx)
+    # CPU_OUT_N = Array{Float64,2}(undef,3,Ny)
+    # CPU_OUT_S = Array{Float64,2}(undef,3,Ny)
+
+    copyto!(GPU_W,view(idata,:,1:3))
+    copyto!(GPU_E,view(idata,:,Ny-2:Ny))
+    copyto!(GPU_N,view(idata,1:3,:))
+    copyto!(GPU_S,view(idata,Nx-2:Nx,:))
+
+    @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+
+    
+    # GPU_OUT_W = CuArray(zeros(Nx,3))
+    # GPU_OUT_W_T = CuArray(zeros(3,Nx))
+    # GPU_OUT_E = CuArray(zeros(Nx,3))
+    # GPU_OUT_E_T = CuArray(zeros(3,Nx))
+    # GPU_OUT_N = CuArray(zeros(3,Ny))
+    # GPU_OUT_S = CuArray(zeros(3,Ny))
+
+    GPU_OUT_W = CuArray{Float64,2}(undef,Nx,3)
+    GPU_OUT_W_T = CuArray{Float64,2}(undef,3,Nx)
+    GPU_OUT_E = CuArray{Float64,2}(undef,Nx,3)
+    GPU_OUT_E_T = CuArray{Float64,2}(undef,3,Nx)   
+    GPU_OUT_N = CuArray{Float64,2}(undef,3,Ny)
+    GPU_OUT_S = CuArray{Float64,2}(undef,3,Ny)
+    
+    
+
+    ## CPU Calculation
+
+    GPU_W_T .= GPU_W'
+    GPU_E_T .= GPU_E'
+    # CPU_OUT_W_T = Array{Float64,2}(undef,3,Ny)
+    # CPU_OUT_E_T = Array{Float64,2}(undef,3,Ny)
+
+
+    alpha1 = alpha2 = -13/h
+    alpha3 = alpha4 = -1
+    beta = 1
+
+    i = 1
+    for j in 2:Ny-1
+        @inbounds GPU_OUT_N[1,j] += (GPU_N[1,j] - 2*GPU_N[2,j] + GPU_N[3,j] + GPU_N[1,j-1] - 2* GPU_N[1,j] + GPU_N[1,j+1] + 2 * alpha3 * (1.5 * GPU_N[1,j] - 2*GPU_N[2,j] + 0.5*GPU_N[3,j])) / 2
+    end
+    synchronize()
+
+    # i = Nx
+    # # # Threads.@threads for j in 2:Ny-1
+    # # @inbounds for j in 2:Ny-1
+    # for j in 2:Ny-1
+    #     @inbounds CPU_OUT_S[3,j] += (CPU_S[3,j] - 2*CPU_S[2,j] + CPU_S[1,j] + CPU_S[3,j-1] - 2* CPU_S[3,j] + CPU_S[3,j+1] + 2 * alpha4 * (1.5 * CPU_S[3,j] - 2*CPU_S[2,j] + 0.5*CPU_S[1,j])) / 2
+    # end
+    # # synchronize()
+
+    # j = 1
+
+    # # @inbounds for i in 2:Nx-1
+    # for i in 2:Nx-1
+    #     @inbounds CPU_OUT_W_T[1,i] += (CPU_W_T[1,i-1] - 2*CPU_W_T[1,i] + CPU_W_T[1,i+1] + CPU_W_T[1,i] - 2*CPU_W_T[2,i] + CPU_W_T[3,i]) / 2
+    #     @inbounds CPU_OUT_W_T[1,i] += (2 * beta * (1.5 * CPU_W_T[1,i]) + 2 * alpha2 * CPU_W_T[1,i] * h) / 2
+    #     @inbounds CPU_OUT_W_T[2,i] += (2 * beta * (-1 * CPU_W_T[1,i]))
+    #     @inbounds CPU_OUT_W_T[3,i] += (0.5 * beta * CPU_W_T[1,i])
+    # end
+
+    # # # odata[:,1] .+= odata_W_T[1,:]
+
+   
+
+    # j = Ny
+    # # @inbounds for i in 2:Nx-1
+    # for i in 2:Nx-1
+    #     @inbounds CPU_OUT_E_T[3,i] += (CPU_E_T[3,i-1] - 2*CPU_E_T[3,i] + CPU_E_T[3,i+1] + CPU_E_T[3,i] - 2*CPU_E_T[2,i] + CPU_E_T[1,i]) / 2
+    #     @inbounds CPU_OUT_E_T[3,i] += (2 * beta * (1.5 * CPU_E_T[3,i]) + 2 * alpha1 * CPU_E_T[3,i] * h) / 2
+    #     @inbounds CPU_OUT_E_T[2,i] += (2 * beta * (-1 * CPU_E_T[3,i]))
+    #     @inbounds CPU_OUT_E_T[1,i] += (0.5 * beta * CPU_E_T[3,i])
+    # end
+
+    # (i,j) = (1,1)
+
+
+    # @inbounds CPU_OUT_N[1,j] += (CPU_W[i,j] - 2*CPU_W[i+1,j] + CPU_W[i+2,j] + CPU_W[i,j] - 2*CPU_W[i,j+1] + CPU_W[i,j+2]) / 4 # D2
+
+    # @inbounds CPU_OUT_N[1,j] += 2 * alpha3 * (( 1.5* CPU_W[i,j] - 2*CPU_W[i+1,j] + 0.5*CPU_W[i+2,j])) / 4 # Neumann
+
+    # @inbounds CPU_OUT_N[1,j] += (2 * beta * (1.5 * CPU_W[i,j]) + 2 * alpha1 * (CPU_W[i,j]) * h) / 4 # Dirichlet
+    # @inbounds CPU_OUT_N[1,j+1] += (2 * beta * (-1 * CPU_W[i,j])) / 2 # Dirichlet
+    # @inbounds CPU_OUT_N[1,j+2] += (0.5 * beta * (CPU_W[i,j])) / 2 # Dirichlet
+
+
+    # (i,j) = (1,Ny)
+    # @inbounds CPU_OUT_N[1,j] += (CPU_E[i,3] - 2*CPU_E[i+1,3] + CPU_E[i+2,3] + CPU_E[i,3] - 2*CPU_E[i,2] + CPU_E[i,1]) / 4 # D2
+    
+    # @inbounds CPU_OUT_N[1,j] += 2 * alpha3 * (1.5 * CPU_E[i,3] - 2*CPU_E[i+1,3] + 0.5 * CPU_E[i+2,3]) / 4 # Neumann
+    # @inbounds CPU_OUT_N[1,j] += (2 * beta * (1.5 * CPU_E[i,3]) + 2 * alpha2 * (CPU_E[i,3]) * h) / 4 # Dirichlet
+    # @inbounds CPU_OUT_N[1,j-1] += (2 * beta * (-1 * CPU_E[i,3])) / 2 # Dirichlet
+    # @inbounds CPU_OUT_N[1,j-2] += (0.5 * beta * (CPU_E[i,3])) / 2 # Dirichlet
+
+
+
+    # (i,j) = (Nx,1)
+    # @inbounds CPU_OUT_S[3,j] += (CPU_W[i,j] - 2*CPU_W[i-1,j] + CPU_W[i-2,j] + CPU_W[i,j] - 2*CPU_W[i,j+1] + CPU_W[i,j+2]) / 4 # D2
+
+    # @inbounds CPU_OUT_S[3,j] += 2 * alpha4 * (( 1.5* CPU_W[i,j] - 2*CPU_W[i-1,j] + 0.5*CPU_W[i-2,j])) / 4 # Neumann
+    # @inbounds CPU_OUT_S[3,j] += (2 * beta * (1.5 * CPU_W[i,j]) + 2 * alpha1 * (CPU_W[i,j]) * h) / 4 # Dirichlet
+    # @inbounds CPU_OUT_S[3,j+1] += (2 * beta * (-1 * CPU_W[i,j])) / 2 # Dirichlet
+    # @inbounds CPU_OUT_S[3,j+2] += (0.5 * beta * (CPU_W[i,j])) / 2 # Dirichlet
+
+    # (i,j) = (Nx,Ny)
+    # @inbounds CPU_OUT_S[3,j] += (CPU_E[Nx,3] - 2*CPU_E[Nx-1,3] + CPU_E[Nx-2,3] + CPU_E[Nx,3] - 2*CPU_E[Nx,2] + CPU_E[Nx,1]) / 4 # D2
+
+    # @inbounds CPU_OUT_S[3,j] += 2 * alpha4 * (1.5 * CPU_E[Nx,3] - 2*CPU_E[Nx-1,3] + 0.5 * CPU_E[Nx-2,3]) / 4 # Neumann
+    # @inbounds CPU_OUT_S[3,j] += (2 * beta * (1.5 * CPU_E[Nx,3]) + 2 * alpha2 * (CPU_E[Nx,3]) * h) / 4 # Dirichlet
+    # @inbounds CPU_OUT_S[3,j-1] += (2 * beta * (-1 * CPU_E[Nx,3])) / 2 # Dirichlet
+    # @inbounds CPU_OUT_S[3,j-2] += (0.5 * beta * (CPU_E[Nx,3])) / 2 # Dirichlet
+
+    # ## End CPU calculation
+
+    # @inbounds CPU_OUT_E .= CPU_OUT_E_T'
+    # @inbounds CPU_OUT_W .= CPU_OUT_W_T'
+
+    synchronize()
+
+    # Copy W & E boundary
+    copyto!(view(odata,1:Nx,1:3),view(odata,1:Nx,1:3) .+ GPU_OUT_W)
+    copyto!(view(odata,1:Nx,Ny-2:Ny),view(odata,1:Nx,Ny-2:Ny) .+ GPU_OUT_E)
+
+    # Copy N & S boundary
+    copyto!(view(odata,1,1:Ny),view(odata,1,1:Ny) .+ GPU_OUT_N[1,:])
+    copyto!(view(odata,Nx,1:Ny),view(odata,Nx,1:Ny) .+ GPU_OUT_S[end,:])
+    synchronize()
+    nothing
+end
+
 
 
 function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
@@ -325,6 +494,7 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     synchronize()
     # boundary_data = boundary_containers(zeros(Nx,3),zeros(3,Nx),zeros(Nx,3),zeros(3,Nx),zeros(3,Ny),zeros(3,Ny),zeros(Nx,3),zeros(Nx,3),zeros(3,Ny),zeros(3,Ny))
     matrix_free_A(idata,odata)
+    matrix_free_A_full_GPU(idata,odata)
 
 
     #iter_times = max(div(1000,max(2.0^(level-9),1)),100)
@@ -353,16 +523,17 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     @show t_D2_naive
     # End evaluating D2_naive
 
-     # Evaluating only D2_naive_v2
-     t_D2_naive_v2 = @elapsed begin
-        for _ in 1:iter_times
-            @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
-        end
-        synchronize()
-    end
+    #  # Evaluating only D2_naive_v2
+    #  t_D2_naive_v2 = @elapsed begin
+    #     for _ in 1:iter_times
+    #         @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    #     end
+    #     synchronize()
+    # end
     
-    t_D2_naive_v2 = t_D2_naive_v2 * 1000 / iter_times
-    @show t_D2_naive_v2
+    # t_D2_naive_v2 = t_D2_naive_v2 * 1000 / iter_times
+    # @show t_D2_naive_v2
+    # # End evaluating D2_naive_v2
 
 
     t_A = @elapsed begin
@@ -373,8 +544,18 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     end
     t_A = t_A * 1000 / iter_times
     @show t_A 
+
+    t_A_full_GPU = @elapsed begin
+        for _ in 1:iter_times
+            matrix_free_A_full_GPU(idata,odata)
+        end
+        synchronize()
+    end
+    t_A_full_GPU = t_A_full_GPU * 1000 / iter_times
+    @show t_A_full_GPU 
     
-    through_put = 2 * memsize / (t_D2_naive_v2/1000)
+    # through_put = 2 * memsize / (t_D2_naive_v2/1000)
+    through_put = 2 * memsize / (t_D2_naive/1000)
     @printf("through_put:      %f GiB / s\n", through_put)
 
 end
