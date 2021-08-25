@@ -38,9 +38,9 @@ function D2_split_naive_v2(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2
 
     if i <= Nx && j <= Ny
         if i == 1 || i == Nx || j == 1 || j == Ny
-            @inbounds odata[i,j] == 0
-       else
-           @inbounds   odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+            @inbounds odata[i,j] = 0
+        else
+            @inbounds  odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
        end
     #    @inbounds odata[i,j] = idata[i,j]
     end
@@ -353,23 +353,23 @@ function SBP_S!(idata,odata,alpha1,alpha2,alpha4,beta,h)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
     if 2 <= idx <= Ny - 1
-        odata[3,idx] = (idata[3,idx] - 2*idata[2,idx] + idata[1,idx] + idata[3,idx-1] - 2*idata[3,idx] + idata[3,idx+1] + 2 * alpha4 * (1.5 * idata[3,idx] - 2*idata[2,idx] + 0.5*idata[1,idx])) / 2
+        odata[end,idx] = (idata[3,idx] - 2*idata[2,idx] + idata[1,idx] + idata[3,idx-1] - 2*idata[3,idx] + idata[3,idx+1] + 2 * alpha4 * (1.5 * idata[3,idx] - 2*idata[2,idx] + 0.5*idata[1,idx])) / 2
     end
     sync_threads()
     if idx == 1
-        odata[3,idx] = (idata[3,idx] - 2*idata[3,idx+1] + idata[3,idx+2] + idata[3,idx] - 2*idata[2,idx] + idata[1,idx] 
+        odata[end,idx] = (idata[3,idx] - 2*idata[3,idx+1] + idata[3,idx+2] + idata[3,idx] - 2*idata[2,idx] + idata[1,idx] 
                         + 2 * alpha4 * (( 1.5* idata[3,idx] - 2*idata[2,idx] + 0.5*idata[1,idx]))
                         + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha1 * (idata[3,idx]) * h) / 4 
-        odata[3,idx+1] += (2 * beta * (-1 * idata[3,idx])) / 2 # Dirichlet
-        odata[3,idx+2] += (0.5 * beta * (idata[3,idx])) / 2 # Dirichlet
+        odata[end,idx+1] += (2 * beta * (-1 * idata[3,idx])) / 2 # Dirichlet
+        odata[end,idx+2] += (0.5 * beta * (idata[3,idx])) / 2 # Dirichlet
     end
 
     if idx == Ny
-        odata[3,idx] = (idata[3,idx] - 2*idata[3,idx-1] + idata[3,idx-2] + idata[3,idx] - 2*idata[2,idx] + idata[1,idx] 
+        odata[end,idx] = (idata[3,idx] - 2*idata[3,idx-1] + idata[3,idx-2] + idata[3,idx] - 2*idata[2,idx] + idata[1,idx] 
                         + 2 * alpha4 * (( 1.5* idata[3,idx] - 2*idata[2,idx] + 0.5*idata[1,idx]))
                         + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha2 * (idata[3,idx]) * h) / 4 
-        odata[3,idx-1] += (2 * beta * (-1 * idata[3,idx])) / 2 # Dirichlet
-        odata[3,idx-2] += (0.5 * beta * (idata[3,idx])) / 2 # Dirichlet
+        odata[end,idx-1] += (2 * beta * (-1 * idata[3,idx])) / 2 # Dirichlet
+        odata[end,idx-2] += (0.5 * beta * (idata[3,idx])) / 2 # Dirichlet
     end
     sync_threads()
     nothing
@@ -431,12 +431,12 @@ function matrix_free_A_full_GPU(idata,odata)
 
 
 
-    GPU_W = CuArray{Float64,2}(undef,Nx,3)
-    # GPU_W_T = CuArray{Float64,2}(undef,3,Nx)
-    GPU_E = CuArray{Float64,2}(undef,Nx,3)
-    # GPU_E_T = CuArray{Float64,2}(undef,3,Nx)   
-    GPU_N = CuArray{Float64,2}(undef,3,Ny)
-    GPU_S = CuArray{Float64,2}(undef,3,Ny)
+    # GPU_W = CuArray{Float64,2}(undef,Nx,3)
+    # # GPU_W_T = CuArray{Float64,2}(undef,3,Nx)
+    # GPU_E = CuArray{Float64,2}(undef,Nx,3)
+    # # GPU_E_T = CuArray{Float64,2}(undef,3,Nx)   
+    # GPU_N = CuArray{Float64,2}(undef,3,Ny)
+    # GPU_S = CuArray{Float64,2}(undef,3,Ny)
 
     # CPU_OUT_W = Array{Float64,2}(undef,Nx,3)
     # CPU_OUT_W_T = Array{Float64,2}(undef,3,Nx)
@@ -445,12 +445,12 @@ function matrix_free_A_full_GPU(idata,odata)
     # CPU_OUT_N = Array{Float64,2}(undef,3,Ny)
     # CPU_OUT_S = Array{Float64,2}(undef,3,Ny)
 
-    GPU_OUT_W = CuArray{Float64,2}(undef,Nx,3)
-    # GPU_OUT_W_T = CuArray{Float64,2}(undef,3,Nx)
-    GPU_OUT_E = CuArray{Float64,2}(undef,Nx,3)
-    # GPU_OUT_E_T = CuArray{Float64,2}(undef,3,Nx)   
-    GPU_OUT_N = CuArray{Float64,2}(undef,3,Ny)
-    GPU_OUT_S = CuArray{Float64,2}(undef,3,Ny)
+    # GPU_OUT_W = CuArray{Float64,2}(undef,Nx,3)
+    # # GPU_OUT_W_T = CuArray{Float64,2}(undef,3,Nx)
+    # GPU_OUT_E = CuArray{Float64,2}(undef,Nx,3)
+    # # GPU_OUT_E_T = CuArray{Float64,2}(undef,3,Nx)   
+    # GPU_OUT_N = CuArray{Float64,2}(undef,3,Ny)
+    # GPU_OUT_S = CuArray{Float64,2}(undef,3,Ny)
 
     # GPU_OUT_W = CuArray(zeros(Nx,3))
     # GPU_OUT_W_T = CuArray(zeros(3,Nx))
@@ -459,26 +459,44 @@ function matrix_free_A_full_GPU(idata,odata)
     # GPU_OUT_N = CuArray(zeros(3,Ny))
     # GPU_OUT_S = CuArray(zeros(3,Ny))
 
-    copyto!(GPU_W,view(idata,:,1:3))
-    copyto!(GPU_E,view(idata,:,Ny-2:Ny))
-    copyto!(GPU_N,view(idata,1:3,:))
-    copyto!(GPU_S,view(idata,Nx-2:Nx,:))
+    # copyto!(GPU_W,view(idata,:,1:3))
+    # copyto!(GPU_E,view(idata,:,Ny-2:Ny))
+    # copyto!(GPU_N,view(idata,1:3,:))
+    # copyto!(GPU_S,view(idata,Nx-2:Nx,:))
 
 
    
 
+    # @cuda threads=blockdim_2d blocks=griddim_2d D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     @cuda threads=blockdim_2d blocks=griddim_2d D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
-    synchronize()
+    # synchronize()
+    
 
     
 
     tile_dim_1d = 256
-    griddim_1d = cld(Nx,tile_dim)
+    griddim_1d = cld(Nx,tile_dim_1d)
 
-    @cuda threads=tile_dim_1d blocks=griddim_1d SBP_N!(GPU_N,GPU_OUT_N,alpha1,alpha2,alpha3,beta,h)
-    @cuda threads=tile_dim_1d blocks=griddim_1d SBP_S!(GPU_S,GPU_OUT_S,alpha1,alpha2,alpha4,beta,h)
-    @cuda threads=tile_dim_1d blocks=griddim_1d SBP_W!(GPU_W,GPU_OUT_W,alpha1,beta,h)
-    @cuda threads=tile_dim_1d blocks=griddim_1d SBP_E!(GPU_E,GPU_OUT_E,alpha2,beta,h)
+    # @cuda threads=tile_dim_1d blocks=griddim_1d SBP_N!(GPU_N,GPU_OUT_N,alpha1,alpha2,alpha3,beta,h)
+    # @cuda threads=tile_dim_1d blocks=griddim_1d SBP_S!(GPU_S,GPU_OUT_S,alpha1,alpha2,alpha4,beta,h)
+    # @cuda threads=tile_dim_1d blocks=griddim_1d SBP_W!(GPU_W,GPU_OUT_W,alpha1,beta,h)
+    # @cuda threads=tile_dim_1d blocks=griddim_1d SBP_E!(GPU_E,GPU_OUT_E,alpha2,beta,h)
+
+    GPU_OUT_W = CuArray{Float64,2}(undef,Nx,3)
+    # GPU_OUT_W_T = CuArray{Float64,2}(undef,3,Nx)
+    GPU_OUT_E = CuArray{Float64,2}(undef,Nx,3)
+    # GPU_OUT_E_T = CuArray{Float64,2}(undef,3,Nx)   
+    # GPU_OUT_N = CuArray{Float64,2}(undef,3,Ny)
+    # GPU_OUT_S = CuArray{Float64,2}(undef,3,Ny)
+    GPU_OUT_N = CuArray{Float64,2}(undef,1,Ny)
+    GPU_OUT_S = CuArray{Float64,2}(undef,1,Ny)
+
+    @cuda threads=tile_dim_1d blocks=griddim_1d SBP_N!(view(idata,1:3,:),GPU_OUT_N,alpha1,alpha2,alpha3,beta,h)
+    @cuda threads=tile_dim_1d blocks=griddim_1d SBP_S!(view(idata,Nx-2:Nx,:),GPU_OUT_S,alpha1,alpha2,alpha4,beta,h)
+    @cuda threads=tile_dim_1d blocks=griddim_1d SBP_W!(view(idata,:,1:3),GPU_OUT_W,alpha1,beta,h)
+    @cuda threads=tile_dim_1d blocks=griddim_1d SBP_E!(view(idata,:,Ny-2:Ny),GPU_OUT_E,alpha2,beta,h)
+    # synchronize()
+    
 
     # show(stdout, "text/plain", odata)
     # println()
@@ -491,14 +509,40 @@ function matrix_free_A_full_GPU(idata,odata)
     # show(stdout, "text/plain", GPU_OUT_S)
     # println()
 
+    # view(GPU_OUT_W,2:Nx-1,1:3)
+    # view(GPU_OUT_E,2:Nx-1,1:3)
+    # view(GPU_OUT_N,1,:)
+    # view(GPU_OUT_S,1,:)
+
+
+    # view(odata,2:Nx-1,1:3) .+ view(GPU_OUT_W,2:Nx-1,1:3)
+    # view(odata,2:Nx-1,Ny-2:Ny) .+ view(GPU_OUT_E,2:Nx-1,1:3)
+    # view(odata,1,1:Ny) .+ view(GPU_OUT_N,1,:)
+    # view(odata,Nx,1:Ny) .+ view(GPU_OUT_S,1,:)
+
+    # view(odata,2:Nx-1,1:3) + view(GPU_OUT_W,2:Nx-1,1:3)
+    # view(odata,2:Nx-1,Ny-2:Ny) + view(GPU_OUT_E,2:Nx-1,1:3)
+    # view(odata,1,1:Ny) + view(GPU_OUT_N,1,:)
+    # view(odata,Nx,1:Ny) + view(GPU_OUT_S,1,:)
+
+    # # Copy W & E boundary
+    # copyto!(view(odata,2:Nx-1,1:3),view(odata,2:Nx-1,1:3) + GPU_OUT_W[2:Nx-1,1:3])
+    # copyto!(view(odata,2:Nx-1,Ny-2:Ny),view(odata,2:Nx-1,Ny-2:Ny) + GPU_OUT_E[2:Nx-1,1:3])
+
+    # # Copy N & S boundary
+    # copyto!(view(odata,1,1:Ny),view(odata,1,1:Ny) .+ GPU_OUT_N[1,:])
+    # copyto!(view(odata,Nx,1:Ny),view(odata,Nx,1:Ny) .+ GPU_OUT_S[end,:])
+
+
     # Copy W & E boundary
-    copyto!(view(odata,2:Nx-1,1:3),view(odata,2:Nx-1,1:3) .+ GPU_OUT_W[2:Nx-1,1:3])
-    copyto!(view(odata,2:Nx-1,Ny-2:Ny),view(odata,2:Nx-1,Ny-2:Ny) .+ GPU_OUT_E[2:Nx-1,1:3])
+    copyto!(view(odata,2:Nx-1,1:3), view(odata,2:Nx-1,1:3) + view(GPU_OUT_W,2:Nx-1,1:3))
+    copyto!(view(odata,2:Nx-1,Ny-2:Ny),view(odata,2:Nx-1,Ny-2:Ny) + view(GPU_OUT_E,2:Nx-1,1:3))
 
     # Copy N & S boundary
-    copyto!(view(odata,1,1:Ny),view(odata,1,1:Ny) .+ GPU_OUT_N[1,:])
-    copyto!(view(odata,Nx,1:Ny),view(odata,Nx,1:Ny) .+ GPU_OUT_S[end,:])
-    synchronize()
+    copyto!(view(odata,1,1:Ny), view(odata,1,1:Ny) + view(GPU_OUT_N,1,:))
+    copyto!(view(odata,Nx,1:Ny), view(odata,Nx,1:Ny) + view(GPU_OUT_S,1,:))
+
+    # synchronize()
     # show(stdout, "text/plain", odata)
     # println()
     nothing
@@ -517,6 +561,7 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     Random.seed!(0)
     idata = CuArray(randn(Nx,Ny))
     odata = similar(idata)
+    odata_v2 = similar(idata)
     odata_full_GPU = similar(idata)
 
     TILE_DIM_1 = TILE_DIM_2 = 16
@@ -533,14 +578,16 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     #griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
     griddim = (cld(Nx,TILE_DIM_1),cld(Ny,TILE_DIM_2))
     blockdim = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim D2_split_naive_v2(idata,odata_v2,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     @cuda threads=blockdim blocks=griddim D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    @show norm(odata-odata_v2)
     @cuda threads=blockdim blocks=griddim copy_naive!(odata,idata)
     # @cuda threads=blockdim blocks=griddim copy_naive!(d_b,d_a)
     synchronize()
     # boundary_data = boundary_containers(zeros(Nx,3),zeros(3,Nx),zeros(Nx,3),zeros(3,Nx),zeros(3,Ny),zeros(3,Ny),zeros(Nx,3),zeros(Nx,3),zeros(3,Ny),zeros(3,Ny))
     matrix_free_A(idata,odata)
     matrix_free_A_full_GPU(idata,odata_full_GPU)
+    @show norm(odata-odata_full_GPU)
 
 
     #iter_times = max(div(1000,max(2.0^(level-9),1)),100)
@@ -623,6 +670,40 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     # for i in 1:20
         num_iter_steps += 1
         matrix_free_A(p_GPU,Ap_GPU);
+        alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
+        # x_GPU = x_GPU + alpha_GPU * p_GPU;
+        # r_GPU = r_GPU - alpha_GPU * Ap_GPU;
+        r_GPU .-= alpha_GPU * Ap_GPU
+        x_GPU .+= alpha_GPU * p_GPU
+        # CUDA.CUBLAS.axpy!()
+        rsnew_GPU = sum(r_GPU .* r_GPU)
+        if sqrt(rsnew_GPU) < sqrt(eps(real(eltype(b_reshaped_GPU))))
+            break
+        end
+        p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) * p_GPU;
+        rsold_GPU = rsnew_GPU
+        # @show rsold_GPU
+    end
+    # @show num_iter_steps
+end
+
+function CG_full_GPU(b_reshaped_GPU,x_GPU)
+    (Nx,Ny) = size(b_reshaped_GPU);
+    odata = CUDA.zeros(Nx,Ny);
+    # odata_D2_GPU = CUDA.zeros(Nx,Ny)
+    # odata_boundary_GPU = CUDA.zeros(Nx,Ny)
+    # matrix_free_A_v3(x_GPU,odata,odata_D2_GPU,odata_boundary_GPU)
+    matrix_free_A_full_GPU(x_GPU,odata);
+    r_GPU = b_reshaped_GPU - odata;
+    p_GPU = copy(r_GPU);
+    rsold_GPU = sum(r_GPU .* r_GPU)
+    Ap_GPU = CUDA.zeros(Nx,Ny);
+    num_iter_steps = 0
+    # @show rsold_GPU
+    for i in 1:Nx*Ny
+    # for i in 1:20
+        num_iter_steps += 1
+        matrix_free_A_full_GPU(p_GPU,Ap_GPU);
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
         # x_GPU = x_GPU + alpha_GPU * p_GPU;
         # r_GPU = r_GPU - alpha_GPU * Ap_GPU;
