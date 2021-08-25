@@ -813,7 +813,7 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
         #     @show rsold_GPU
         # end
     end
-    @show num_iter_steps
+    # @show num_iter_steps
 end
 
 function CG_full_GPU(b_reshaped_GPU,x_GPU)
@@ -851,7 +851,7 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
         #     @show rsold_GPU
         # end
     end
-    @show num_iter_steps
+    # @show num_iter_steps
 end
 
 function CG_CPU(A,b,x)
