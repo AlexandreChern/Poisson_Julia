@@ -336,7 +336,7 @@ function SBP_N!(idata,odata,alpha1,alpha2,alpha3,beta,h)
         odata[1,idx+1] += (2 * beta * (-1 * idata[1,idx])) / 2 # Dirichlet
         odata[1,idx+2] += (0.5 * beta * (idata[1,idx])) / 2 # Dirichlet
     end
-
+    sync_threads()
     if idx == Ny
         odata[1,idx] = (idata[1,idx] - 2*idata[1,idx-1] + idata[1,idx-2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx] 
                         + 2 * alpha3 * (( 1.5* idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx]))
@@ -363,7 +363,7 @@ function SBP_S!(idata,odata,alpha1,alpha2,alpha4,beta,h)
         odata[end,idx+1] += (2 * beta * (-1 * idata[3,idx])) / 2 # Dirichlet
         odata[end,idx+2] += (0.5 * beta * (idata[3,idx])) / 2 # Dirichlet
     end
-
+    sync_threads()
     if idx == Ny
         odata[end,idx] = (idata[3,idx] - 2*idata[3,idx-1] + idata[3,idx-2] + idata[3,idx] - 2*idata[2,idx] + idata[1,idx] 
                         + 2 * alpha4 * (( 1.5* idata[3,idx] - 2*idata[2,idx] + 0.5*idata[1,idx]))
@@ -408,6 +408,19 @@ function SBP_E!(idata,odata,alpha2,beta,h)
      end
     nothing
 end
+
+function show_nonzero_index(A)
+    (M,N) = size(A)
+    for i in 1:M
+        for j in 1:N
+            if !(isapprox(A[i,j],0,atol=1e-8))
+                print((i,j))
+            end 
+        end
+    end
+    println()
+end
+
 
 function matrix_free_A_full_GPU(idata,odata)
     # odata .= 0
@@ -468,15 +481,15 @@ function matrix_free_A_full_GPU(idata,odata)
    
 
     # @cuda threads=blockdim_2d blocks=griddim_2d D2_split_naive(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
-    @cuda threads=blockdim_2d blocks=griddim_2d D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     # synchronize()
-    
+    @cuda threads=blockdim_2d blocks=griddim_2d D2_split_naive_v2(idata,odata,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
 
     
 
     # tile_dim_1d = 16
     # tile_dim_1d = 16
-    tile_dim_1d = 16
+    # tile_dim_1d = 16
+    tile_dim_1d = 64
     griddim_1d = cld(Nx,tile_dim_1d)
     # @show tile_dim_1d
     # @show griddim_1d
@@ -593,6 +606,29 @@ function test_matrix_free_A(level;TILE_DIM_1=16,TILE_DIM_2=16)
     matrix_free_A_full_GPU(idata,odata_full_GPU)
     # @show odata - odata_full_GPU
     @show norm(odata-odata_full_GPU)
+
+    println("Center Error")
+    @show norm((odata-odata_full_GPU)[2:end-1,2:end-1])
+
+    println("West Error")
+    @show norm((odata-odata_full_GPU)[2:end-1,1])
+
+    println("East Error")
+    @show norm((odata-odata_full_GPU)[2:end-1,end])
+
+    println("North Error")
+    @show norm((odata-odata_full_GPU)[1,2:end-1])
+    # @show ((odata-odata_full_GPU)[1,2:end-1])
+    # @show odata[1,1:end] .≈  odata_full_GPU[1,1:end]
+
+    println("South Error")
+    @show norm((odata-odata_full_GPU)[end,2:end-1])
+    # @show odata[end,1:end] .≈  odata_full_GPU[end,1:end]
+
+    show_nonzero_index(Array(odata-odata_full_GPU))
+
+
+
 
 
     #iter_times = max(div(1000,max(2.0^(level-9),1)),100)
