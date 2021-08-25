@@ -131,7 +131,7 @@ rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
 println("################### BEGIN TEST #########################")
-for k in 3:10
+for k in 3:8
     
     println()
     i = j  = k
@@ -258,10 +258,10 @@ for k in 3:10
     # # CG_GPU_dev(b_reshaped_GPU,x_GPU)
 
     # # x_GPU = CUDA.zeros(Nx,Ny);
-    # x_GPU = CuArray(zeros(Nx,Ny));
-    # CG_GPU(b_reshaped_GPU,x_GPU);
-    # x_GPU = CUDA.zeros(Nx,Ny);
-    # CG_GPU(b_reshaped_GPU,x_GPU);
+    x_GPU = CuArray(zeros(Nx,Ny));
+    CG_GPU(b_reshaped_GPU,x_GPU);
+    x_full_GPU = CuArray(zeros(Nx,Ny));
+    CG_full_GPU(b_reshaped_GPU,x_full_GPU);
 
     
 
@@ -273,7 +273,7 @@ for k in 3:10
     x = zeros(Nx*Ny)
     CG_CPU_dev(A,b,x)
 
-     x_GPU = CuArray(zeros(Nx,Ny))
+     x_GPU = CuArray(zeros(Nx,Ny));
             # CG_GPU_dev(b_reshaped_GPU,x_GPU)
             CG_GPU(b_reshaped_GPU,x_GPU)
 
@@ -299,6 +299,16 @@ for k in 3:10
     end
     t_CG_GPU = t_CG_GPU * 1000 / iter_times 
     @show t_CG_GPU
+
+    t_CG_full_GPU = @elapsed begin
+        for i in 1:iter_times
+            x_full_GPU = CuArray(zeros(Nx,Ny))
+            # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+            CG_full_GPU(b_reshaped_GPU,x_full_GPU)
+        end
+    end
+    t_CG_full_GPU = t_CG_full_GPU * 1000 / iter_times 
+    @show t_CG_full_GPU
 
 
     t_CG_CPU_IterativeSolvers = @elapsed begin
@@ -376,12 +386,20 @@ for k in 3:10
     CG_GPU_sol = Array(x_GPU) 
     err_CG_GPU =  (CG_GPU_sol[:] - analy_sol[:])' * H_tilde * (CG_GPU_sol[:] - analy_sol[:])
 
+
+
+    x_full_GPU = CuArray(zeros(Nx,Ny))
+    CG_full_GPU(b_reshaped_GPU,x_full_GPU)
+    CG_full_GPU_sol = Array(x_GPU) 
+    err_CG_full_GPU =  (CG_full_GPU_sol[:] - analy_sol[:])' * H_tilde * (CG_full_GPU_sol[:] - analy_sol[:])
+
     CG_CPU_IterativeSolvers_sol = cg(A,b)
     err_CG_CPU_IterativeSolvers_sol =  (CG_CPU_IterativeSolvers_sol[:] - analy_sol[:])' * H_tilde * (CG_CPU_IterativeSolvers_sol[:] - analy_sol[:])
     println("Printing Out Errors")
     @show err_direct
     @show err_CG_CPU
     @show err_CG_GPU
+    @show err_CG_full_GPU
     @show err_CG_CPU_IterativeSolvers_sol
     # @show err
     # @show iter_err

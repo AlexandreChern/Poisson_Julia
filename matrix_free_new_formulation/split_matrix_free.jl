@@ -655,7 +655,8 @@ end
 
 function CG_GPU(b_reshaped_GPU,x_GPU)
     (Nx,Ny) = size(b_reshaped_GPU);
-    odata = CUDA.zeros(Nx,Ny);
+    # odata = CUDA.zeros(Nx,Ny);
+    odata = CuArray(zeros(Nx,Ny))
     # odata_D2_GPU = CUDA.zeros(Nx,Ny)
     # odata_boundary_GPU = CUDA.zeros(Nx,Ny)
     # matrix_free_A_v3(x_GPU,odata,odata_D2_GPU,odata_boundary_GPU)
@@ -689,7 +690,8 @@ end
 
 function CG_full_GPU(b_reshaped_GPU,x_GPU)
     (Nx,Ny) = size(b_reshaped_GPU);
-    odata = CUDA.zeros(Nx,Ny);
+    # odata = CUDA.zeros(Nx,Ny);
+    odata = CuArray(zeros(Nx,Ny))
     # odata_D2_GPU = CUDA.zeros(Nx,Ny)
     # odata_boundary_GPU = CUDA.zeros(Nx,Ny)
     # matrix_free_A_v3(x_GPU,odata,odata_D2_GPU,odata_boundary_GPU)
