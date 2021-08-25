@@ -355,7 +355,7 @@ function SBP_N!_v3(idata,odata,alpha1,alpha2,alpha3,beta,h)
     if 4 <= idx <= Ny - 3
         odata[1,idx] = (idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1] + 2 * alpha3 * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
     end
-    sync_threads()
+    # sync_threads()
     if idx == 1
         odata[1,idx] = (idata[1,idx] - 2*idata[1,idx+1] + idata[1,idx+2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx] 
                         + 2 * alpha3 * (( 1.5* idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx]))
@@ -363,7 +363,7 @@ function SBP_N!_v3(idata,odata,alpha1,alpha2,alpha3,beta,h)
         odata[1,idx+1] = (2 * beta * (-1 * idata[1,idx])) / 2 + (idata[1,idx+1] - 2*idata[2,idx+1] + idata[3,idx+1] + idata[1,idx] - 2*idata[1,idx+1] + idata[1,idx+2] + 2 * alpha3 * (1.5 * idata[1,idx+1] - 2*idata[2,idx+1] + 0.5*idata[3,idx+1])) / 2 # Dirichlet
         odata[1,idx+2] = (0.5 * beta * (idata[1,idx])) / 2 + (idata[1,idx+2] - 2*idata[2,idx+2] + idata[3,idx+2] + idata[1,idx+1] - 2*idata[1,idx+2] + idata[1,idx+3] + 2 * alpha3 * (1.5 * idata[1,idx+2] - 2*idata[2,idx+2] + 0.5*idata[3,idx+2])) / 2# Dirichlet
     end
-    sync_threads()
+    # sync_threads()
     if idx == Ny
         odata[1,idx] = (idata[1,idx] - 2*idata[1,idx-1] + idata[1,idx-2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx] 
                         + 2 * alpha3 * (( 1.5* idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx]))
@@ -371,7 +371,7 @@ function SBP_N!_v3(idata,odata,alpha1,alpha2,alpha3,beta,h)
         odata[1,idx-1] = (2 * beta * (-1 * idata[1,idx])) / 2 + (idata[1,idx-1] - 2*idata[2,idx-1] + idata[3,idx-1] + idata[1,idx-2] - 2*idata[1,idx-1] + idata[1,idx] + 2 * alpha3 * (1.5 * idata[1,idx-1] - 2*idata[2,idx-1] + 0.5*idata[3,idx-1])) / 2 # Dirichlet
         odata[1,idx-2] = (0.5 * beta * (idata[1,idx])) / 2 + (idata[1,idx-2] - 2*idata[2,idx-2] + idata[3,idx-2] + idata[1,idx-3] - 2*idata[1,idx-2] + idata[1,idx-1] + 2 * alpha3 * (1.5 * idata[1,idx-2] - 2*idata[2,idx-2] + 0.5*idata[3,idx-2])) / 2# Dirichlet
     end
-    sync_threads()
+    # sync_threads()
     nothing
 end
 
@@ -402,7 +402,7 @@ function SBP_S!(idata,odata,alpha1,alpha2,alpha4,beta,h)
     nothing
 end
 
-function SBP_S!_v2(idata,odata,alpha1,alpha2,alpha4,beta,h)
+function SBP_S!_v2(idata,odata,alpha1,alpha2,alpha4,beta,h) # This might be incorrect
     (Nx,Ny) = size(idata)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
@@ -436,7 +436,7 @@ function SBP_S!_v3(idata,odata,alpha1,alpha2,alpha4,beta,h)
     if 4 <= idx <= Ny - 3
         odata[end,idx] = (idata[3,idx] - 2*idata[2,idx] + idata[1,idx] + idata[3,idx-1] - 2*idata[3,idx] + idata[3,idx+1] + 2 * alpha4 * (1.5 * idata[3,idx] - 2*idata[2,idx] + 0.5*idata[1,idx])) / 2
     end
-    sync_threads()
+    # sync_threads()
     if idx == 1
         odata[end,idx] = (idata[3,idx] - 2*idata[3,idx+1] + idata[3,idx+2] + idata[3,idx] - 2*idata[2,idx] + idata[1,idx] 
                         + 2 * alpha4 * (( 1.5* idata[3,idx] - 2*idata[2,idx] + 0.5*idata[1,idx]))
@@ -444,7 +444,7 @@ function SBP_S!_v3(idata,odata,alpha1,alpha2,alpha4,beta,h)
         odata[end,idx+1] = (2 * beta * (-1 * idata[3,idx])) / 2 + (idata[3,idx+1] - 2*idata[2,idx+1] + idata[1,idx+1] + idata[3,idx] - 2*idata[3,idx+1] + idata[3,idx+2] + 2 * alpha4 * (1.5 * idata[3,idx+1] - 2*idata[2,idx+1] + 0.5*idata[1,idx+1])) / 2 # Dirichlet
         odata[end,idx+2] = (0.5 * beta * (idata[3,idx])) / 2 + (idata[3,idx+2] - 2*idata[2,idx+2] + idata[1,idx+2] + idata[3,idx+1] - 2*idata[3,idx+2] + idata[3,idx+3] + 2 * alpha4 * (1.5 * idata[3,idx+2] - 2*idata[2,idx+2] + 0.5*idata[1,idx+2])) / 2# Dirichlet
     end
-    sync_threads()
+    # sync_threads()
     if idx == Ny
         odata[end,idx] = (idata[3,idx] - 2*idata[3,idx-1] + idata[3,idx-2] + idata[3,idx] - 2*idata[2,idx] + idata[1,idx] 
                         + 2 * alpha4 * (( 1.5* idata[3,idx] - 2*idata[2,idx] + 0.5*idata[1,idx]))
@@ -452,7 +452,7 @@ function SBP_S!_v3(idata,odata,alpha1,alpha2,alpha4,beta,h)
         odata[end,idx-1] = (2 * beta * (-1 * idata[3,idx])) / 2 + (idata[3,idx-1] - 2*idata[2,idx-1] + idata[1,idx-1] + idata[3,idx-2] - 2*idata[3,idx-1] + idata[3,idx] + 2 * alpha4 * (1.5 * idata[3,idx-1] - 2*idata[2,idx-1] + 0.5*idata[1,idx-1])) / 2 # Dirichlet
         odata[end,idx-2] = (0.5 * beta * (idata[3,idx])) / 2 + (idata[3,idx-2] - 2*idata[2,idx-2] + idata[1,idx-2] + idata[3,idx-3] - 2*idata[3,idx-2] + idata[3,idx-1] + 2 * alpha4 * (1.5 * idata[3,idx-2] - 2*idata[2,idx-2] + 0.5*idata[1,idx-2])) / 2# Dirichlet
     end
-    sync_threads()
+    # sync_threads()
     nothing
 end
 
@@ -597,7 +597,7 @@ function matrix_free_A_full_GPU(idata,odata)
     @cuda threads=tile_dim_1d blocks=griddim_1d SBP_S!_v3(view(idata,Nx-2:Nx,:),GPU_OUT_S,alpha1,alpha2,alpha4,beta,h)
     @cuda threads=tile_dim_1d blocks=griddim_1d SBP_W!(view(idata,:,1:3),GPU_OUT_W,alpha1,beta,h)
     @cuda threads=tile_dim_1d blocks=griddim_1d SBP_E!(view(idata,:,Ny-2:Ny),GPU_OUT_E,alpha2,beta,h)
-    synchronize()
+    # synchronize()
     
 
     # show(stdout, "text/plain", odata)
@@ -644,7 +644,7 @@ function matrix_free_A_full_GPU(idata,odata)
     copyto!(view(odata,1,1:Ny), view(odata,1,1:Ny) + view(GPU_OUT_N,1,:))
     copyto!(view(odata,Nx,1:Ny), view(odata,Nx,1:Ny) + view(GPU_OUT_S,1,:))
 
-    synchronize()
+    # synchronize()
     # show(stdout, "text/plain", odata)
     # println()
     nothing
