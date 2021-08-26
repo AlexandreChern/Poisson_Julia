@@ -131,11 +131,11 @@ rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
 println("################### BEGIN TEST #########################")
-for k in 6:13
+for k in 6:10
     
     println()
     i = j  = k
-    println("k = ", k)
+    println("##########Starting Test for k = ", k, "######################")
    
     hx = h_list_x[i];
     hy = h_list_y[j];
@@ -204,17 +204,57 @@ for k in 6:13
     A = H_tilde*A;
     b = H_tilde*b;
 
+    @show nnz(A) * sizeof(Float64)
+
+    @show Base.summarysize(A)
+    @show Base.summarysize(b)
+    @show Nx * Ny * sizeof(Float64)
+
+    @show Base.summarysize(A) / Base.summarysize(b)
+    
+    println()
+
     A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
     b_d = CuArray(b);
+    
+    # @show Base.summarysize(A_d)
+    # @show Base.summarysize(A_d)
 
     # testing matrix_split method
     b_reshaped = reshape(b,Nx,Ny);
     b_reshaped_GPU = CuArray(b_reshaped);
 
+    x_GPU = similar(b_reshaped_GPU)
+    x_full_GPU = similar(b_reshaped_GPU)
+    A_d * b_d
+    matrix_free_A(b_reshaped_GPU,x_GPU)
+    matrix_free_A_full_GPU(b_reshaped_GPU,x_full_GPU)
+
+
 
     ## SpMV test
+   
     println("TESTING SpMV vs Matrix_FREE")
     iter_times = Nx + Ny
+
+    time_matrix_free = @elapsed begin
+        for _ in 1:iter_times
+            matrix_free_A(b_reshaped_GPU,x_GPU)
+        end
+    end
+    time_matrix_free = time_matrix_free * 1000 / iter_times
+    @show time_matrix_free
+
+    
+    time_matrix_free_full_GPU = @elapsed begin
+        for _ in 1:iter_times
+            matrix_free_A_full_GPU(b_reshaped_GPU,x_full_GPU)
+        end
+    end
+    time_matrix_free_full_GPU = time_matrix_free_full_GPU * 1000 / iter_times
+    @show time_matrix_free_full_GPU
+  
+
     time_CUBLAS = @elapsed begin
         for _ in 1:iter_times
             A_d * b_d
@@ -222,25 +262,27 @@ for k in 6:13
     end
     time_CUBLAS = time_CUBLAS * 1000 / iter_times
     @show time_CUBLAS
-
-    x_full_GPU = similar(b_reshaped_GPU)
-    time_matrix_free = @elapsed begin
-        for _ in 1:iter_times
-            matrix_free_A_full_GPU(b_reshaped_GPU,x_full_GPU)
-        end
-    end
-    time_matrix_free = time_matrix_free * 1000 / iter_times
-    @show time_matrix_free
+    println()
 
 
     ## End SpMV test
     
     x_GPU = CuArray(zeros(Nx,Ny));
-    CG_GPU(b_reshaped_GPU,x_GPU);
+    iter_steps = CG_GPU(b_reshaped_GPU,x_GPU);
+    println("Iteration steps till convergence for x_GPU: $iter_steps")
+    matrix_free_GPU_time_in_CG = (time_matrix_free * iter_steps)
+    println("Time for matrix_free SpMV in CG: $matrix_free_GPU_time_in_CG\n")
+
     x_full_GPU = CuArray(zeros(Nx,Ny));
-    CG_full_GPU(b_reshaped_GPU,x_full_GPU);
+    iter_steps = CG_full_GPU(b_reshaped_GPU,x_full_GPU);
+    println("Iteration steps till convergence for x_full_GPU: $iter_steps")
+    matrix_free_full_GPU_time_in_CG = (time_matrix_free_full_GPU * iter_steps)
+    println("Time for matrix_free_full_GPU SpMV in CG: $matrix_free_full_GPU_time_in_CG\n")
+
     _,history= cg(A_d,b_d,log=true)
     @show history
+    CUBLAS_SpMV_time_in_CG = (time_CUBLAS * history.iters)
+    println("Time for CUBLAS SpMV in CG_IterativeSolvers: $CUBLAS_SpMV_time_in_CG\n")
 
     # x_GPU = CuArray(zeros(Nx,Ny));
     #         # CG_GPU_dev(b_reshaped_GPU,x_GPU)
@@ -282,6 +324,20 @@ for k in 6:13
     @show t_CG_GPU_IterativeSolvers
 
     println("End time comparison\n")
+
+
+
+    ## Compare Efficiency
+    efficiency_CG_matrix_free = matrix_free_GPU_time_in_CG / t_CG_GPU
+    efficiency_CG_matrix_free_full_GPU = matrix_free_full_GPU_time_in_CG / t_CG_full_GPU
+    efficiency_CG_IterativeSolvrs = CUBLAS_SpMV_time_in_CG / t_CG_GPU_IterativeSolvers
+
+    @show efficiency_CG_matrix_free
+    @show efficiency_CG_matrix_free_full_GPU
+    @show efficiency_CG_IterativeSolvrs
+
+    ## End Compare Efficiency
+    println("##########Ending Test for k = ", k, "######################\n")
 
    
 end

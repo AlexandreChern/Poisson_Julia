@@ -792,6 +792,7 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     rsold_GPU = sum(r_GPU .* r_GPU)
     Ap_GPU = CUDA.zeros(Nx,Ny);
     num_iter_steps = 0
+    abs_tol = sqrt(eps(real(eltype(b_reshaped_GPU))))
     # @show rsold_GPU
     for i in 1:Nx*Ny
     # for i in 1:20
@@ -804,7 +805,7 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
         x_GPU .+= alpha_GPU * p_GPU
         # CUDA.CUBLAS.axpy!()
         rsnew_GPU = sum(r_GPU .* r_GPU)
-        if sqrt(rsnew_GPU) < sqrt(eps(real(eltype(b_reshaped_GPU))))
+        if sqrt(rsnew_GPU) < abs_tol
             break
         end
         p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) * p_GPU;
@@ -813,7 +814,8 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
         #     @show rsold_GPU
         # end
     end
-    @show num_iter_steps
+    # @show num_iter_steps
+    num_iter_steps
 end
 
 function CG_full_GPU(b_reshaped_GPU,x_GPU)
@@ -830,6 +832,7 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
     # Ap_GPU = CUDA.zeros(Nx,Ny);
     Ap_GPU = CuArray(zeros(Nx,Ny))
     num_iter_steps = 0
+    abs_tol = sqrt(eps(real(eltype(b_reshaped_GPU))))
     # @show rsold_GPU
     for i in 1:Nx*Ny
     # for i in 1:20
@@ -842,7 +845,7 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
         x_GPU .+= alpha_GPU * p_GPU
         # CUDA.CUBLAS.axpy!()
         rsnew_GPU = sum(r_GPU .* r_GPU)
-        if sqrt(rsnew_GPU) < sqrt(eps(real(eltype(b_reshaped_GPU))))
+        if sqrt(rsnew_GPU) < abs_tol
             break
         end
         p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) * p_GPU;
@@ -851,7 +854,8 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
         #     @show rsold_GPU
         # end
     end
-    @show num_iter_steps
+    # @show num_iter_steps
+    num_iter_steps
 end
 
 function CG_CPU(A,b,x)
@@ -879,4 +883,5 @@ function CG_CPU(A,b,x)
         # @show rsold
     end
     # @show num_iter_steps
+    num_iter_steps
 end
