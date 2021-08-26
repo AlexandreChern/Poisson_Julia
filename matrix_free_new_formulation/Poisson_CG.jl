@@ -131,11 +131,11 @@ rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
 println("################### BEGIN TEST #########################")
-for k in 6:10
+for k in 8:10
     
     println()
     i = j  = k
-    println("##########Starting Test for k = ", k, "######################")
+    println("##########   Starting Test for k = ", k, "   ######################")
    
     hx = h_list_x[i];
     hy = h_list_y[j];
@@ -336,8 +336,19 @@ for k in 6:10
     @show efficiency_CG_matrix_free_full_GPU
     @show efficiency_CG_IterativeSolvrs
 
+    println()
+
+    overhead_CG_matrix_free =  t_CG_GPU - matrix_free_GPU_time_in_CG 
+    overhead_CG_matrix_free_full_GPU = t_CG_full_GPU - matrix_free_full_GPU_time_in_CG  
+    overhead_CG_IterativeSolvrs = t_CG_GPU_IterativeSolvers - CUBLAS_SpMV_time_in_CG
+
+    @show overhead_CG_matrix_free
+    @show overhead_CG_matrix_free_full_GPU
+    @show overhead_CG_IterativeSolvrs
+
+
     ## End Compare Efficiency
-    println("##########Ending Test for k = ", k, "######################\n")
+    println("##########   Ending Test for k = ", k, "   ######################\n")
 
    
 end
