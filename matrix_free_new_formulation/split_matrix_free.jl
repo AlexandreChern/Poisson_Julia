@@ -790,7 +790,7 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     r_GPU = b_reshaped_GPU - odata;
     p_GPU = copy(r_GPU);
     rsold_GPU = sum(r_GPU .* r_GPU)
-    Ap_GPU = CUDA.zeros(Nx,Ny);
+    Ap_GPU = CuArray(zeros(Nx,Ny))
     num_iter_steps = 0
     abs_tol = sqrt(eps(real(eltype(b_reshaped_GPU))))
     # @show rsold_GPU
@@ -841,14 +841,14 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
         alpha_GPU = rsold_GPU / (sum(p_GPU .* Ap_GPU))
         # x_GPU = x_GPU + alpha_GPU * p_GPU;
         # r_GPU = r_GPU - alpha_GPU * Ap_GPU;
-        r_GPU .-= alpha_GPU * Ap_GPU
-        x_GPU .+= alpha_GPU * p_GPU
+        r_GPU .-= alpha_GPU .* Ap_GPU
+        x_GPU .+= alpha_GPU .* p_GPU
         # CUDA.CUBLAS.axpy!()
         rsnew_GPU = sum(r_GPU .* r_GPU)
         if sqrt(rsnew_GPU) < abs_tol
             break
         end
-        p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) * p_GPU;
+        p_GPU .= r_GPU .+ (rsnew_GPU/rsold_GPU) .* p_GPU;
         rsold_GPU = rsnew_GPU
         # if i < 20
         #     @show rsold_GPU

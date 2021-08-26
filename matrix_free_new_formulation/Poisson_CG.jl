@@ -270,19 +270,16 @@ for k in 8:10
     x_GPU = CuArray(zeros(Nx,Ny));
     iter_steps = CG_GPU(b_reshaped_GPU,x_GPU);
     println("Iteration steps till convergence for x_GPU: $iter_steps")
-    matrix_free_GPU_time_in_CG = (time_matrix_free * iter_steps)
-    println("Time for matrix_free SpMV in CG: $matrix_free_GPU_time_in_CG\n")
+    
 
     x_full_GPU = CuArray(zeros(Nx,Ny));
     iter_steps = CG_full_GPU(b_reshaped_GPU,x_full_GPU);
     println("Iteration steps till convergence for x_full_GPU: $iter_steps")
-    matrix_free_full_GPU_time_in_CG = (time_matrix_free_full_GPU * iter_steps)
-    println("Time for matrix_free_full_GPU SpMV in CG: $matrix_free_full_GPU_time_in_CG\n")
+   
 
     _,history= cg(A_d,b_d,log=true)
     @show history
-    CUBLAS_SpMV_time_in_CG = (time_CUBLAS * history.iters)
-    println("Time for CUBLAS SpMV in CG_IterativeSolvers: $CUBLAS_SpMV_time_in_CG\n")
+   
 
     # x_GPU = CuArray(zeros(Nx,Ny));
     #         # CG_GPU_dev(b_reshaped_GPU,x_GPU)
@@ -328,13 +325,14 @@ for k in 8:10
 
 
     ## Compare Efficiency
-    efficiency_CG_matrix_free = matrix_free_GPU_time_in_CG / t_CG_GPU
-    efficiency_CG_matrix_free_full_GPU = matrix_free_full_GPU_time_in_CG / t_CG_full_GPU
-    efficiency_CG_IterativeSolvrs = CUBLAS_SpMV_time_in_CG / t_CG_GPU_IterativeSolvers
 
-    @show efficiency_CG_matrix_free
-    @show efficiency_CG_matrix_free_full_GPU
-    @show efficiency_CG_IterativeSolvrs
+    matrix_free_GPU_time_in_CG = (time_matrix_free * iter_steps)
+    println("Time for matrix_free SpMV in CG: $matrix_free_GPU_time_in_CG")
+    matrix_free_full_GPU_time_in_CG = (time_matrix_free_full_GPU * iter_steps)
+    println("Time for matrix_free_full_GPU SpMV in CG: $matrix_free_full_GPU_time_in_CG")
+    CUBLAS_SpMV_time_in_CG = (time_CUBLAS * history.iters)
+    println("Time for CUBLAS SpMV in CG_IterativeSolvers: $CUBLAS_SpMV_time_in_CG\n")
+
 
     println()
 
@@ -345,6 +343,18 @@ for k in 8:10
     @show overhead_CG_matrix_free
     @show overhead_CG_matrix_free_full_GPU
     @show overhead_CG_IterativeSolvrs
+
+    println()
+
+    efficiency_CG_matrix_free = matrix_free_GPU_time_in_CG / t_CG_GPU
+    efficiency_CG_matrix_free_full_GPU = matrix_free_full_GPU_time_in_CG / t_CG_full_GPU
+    efficiency_CG_IterativeSolvrs = CUBLAS_SpMV_time_in_CG / t_CG_GPU_IterativeSolvers
+
+    @show efficiency_CG_matrix_free
+    @show efficiency_CG_matrix_free_full_GPU
+    @show efficiency_CG_IterativeSolvrs
+
+    println()
 
 
     ## End Compare Efficiency
