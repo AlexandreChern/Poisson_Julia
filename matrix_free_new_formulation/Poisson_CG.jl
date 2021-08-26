@@ -131,7 +131,7 @@ rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
 println("################### BEGIN TEST #########################")
-for k in 6:11
+for k in 6:13
     
     println()
     i = j  = k
@@ -246,7 +246,7 @@ for k in 6:11
     #         # CG_GPU_dev(b_reshaped_GPU,x_GPU)
     # CG_GPU(b_reshaped_GPU,x_GPU)
 
-    iter_times = min(5,12-k)
+    iter_times = min(5,max(13-k,1))
     println()
     println("Starting Timing, results in ms")
 
