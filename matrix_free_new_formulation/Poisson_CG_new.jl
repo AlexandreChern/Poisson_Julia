@@ -400,7 +400,7 @@ function test_CG_initial_guess(level;alpha=1)
 
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
 
-    x_init_direct = A\b;
+    # x_init_direct = A\b;
 
     (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(previous_level)
     x_p = A_p \ b_p;
@@ -412,40 +412,40 @@ function test_CG_initial_guess(level;alpha=1)
     @show CG_CPU(A,b,zeros(length(b)))
     @show CG_CPU(A,b,x_p_interpolated[:])
 
-    _,history = cg!(x_init_direct,A,b,log=true);
-    println("x_init_direct: ",history)
-    println("reltol for x_init_direct: ",history.data[:reltol])
-    println()
+    # _,history = cg!(x_init_direct,A,b,log=true);
+    # println("x_init_direct: ",history)
+    # println("reltol for x_init_direct: ",history.data[:reltol])
+    # println()
 
-    x_init_direct_random_noise = alpha * x_init_direct + 1e-4 * randn(length(b));
-    # @show x_init_direct_random_noise
-    _, history = cg!(x_init_direct_random_noise,A,b,log=true);
-    println("x_init_direct_random_noise: ",history)
-    println("reltol for x_init_direct_random_noise: ",history.data[:reltol])
-    println()
-
-
-    x_init_zeros = zeros(length(b));
-    _, history = cg!(x_init_zeros,A,b,log=true);
-    println("x_init_zeros: ",history)
-    println("reltol for x_init_zeros: ",history.data[:reltol])
-    println()
-
-    println("Now try lower reltol")
-    x_init_zeros = zeros(length(b));
-    x_half, history = cg!(x_init_zeros,A,b,reltol = 1e-7, log=true);
-    println("x_init_zeros with reltol = 1e-2: ",history)
-    x_end, history = cg!(x_half,A,b, log=true);
-    println("reltol: ",history.data[:reltol])
-    println("x_init_half: ",history)
-    println()
+    # x_init_direct_random_noise = alpha * x_init_direct + 1e-4 * randn(length(b));
+    # # @show x_init_direct_random_noise
+    # _, history = cg!(x_init_direct_random_noise,A,b,log=true);
+    # println("x_init_direct_random_noise: ",history)
+    # println("reltol for x_init_direct_random_noise: ",history.data[:reltol])
+    # println()
 
 
-    x_init_random = randn(length(b));
-    _, history = cg!(x_init_random,A,b,log=true);
+    # x_init_zeros = zeros(length(b));
+    # _, history = cg!(x_init_zeros,A,b,log=true);
+    # println("x_init_zeros: ",history)
+    # println("reltol for x_init_zeros: ",history.data[:reltol])
+    # println()
 
-    println("x_init_random: ",history)
-    println()
+    # println("Now try lower reltol")
+    # x_init_zeros = zeros(length(b));
+    # x_half, history = cg!(x_init_zeros,A,b,reltol = 1e-7, log=true);
+    # println("x_init_zeros with reltol = 1e-2: ",history)
+    # x_end, history = cg!(x_half,A,b, log=true);
+    # println("reltol: ",history.data[:reltol])
+    # println("x_init_half: ",history)
+    # println()
+
+
+    # x_init_random = randn(length(b));
+    # _, history = cg!(x_init_random,A,b,log=true);
+
+    # println("x_init_random: ",history)
+    # println()
 
    
     # for rel_tol in [1e-3,1e-4,1e-5,1e-6,1e-7,1e-8,1e-9]
@@ -477,7 +477,6 @@ function test_CG_initial_guess(level;alpha=1)
     # x_GPU = CuArray(zeros(Nx,Ny))
     # iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU)
     
-    # x = matrix_interpolation(matrix_interpolation(x_p_reshaped))
     # x_GPU_init_guess = CuArray(x)
     # iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU_init_guess)
     # @show iter_times
@@ -493,3 +492,6 @@ function test_CG_initial_guess(level;alpha=1)
     # @show t_CG_GPU
     nothing
 end
+
+
+test_CG_initial_guess(11;alpha=1)

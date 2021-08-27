@@ -790,7 +790,7 @@ function CG_GPU(b_reshaped_GPU,x_GPU)
     Ap_GPU = CuArray(zeros(Nx,Ny))
     num_iter_steps = 0
     machine_eps = sqrt(eps(real(eltype(b_reshaped_GPU))))
-    rel_tol = machine_eps * sqrt(rsold_GPU)
+    rel_tol = machine_eps * max(sqrt(rsold_GPU),1)
     # @show rel_tol
     norms = [sqrt(rsold_GPU)]
     # @show rsold_GPU
@@ -855,16 +855,15 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
     (Nx,Ny) = size(b_reshaped_GPU);
     odata = CuArray(zeros(Nx,Ny))
     # matrix_free_A_full_GPU(x_GPU,odata);
-    matrix_free_A_full_GPU(CuArray(zeros(Nx,Ny)),odata)
+    matrix_free_A_full_GPU(x_GPU,odata)
     r_GPU = b_reshaped_GPU - odata;
     p_GPU = copy(r_GPU);
     rsold_GPU = sum(r_GPU .* r_GPU)
-    matrix_free_A_full_GPU(x_GPU,odata)
     # Ap_GPU = CUDA.zeros(Nx,Ny);
     Ap_GPU = CuArray(zeros(Nx,Ny))
     num_iter_steps = 0
     machine_eps = sqrt(eps(real(eltype(b_reshaped_GPU))))
-    rel_tol = machine_eps * sqrt(rsold_GPU)
+    rel_tol = machine_eps * max(sqrt(rsold_GPU),1)
     # rel_tol = 1.4509956694320027e-6
     norms = [sqrt(rsold_GPU)]
     for i in 1:Nx*Ny
