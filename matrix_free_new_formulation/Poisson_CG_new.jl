@@ -360,34 +360,6 @@ function test_CG(level)
      println("##########   Ending Test for level = ", level, "   ######################\n")
 end
 
-function test_CG_initial_guess(level)
-    previous_level = level - 2
-    @show previous_level
-
-    (A,b,Nx,Ny) = Assembling_matrix(level)
-    b_reshaped = reshape(b,Nx,Ny);
-    b_reshaped_GPU = CuArray(b_reshaped);
-    (A_p,b_p,Nx_p,Ny_p) = Assembling_matrix(previous_level)
-
-    x_p = A_p \ b_p
-    x_p_reshaped = reshape(x_p,Nx_p,Ny_p)
-    x = matrix_interpolation(matrix_interpolation(x_p_reshaped))
-    x_GPU = CuArray(x)
-
-    iter_times = CG_GPU(b_reshaped_GPU,x_GPU)
-    @show iter_times
-
-    t_CG_GPU = @elapsed begin
-        for i in 1:iter_times
-            x_GPU = CuArray(x)
-            # CG_GPU_dev(b_reshaped_GPU,x_GPU)
-            CG_GPU(b_reshaped_GPU,x_GPU)
-        end
-    end
-    t_CG_GPU = t_CG_GPU * 1000 / iter_times 
-    @show t_CG_GPU
-end
-
 
 
 function matrix_interpolation(idata)
@@ -413,4 +385,61 @@ function matrix_interpolation(idata)
         end
     end
     return odata
+end
+
+function test_CG_initial_guess(level)
+    previous_level = level - 2
+    @show previous_level
+
+    (A,b,Nx,Ny) = Assembling_matrix(level);
+
+    x_init_direct = A\b;
+    _,history = cg!(x_init_direct,A,b,log=true);
+    println("x_init_direct: ",history)
+
+    x_init_direct_random_noise = x_init_direct + 1e-2 * randn(length(b));
+    _, history = cg!(x_init_direct_random_noise,A,b,log=true);
+    println("x_init_direct_random_noise: ",history)
+
+
+    x_init_zeros = zeros(length(b));
+    _, history = cg!(x_init_zeros,A,b,log=true);
+    println("x_init_zeros: ",history)
+
+
+
+    x_init_random = randn(length(b));
+    _, history = cg!(x_init_random,A,b,log=true);
+    println("x_init_random: ",history)
+
+
+
+
+
+    # A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
+    # b_reshaped = reshape(b,Nx,Ny);
+    # b_reshaped_GPU = CuArray(b_reshaped);
+    # (A_p,b_p,Nx_p,Ny_p) = Assembling_matrix(previous_level)
+
+    # x_p = A_p \ b_p
+    
+    # x_p_reshaped = reshape(x_p,Nx_p,Ny_p)
+   
+    # x_GPU = CuArray(zeros(Nx,Ny))
+    # iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU)
+    
+    # x = matrix_interpolation(matrix_interpolation(x_p_reshaped))
+    # x_GPU_init_guess = CuArray(x)
+    # iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU_init_guess)
+    # @show iter_times
+
+    # t_CG_GPU = @elapsed begin
+    #     for i in 1:iter_times
+    #         x_GPU = CuArray(x)
+    #         # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+    #         CG_full_GPU(b_reshaped_GPU,x_GPU)
+    #     end
+    # end
+    # t_CG_GPU = t_CG_GPU * 1000 / iter_times 
+    # @show t_CG_GPU
 end
