@@ -407,7 +407,7 @@ function test_CG_initial_guess(level;alpha=1)
     x_p_reshaped = reshape(x_p,Nx_p,Ny_p);
     x_p_interpolated = matrix_interpolation(x_p_reshaped);
 
-    @show CG_CPU(A,b,x_init_direct + 0.001*randn(length(b)))
+    # @show CG_CPU(A,b,x_init_direct + 0.001*randn(length(b)))
     @show CG_CPU(A,b,randn(length(b)))
     @show CG_CPU(A,b,zeros(length(b)))
     @show CG_CPU(A,b,x_p_interpolated[:])
