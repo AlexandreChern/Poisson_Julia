@@ -888,7 +888,7 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
         # end
     end
     # @show num_iter_steps
-    (num_iter_steps,reltol,norms[end])
+    (num_iter_steps,rel_tol,norms[end])
 end
 
 function CG_CPU(A,b,x)
