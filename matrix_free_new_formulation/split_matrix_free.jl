@@ -848,7 +848,7 @@ function CG_GPU_v2(b_reshaped_GPU,x_GPU,odata,r_GPU,p_GPU,Ap_GPU)
         # end
     end
     # @show num_iter_steps
-    (num_iter_steps,rsold_GPU)
+    (num_iter_steps,rel_tol,rsold_GPU)
 end
 
 function CG_full_GPU(b_reshaped_GPU,x_GPU)
@@ -863,8 +863,8 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
     Ap_GPU = CuArray(zeros(Nx,Ny))
     num_iter_steps = 0
     machine_eps = sqrt(eps(real(eltype(b_reshaped_GPU))))
-    rel_tol = machine_eps * max(sqrt(rsold_GPU),1)
-    # rel_tol = 1.4509956694320027e-6
+    # rel_tol = machine_eps * max(sqrt(rsold_GPU),1)
+    rel_tol = machine_eps
     norms = [sqrt(rsold_GPU)]
     for i in 1:Nx*Ny
     # for i in 1:20
@@ -888,7 +888,7 @@ function CG_full_GPU(b_reshaped_GPU,x_GPU)
         # end
     end
     # @show num_iter_steps
-    (num_iter_steps,norms[end])
+    (num_iter_steps,reltol,norms[end])
 end
 
 function CG_CPU(A,b,x)
