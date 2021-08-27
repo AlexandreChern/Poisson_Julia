@@ -408,6 +408,7 @@ function test_CG_initial_guess(level;alpha=1)
     x_p_interpolated = matrix_interpolation(x_p_reshaped);
 
     # @show CG_CPU(A,b,x_init_direct + 0.001*randn(length(b)))
+
     @show CG_CPU(A,b,randn(length(b)))
     @show CG_CPU(A,b,zeros(length(b)))
     @show CG_CPU(A,b,x_p_interpolated[:])
@@ -477,9 +478,9 @@ function test_CG_initial_guess(level;alpha=1)
     # x_GPU = CuArray(zeros(Nx,Ny))
     # iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU)
     
-    # x_GPU_init_guess = CuArray(x)
-    # iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU_init_guess)
-    # @show iter_times
+    x_GPU_init_guess = CuArray(x_p_interpolated)
+    iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU_init_guess)
+    @show iter_times
 
     # t_CG_GPU = @elapsed begin
     #     for i in 1:iter_times
@@ -494,4 +495,4 @@ function test_CG_initial_guess(level;alpha=1)
 end
 
 
-test_CG_initial_guess(11;alpha=1)
+test_CG_initial_guess(10;alpha=1)
