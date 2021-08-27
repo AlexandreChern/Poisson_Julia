@@ -230,6 +230,13 @@ for k in 8:10
     matrix_free_A(b_reshaped_GPU,x_GPU)
     matrix_free_A_full_GPU(b_reshaped_GPU,x_full_GPU)
 
+    odata = similar(b_reshaped_GPU)
+    r_GPU = similar(b_reshaped_GPU)
+    p_GPU = similar(b_reshaped_GPU)
+    Ap_GPU = similar(b_reshaped_GPU)
+
+    CG_GPU_v2(b_reshaped_GPU,x_GPU,odata,r_GPU,p_GPU,Ap_GPU)
+
 
 
     ## SpMV test
@@ -244,7 +251,6 @@ for k in 8:10
     end
     time_matrix_free = time_matrix_free * 1000 / iter_times
     @show time_matrix_free
-
     
     time_matrix_free_full_GPU = @elapsed begin
         for _ in 1:iter_times
@@ -268,13 +274,17 @@ for k in 8:10
     ## End SpMV test
     
     x_GPU = CuArray(zeros(Nx,Ny));
-    iter_steps = CG_GPU(b_reshaped_GPU,x_GPU);
+    (iter_steps,rsold_GPU) = CG_GPU(b_reshaped_GPU,x_GPU);
     println("Iteration steps till convergence for x_GPU: $iter_steps")
+    @show rsold_GPU
+    matrix_free_GPU_time_in_CG = (time_matrix_free * iter_steps)
     
 
     x_full_GPU = CuArray(zeros(Nx,Ny));
-    iter_steps = CG_full_GPU(b_reshaped_GPU,x_full_GPU);
+    (iter_steps,rsold_full_GPU) = CG_full_GPU(b_reshaped_GPU,x_full_GPU);
+    matrix_free_full_GPU_time_in_CG = (time_matrix_free_full_GPU * iter_steps)
     println("Iteration steps till convergence for x_full_GPU: $iter_steps")
+    @show rsold_full_GPU
    
 
     _,history= cg(A_d,b_d,log=true)
@@ -289,6 +299,15 @@ for k in 8:10
     println()
     println("Starting Timing, results in ms")
 
+   
+    println("Time for matrix_free SpMV in CG: $matrix_free_GPU_time_in_CG")
+    println("Time for matrix_free_full_GPU SpMV in CG: $matrix_free_full_GPU_time_in_CG")
+    CUBLAS_SpMV_time_in_CG = (time_CUBLAS * history.iters)
+    println("Time for CUBLAS SpMV in CG_IterativeSolvers: $CUBLAS_SpMV_time_in_CG\n")
+
+
+    println()
+
     t_CG_GPU = @elapsed begin
         for i in 1:iter_times
             x_GPU = CuArray(zeros(Nx,Ny))
@@ -298,6 +317,16 @@ for k in 8:10
     end
     t_CG_GPU = t_CG_GPU * 1000 / iter_times 
     @show t_CG_GPU
+
+    # t_CG_GPU_v2 = @elapsed begin # testing preallocation
+    #     for i in 1:iter_times
+    #         x_GPU = CuArray(zeros(Nx,Ny))
+    #         # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+    #         CG_GPU_v2(b_reshaped_GPU,x_GPU,odata,r_GPU,p_GPU,Ap_GPU)
+    #     end
+    # end
+    # t_CG_GPU_v2 = t_CG_GPU_v2 * 1000 / iter_times 
+    # @show t_CG_GPU_v2
 
     t_CG_full_GPU = @elapsed begin
         for i in 1:iter_times
@@ -326,15 +355,7 @@ for k in 8:10
 
     ## Compare Efficiency
 
-    matrix_free_GPU_time_in_CG = (time_matrix_free * iter_steps)
-    println("Time for matrix_free SpMV in CG: $matrix_free_GPU_time_in_CG")
-    matrix_free_full_GPU_time_in_CG = (time_matrix_free_full_GPU * iter_steps)
-    println("Time for matrix_free_full_GPU SpMV in CG: $matrix_free_full_GPU_time_in_CG")
-    CUBLAS_SpMV_time_in_CG = (time_CUBLAS * history.iters)
-    println("Time for CUBLAS SpMV in CG_IterativeSolvers: $CUBLAS_SpMV_time_in_CG\n")
-
-
-    println()
+   
 
     overhead_CG_matrix_free =  t_CG_GPU - matrix_free_GPU_time_in_CG 
     overhead_CG_matrix_free_full_GPU = t_CG_full_GPU - matrix_free_full_GPU_time_in_CG  
