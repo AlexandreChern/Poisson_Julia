@@ -131,7 +131,7 @@ rel_errs = []
 iter_errs = []
 # for k in 1:length(h_list_x)
 println("################### BEGIN TEST #########################")
-for k in 8:10
+for k in 10:10
     
     println()
     i = j  = k
@@ -230,10 +230,10 @@ for k in 8:10
     matrix_free_A(b_reshaped_GPU,x_GPU)
     matrix_free_A_full_GPU(b_reshaped_GPU,x_full_GPU)
 
-    odata = similar(b_reshaped_GPU)
-    r_GPU = similar(b_reshaped_GPU)
-    p_GPU = similar(b_reshaped_GPU)
-    Ap_GPU = similar(b_reshaped_GPU)
+    odata = similar(b_reshaped_GPU);
+    r_GPU = similar(b_reshaped_GPU);
+    p_GPU = similar(b_reshaped_GPU);
+    Ap_GPU = similar(b_reshaped_GPU);
 
     CG_GPU_v2(b_reshaped_GPU,x_GPU,odata,r_GPU,p_GPU,Ap_GPU)
 
@@ -289,6 +289,8 @@ for k in 8:10
 
     _,history= cg(A_d,b_d,log=true)
     @show history
+    @show history.data[:resnorm][end]
+    @show history.data[:resnorm][end-1]
    
 
     # x_GPU = CuArray(zeros(Nx,Ny));
