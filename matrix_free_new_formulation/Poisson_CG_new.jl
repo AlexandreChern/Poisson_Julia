@@ -409,9 +409,9 @@ function test_CG_initial_guess(level;alpha=1)
 
     # @show CG_CPU(A,b,x_init_direct + 0.001*randn(length(b)))
 
-    @show CG_CPU(A,b,randn(length(b)))
-    @show CG_CPU(A,b,zeros(length(b)))
-    @show CG_CPU(A,b,x_p_interpolated[:])
+    # @show CG_CPU(A,b,randn(length(b)))
+    # @show CG_CPU(A,b,zeros(length(b)))
+    # @show CG_CPU(A,b,x_p_interpolated[:])
 
     # _,history = cg!(x_init_direct,A,b,log=true);
     # println("x_init_direct: ",history)
@@ -467,8 +467,8 @@ function test_CG_initial_guess(level;alpha=1)
 
 
     # A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
-    # b_reshaped = reshape(b,Nx,Ny);
-    # b_reshaped_GPU = CuArray(b_reshaped);
+    b_reshaped = reshape(b,Nx,Ny);
+    b_reshaped_GPU = CuArray(b_reshaped);
     # (A_p,b_p,Nx_p,Ny_p) = Assembling_matrix(previous_level)
 
     # x_p = A_p \ b_p
@@ -479,20 +479,36 @@ function test_CG_initial_guess(level;alpha=1)
     # iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU)
     
     x_GPU_init_guess = CuArray(x_p_interpolated)
-    iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU_init_guess)
-    @show iter_times
+    iter_times_init_guess = CG_full_GPU(b_reshaped_GPU,x_GPU_init_guess)
+    @show iter_times_init_guess
 
-    # t_CG_GPU = @elapsed begin
-    #     for i in 1:iter_times
-    #         x_GPU = CuArray(x)
-    #         # CG_GPU_dev(b_reshaped_GPU,x_GPU)
-    #         CG_full_GPU(b_reshaped_GPU,x_GPU)
-    #     end
-    # end
-    # t_CG_GPU = t_CG_GPU * 1000 / iter_times 
-    # @show t_CG_GPU
+    x_GPU_zero = CuArray(zeros(Nx,Ny))
+    iter_times_zero = CG_full_GPU(b_reshaped_GPU,x_GPU_zero)
+    @show iter_times_zero
+
+    iter_times = 5
+    t_CG_GPU_zero = @elapsed begin
+        for i in 1:iter_times
+            x_GPU = CuArray(zeros(Nx,Ny))
+            # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+            CG_full_GPU(b_reshaped_GPU,x_GPU)
+        end
+    end
+    t_CG_GPU_zero = t_CG_GPU_zero * 1000 / iter_times 
+    @show t_CG_GPU_zero
+
+    iter_times = 5
+    t_CG_GPU_init_guess = @elapsed begin
+        for i in 1:iter_times
+            x_GPU = CuArray(x_p_interpolated)
+            # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+            CG_full_GPU(b_reshaped_GPU,x_GPU)
+        end
+    end
+    t_CG_GPU_init_guess = t_CG_GPU_init_guess * 1000 / iter_times 
+    @show t_CG_GPU_init_guess
     nothing
 end
 
 
-test_CG_initial_guess(10;alpha=1)
+test_CG_initial_guess(11;alpha=1)
