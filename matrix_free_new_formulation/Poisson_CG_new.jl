@@ -180,7 +180,7 @@ function Assembling_matrix(level)
     A = H_tilde*A;
     b = H_tilde*b;
 
-    return (A,b,Nx,Ny)
+    return (A,b,H_tilde,Nx,Ny)
 end
 
 
@@ -191,7 +191,7 @@ function test_CG(level)
     Nx = 2^level + 1
     Ny = 2^level + 1
 
-    (A,b,Nx,Ny) = Assembling_matrix(level)
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
 
     @show Base.summarysize(A)
     @show Base.summarysize(b)
@@ -387,30 +387,79 @@ function matrix_interpolation(idata)
     return odata
 end
 
-function test_CG_initial_guess(level)
-    previous_level = level - 2
-    @show previous_level
+function test_CG_initial_guess(level;alpha=1)
+    previous_level = level - 1
+    println("previous_level\n",previous_level)
 
-    (A,b,Nx,Ny) = Assembling_matrix(level);
+    i = j  = level
+    hx = h_list_x[i];
+    hy = h_list_y[j];
+    x = range(0,step=hx,1);
+    y = range(0,step=hy,1);
+    analy_sol = u(x,y');
+
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
 
     x_init_direct = A\b;
+
+    (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(previous_level)
+    x_p = A_p \ b_p;
+    x_p_reshaped = reshape(x_p,Nx_p,Ny_p);
+    x_p_interpolated = matrix_interpolation(x_p_reshaped);
+
+    @show CG_CPU(A,b,x_init_direct + 0.001*randn(length(b)))
+    @show CG_CPU(A,b,randn(length(b)))
+    @show CG_CPU(A,b,zeros(length(b)))
+    @show CG_CPU(A,b,x_p_interpolated[:])
+
     _,history = cg!(x_init_direct,A,b,log=true);
     println("x_init_direct: ",history)
+    println("reltol for x_init_direct: ",history.data[:reltol])
+    println()
 
-    x_init_direct_random_noise = x_init_direct + 1e-2 * randn(length(b));
+    x_init_direct_random_noise = alpha * x_init_direct + 1e-4 * randn(length(b));
+    # @show x_init_direct_random_noise
     _, history = cg!(x_init_direct_random_noise,A,b,log=true);
     println("x_init_direct_random_noise: ",history)
+    println("reltol for x_init_direct_random_noise: ",history.data[:reltol])
+    println()
 
 
     x_init_zeros = zeros(length(b));
     _, history = cg!(x_init_zeros,A,b,log=true);
     println("x_init_zeros: ",history)
+    println("reltol for x_init_zeros: ",history.data[:reltol])
+    println()
 
+    println("Now try lower reltol")
+    x_init_zeros = zeros(length(b));
+    x_half, history = cg!(x_init_zeros,A,b,reltol = 1e-7, log=true);
+    println("x_init_zeros with reltol = 1e-2: ",history)
+    x_end, history = cg!(x_half,A,b, log=true);
+    println("reltol: ",history.data[:reltol])
+    println("x_init_half: ",history)
+    println()
 
 
     x_init_random = randn(length(b));
     _, history = cg!(x_init_random,A,b,log=true);
+
     println("x_init_random: ",history)
+    println()
+
+   
+    # for rel_tol in [1e-3,1e-4,1e-5,1e-6,1e-7,1e-8,1e-9]
+    #     println()
+    #     CG_CPU_IterativeSolvers_sol,history = cg(A,b,reltol=rel_tol,log=true)
+    #     println("reltol:",history.data[:reltol])
+    #     println(history)
+    #     err_CG_CPU_IterativeSolvers_sol =  (CG_CPU_IterativeSolvers_sol[:] - analy_sol[:])' * H_tilde * (CG_CPU_IterativeSolvers_sol[:] - analy_sol[:])
+    #     @show err_CG_CPU_IterativeSolvers_sol
+    # end
+
+    # direct_sol = reshape(A\b,Nx,Ny)
+    # err_direct = (direct_sol[:] - analy_sol[:])' * H_tilde * (direct_sol[:] - analy_sol[:])
+    # @show err_direct
 
 
 
@@ -442,4 +491,5 @@ function test_CG_initial_guess(level)
     # end
     # t_CG_GPU = t_CG_GPU * 1000 / iter_times 
     # @show t_CG_GPU
+    nothing
 end

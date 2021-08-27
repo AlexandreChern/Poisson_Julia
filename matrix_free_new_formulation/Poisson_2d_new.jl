@@ -393,7 +393,7 @@ for k in 3:9
     CG_full_GPU_sol = Array(x_GPU) 
     err_CG_full_GPU =  (CG_full_GPU_sol[:] - analy_sol[:])' * H_tilde * (CG_full_GPU_sol[:] - analy_sol[:])
 
-    CG_CPU_IterativeSolvers_sol = cg(A,b)
+    CG_CPU_IterativeSolvers_sol,history = cg(A,b,log=true)
     err_CG_CPU_IterativeSolvers_sol =  (CG_CPU_IterativeSolvers_sol[:] - analy_sol[:])' * H_tilde * (CG_CPU_IterativeSolvers_sol[:] - analy_sol[:])
     println("Printing Out Errors")
     @show err_direct
@@ -401,6 +401,7 @@ for k in 3:9
     @show err_CG_GPU
     @show err_CG_full_GPU
     @show err_CG_CPU_IterativeSolvers_sol
+    @show history.data[:reltol]
     # @show err
     # @show iter_err
     # rel_err = √err
