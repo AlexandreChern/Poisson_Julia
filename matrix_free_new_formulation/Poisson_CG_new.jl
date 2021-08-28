@@ -392,6 +392,8 @@ function test_CG_initial_guess(level;alpha=1)
     println("previous_level\n",previous_level)
 
     i = j  = level
+    println("current_level\n",level)
+    
     hx = h_list_x[i];
     hy = h_list_y[j];
     x = range(0,step=hx,1);
