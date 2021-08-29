@@ -38,8 +38,8 @@ function Diag(A)
     return Diagonal(A[:])
 end
 
-h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
-h_list_y = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13]
+h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
+h_list_y = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
 
 function Operators_2d(i, j, h_list_x, h_list_y; p=2)
     hx = h_list_x[i];
@@ -612,7 +612,7 @@ function test_CG_initial_guess_loop(lower_level,upper_level)
     nothing
 end
 
-test_CG_initial_guess_loop(8,12)
+test_CG_initial_guess_loop(8,14)
 
 # test_CG_initial_guess(10;alpha=1)
 # test_CG_initial_guess(11;alpha=1)
