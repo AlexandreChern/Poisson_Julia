@@ -388,8 +388,10 @@ function matrix_interpolation(idata)
 end
 
 function test_CG_initial_guess(level;alpha=1)
+    println("level: ",level)
     previous_level = level - 1
-    println("previous_level\n",previous_level)
+    println("previous_level: ",previous_level)
+    println()
 
     i = j  = level
     hx = h_list_x[i];
@@ -402,10 +404,40 @@ function test_CG_initial_guess(level;alpha=1)
 
     # x_init_direct = A\b;
 
+    # Time to assemble Sparse Matrices
+    time_assembling = time()  
     (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(previous_level)
-    x_p = A_p \ b_p;
-    x_p_reshaped = reshape(x_p,Nx_p,Ny_p);
-    x_p_interpolated = matrix_interpolation(x_p_reshaped);
+    time_assembling = time() - time_assembling
+    println("Time to assemble sparse matrices for previous level: $time_assembling\n")
+
+
+
+    # time_direct_solve = time()
+    # x_p = A_p \ b_p;
+    # time_direct_solve = time() - time_direct_solve
+    # println("Time to perform direct_solve for previous level: $time_direct_solve\n")
+
+
+   
+
+    # x_p_reshaped = reshape(x_p,Nx_p,Ny_p);
+    # x_p_interpolated = matrix_interpolation(x_p_reshaped);
+
+    time_iterative_solve = time()
+    x_GPU_init_guess_p = CuArray(zeros(Nx_p,Ny_p))
+    b_reshaped_GPU_p = CuArray(reshape(b_p,Nx_p,Ny_p))
+
+    CG_full_GPU(b_reshaped_GPU_p,x_GPU_init_guess_p)
+    x_GPU_init_guess_p = CuArray(zeros(Nx_p,Ny_p))
+
+
+    time_iterative_p = time()
+    CG_full_GPU(b_reshaped_GPU_p,x_GPU_init_guess_p)
+    time_iterative_p = time() - time_iterative_p
+    println("Time to perform iterative solve for previous level: $time_iterative_p\n")
+
+    x_p_interpolated = matrix_interpolation(Array(x_GPU_init_guess_p))
+
 
     # @show CG_CPU(A,b,x_init_direct + 0.001*randn(length(b)))
 
@@ -482,20 +514,20 @@ function test_CG_initial_guess(level;alpha=1)
     iter_times_init_guess = CG_full_GPU(b_reshaped_GPU,x_GPU_init_guess)
     @show iter_times_init_guess
 
-    x_GPU_zero = CuArray(zeros(Nx,Ny))
-    iter_times_zero = CG_full_GPU(b_reshaped_GPU,x_GPU_zero)
-    @show iter_times_zero
+    # x_GPU_zero = CuArray(zeros(Nx,Ny))
+    # iter_times_zero = CG_full_GPU(b_reshaped_GPU,x_GPU_zero)
+    # @show iter_times_zero
 
-    iter_times = 5
-    t_CG_GPU_zero = @elapsed begin
-        for i in 1:iter_times
-            x_GPU = CuArray(zeros(Nx,Ny))
-            # CG_GPU_dev(b_reshaped_GPU,x_GPU)
-            CG_full_GPU(b_reshaped_GPU,x_GPU)
-        end
-    end
-    t_CG_GPU_zero = t_CG_GPU_zero * 1000 / iter_times 
-    @show t_CG_GPU_zero
+    # iter_times = 5
+    # t_CG_GPU_zero = @elapsed begin
+    #     for i in 1:iter_times
+    #         x_GPU = CuArray(zeros(Nx,Ny))
+    #         # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+    #         CG_full_GPU(b_reshaped_GPU,x_GPU)
+    #     end
+    # end
+    # t_CG_GPU_zero = t_CG_GPU_zero * 1000 / iter_times 
+    # @show t_CG_GPU_zero
 
     iter_times = 5
     t_CG_GPU_init_guess = @elapsed begin
@@ -505,10 +537,92 @@ function test_CG_initial_guess(level;alpha=1)
             CG_full_GPU(b_reshaped_GPU,x_GPU)
         end
     end
-    t_CG_GPU_init_guess = t_CG_GPU_init_guess * 1000 / iter_times 
+    t_CG_GPU_init_guess = t_CG_GPU_init_guess / iter_times 
     @show t_CG_GPU_init_guess
     nothing
+    println("#"^40,"\n")
+    
 end
 
 
+function test_CG_initial_guess_loop(level;alpha=1)
+    iterative_solutions = []
+    for level in 8:10
+        println("level: ",level)
+        previous_level = level - 1
+        println("previous_level: ",previous_level)
+        println()
+
+        i = j  = level
+        hx = h_list_x[i];
+        hy = h_list_y[j];
+        x = range(0,step=hx,1);
+        y = range(0,step=hy,1);
+        analy_sol = u(x,y');
+
+        (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+
+
+        # Time to assemble Sparse Matrices
+        time_assembling = time()  
+        (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(previous_level)
+        time_assembling = time() - time_assembling
+        println("Time to assemble sparse matrices for previous level: $time_assembling\n")
+
+        time_iterative_solve = time()
+        x_GPU_init_guess_p = CuArray(zeros(Nx_p,Ny_p))
+        b_reshaped_GPU_p = CuArray(reshape(b_p,Nx_p,Ny_p))
+
+        CG_full_GPU(b_reshaped_GPU_p,x_GPU_init_guess_p)
+        x_GPU_init_guess_p = CuArray(zeros(Nx_p,Ny_p))
+
+
+        time_iterative_p = time()
+        CG_full_GPU(b_reshaped_GPU_p,x_GPU_init_guess_p)
+        time_iterative_p = time() - time_iterative_p
+        println("Time to perform iterative solve for previous level: $time_iterative_p\n")
+
+        x_p_interpolated = matrix_interpolation(Array(x_GPU_init_guess_p))
+
+
+
+
+
+        # A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A);
+        b_reshaped = reshape(b,Nx,Ny);
+        b_reshaped_GPU = CuArray(b_reshaped);
+        # (A_p,b_p,Nx_p,Ny_p) = Assembling_matrix(previous_level)
+
+        # x_p = A_p \ b_p
+        
+        # x_p_reshaped = reshape(x_p,Nx_p,Ny_p)
+    
+        # x_GPU = CuArray(zeros(Nx,Ny))
+        # iter_times = CG_full_GPU(b_reshaped_GPU,x_GPU)
+        
+        x_GPU_init_guess = CuArray(x_p_interpolated)
+        iter_times_init_guess = CG_full_GPU(b_reshaped_GPU,x_GPU_init_guess)
+        @show iter_times_init_guess
+
+
+        iter_times = 5
+        t_CG_GPU_init_guess = @elapsed begin
+            for i in 1:iter_times
+                x_GPU = CuArray(x_p_interpolated)
+                # CG_GPU_dev(b_reshaped_GPU,x_GPU)
+                CG_full_GPU(b_reshaped_GPU,x_GPU)
+            end
+        end
+        t_CG_GPU_init_guess = t_CG_GPU_init_guess / iter_times 
+        @show t_CG_GPU_init_guess
+        nothing
+        println("#"^40,"\n")
+    end
+    
+end
+
+test_CG_initial_guess(10;alpha=1)
 test_CG_initial_guess(11;alpha=1)
+test_CG_initial_guess(12;alpha=1)
+test_CG_initial_guess(13,alpha=1)
+test_CG_initial_guess(14,alpah=1)
