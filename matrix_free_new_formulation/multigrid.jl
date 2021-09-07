@@ -218,6 +218,36 @@ function matrix_restriction(idata)
     odata = zeros(odata_Nx,odata_Ny)
     for i in 1:odata_Nx
         for j in 1:odata_Ny
+            odata[i,j] = idata[2*i-1,2*j-1]
         end
     end
+    return odata
+end
+
+function vector_restriction(x)
+    
+
+end
+
+function V_cycle()
+    level = 6
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+    (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1)
+
+    x = zeros(length(b))
+    x_p = zeros(length(b_p))
+
+    cg!(x,A,b,log=true)
+    cg!(x_p,A_p,b_p,log=true)
+
+    x = zeros(length(b))
+    r1 = A*x - b
+
+    r2 = matrix_restriction(reshape(r1,Nx,Ny))[:]
+    cg!(r2,A_p,zeros(length(b_p)),log=true)
+    r1 = matrix_prolongation(reshape(r2,Nx_p,Ny_p))[:];
+    cg!(r1,A,zeros(length(b)),log=true)
+
+    x = 
+
 end
