@@ -224,30 +224,67 @@ function matrix_restriction(idata)
     return odata
 end
 
-function vector_restriction(x)
-    
 
+function prolongation_matrix(N)
+    # N = 2^level + 1
+    odata = spzeros(2*N-1,N)
+    for i in 1:2*N-1
+        if i % 2 == 1
+            odata[i,div(i+1,2)] = 1
+        else
+            odata[i,div(i,2)] = 1/2
+            odata[i,div(i,2)+1] = 1/2
+        end
+    end
+    return odata
+end
+
+function restriction_matrix(N)
+    odata = spzeros(div(N+1,2),N)
+    odata[1,1] = 1/2
+    odata[1,2] = 1/2
+    odata[end,end-1] = 1/2
+    odata[end,end] = 1/2
+    for i in 2:div(N+1,2)-1
+        odata[i,2*i-2] = 1/4
+        odata[i,2*i-1] = 1/2
+        odata[i,2*i] = 1/4
+    end
+    return odata
+end
+
+
+function prolongation_2d(N)
+    prolongation_1d = prolongation_matrix(N)
+    prolongation_2d = kron(prolongation_1d,prolongation_1d)
+    return prolongation_2d
+end
+
+function restriction_2d(N)
+    restriction_1d = restriction_matrix(N)
+    restriction_2d = kron(restriction_1d,restriction_1d)
+    return restriction_2d
 end
 
 function V_cycle()
-    level = 6
+    level = 7
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
     (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1)
 
     x = zeros(length(b))
     x_p = zeros(length(b_p))
 
-    cg!(x,A,b,log=true)
-    cg!(x_p,A_p,b_p,log=true)
+    cg!(x,A,b,abstol=1e-8,log=true)
+    cg!(x_p,A_p,b_p,abstol=1e-8,log=true)
 
     x = zeros(length(b))
     r1 = A*x - b
 
     r2 = matrix_restriction(reshape(r1,Nx,Ny))[:]
-    cg!(r2,A_p,zeros(length(b_p)),log=true)
+    cg!(r2,A_p,zeros(length(b_p)),abstol=1e-6,log=true)
     r1 = matrix_prolongation(reshape(r2,Nx_p,Ny_p))[:];
-    cg!(r1,A,zeros(length(b)),log=true)
+    cg!(r1,A,zeros(length(b)),abstol=1e-8,log=true)
 
-    x = 
+    cg!(r1,A,b,abstol=1e-8,log=true)
 
 end
