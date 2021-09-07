@@ -266,25 +266,68 @@ function restriction_2d(N)
     return restriction_2d
 end
 
-function V_cycle()
-    level = 7
-    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
-    (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1)
+
+# function Jacobi_iter(x,A,b)
+#     k = 0
+#     n = length(x)
+#     iter_times = 0
+#     # while norm(A*x-b) >= 1e-8
+#     for _ in 1:10
+#         iter_times += 1
+#         for i = 1:n
+#             σ = 0
+#             for j = 1:n
+#                 if j != i
+#                     σ = σ + A[i,j]*x[j]
+#                 end
+#             end
+#             x[i] = (b[i] - σ)/A[i,i]
+#         end
+#     end
+#     (x,iter_times)
+# end
+
+function Two_Grid_Correction()
+    level = 6
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1);
 
     x = zeros(length(b))
-    x_p = zeros(length(b_p))
+    jacobi!(x,A,b;maxiter=20);
+    @show norm(A*x-b)
 
-    cg!(x,A,b,abstol=1e-8,log=true)
-    cg!(x_p,A_p,b_p,abstol=1e-8,log=true)
+    x = zeros(length(b));
+    x_p = zeros(length(b_p));
 
-    x = zeros(length(b))
-    r1 = A*x - b
+    jacobi!(x,A,b;maxiter=10);
+    r = A*x - b;
+    @show norm(r)
+    f = restriction_2d(Nx) * r;
+    # jacobi!(x_p,A_p,f;maxiter=5);
+    # x_p = A_p \ f
+    A_coarse = restriction_2d(Nx) * A * prolongation_2d(Nx_p)
+    # x_p = A_coarse \ f
+    jacobi!(x_p,A_coarse,f)
+    e_1 = prolongation_2d(Nx_p) * x_p;
+    x = x + e_1;
+    @show norm(A*x-b)
+    # Jacobi_iter(x,A,b)
+    jacobi!(x,A,b;maxiter=10)
+    @show norm(A*x-b)
+end
 
-    r2 = matrix_restriction(reshape(r1,Nx,Ny))[:]
-    cg!(r2,A_p,zeros(length(b_p)),abstol=1e-6,log=true)
-    r1 = matrix_prolongation(reshape(r2,Nx_p,Ny_p))[:];
-    cg!(r1,A,zeros(length(b)),abstol=1e-8,log=true)
 
-    cg!(r1,A,b,abstol=1e-8,log=true)
+function test_multigrid_CG()
+    # cg!(x,A,b,abstol=1e-8,log=true)
+    # cg!(x_p,A_p,b_p,abstol=1e-8,log=true)
 
+    # x = zeros(length(b))
+    # r1 = A*x - b
+
+    # r2 = matrix_restriction(reshape(r1,Nx,Ny))[:]
+    # cg!(r2,A_p,zeros(length(b_p)),abstol=1e-6,log=true)
+    # r1 = matrix_prolongation(reshape(r2,Nx_p,Ny_p))[:];
+    # cg!(r1,A,zeros(length(b)),abstol=1e-8,log=true)
+
+    # cg!(r1,A,b,abstol=1e-8,log=true)
 end
