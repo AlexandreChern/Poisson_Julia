@@ -318,18 +318,19 @@ function Two_Grid_Correction()
 end
 
 
-function multigrid()
-    level = 6
+function multigrid(;level=8,L=3,nu=10)
+    # level = 8
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
-    L = 3 # multigrid level
+    # L = 3 # multigrid level
     v_values = Dict(1=>zeros(Nx*Ny))
     rhs_values = Dict(1 => b)
     A_matrices = Dict(1 => A)
     N_values = Dict(1=>Nx)
+    # max_iter = 10
     for i in 1:L
         if i != L
             @show i
-            jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=10)
+            jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
             rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
             N_values[i+1] = div(N_values[i]+1,2)
             A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
@@ -345,12 +346,19 @@ function multigrid()
     for i in 1:L-1
         j = L-i
         v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
-        jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=10)
+        jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
     end
     @show norm(A_matrices[1] * v_values[1] - b)
-    return v_values[1]
+    return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
 end
 
+
+function pure_jacobi(;level=8,nu=10)
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    x = zeros(Nx*Ny)
+    jacobi!(x,A,b,maxiter=nu)
+    return norm(A*x - b)
+end
 
 
 function test_multigrid_CG()
