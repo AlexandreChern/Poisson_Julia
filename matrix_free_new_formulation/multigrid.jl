@@ -319,7 +319,36 @@ end
 
 
 function multigrid()
+    level = 6
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    L = 3 # multigrid level
+    v_values = Dict(1=>zeros(Nx*Ny))
+    rhs_values = Dict(1 => b)
+    A_matrices = Dict(1 => A)
+    N_values = Dict(1=>Nx)
+    for i in 1:L
+        if i != L
+            @show i
+            jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=10)
+            rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
+            N_values[i+1] = div(N_values[i]+1,2)
+            A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+            v_values[i+1] = zeros(N_values[i+1]^2)
+        else
+            v_values[i] = A_matrices[i] \ rhs_values[i]
+        end
+        
+    end
 
+    println("Pass first part")
+
+    for i in 1:L-1
+        j = L-i
+        v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
+        jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=10)
+    end
+    @show norm(A_matrices[1] * v_values[1] - b)
+    return v_values[1]
 end
 
 
