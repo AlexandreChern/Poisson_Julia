@@ -323,7 +323,7 @@ function Two_Grid_Correction(;level=9,nu=10,use_galerkin=true)
 end
 
 
-function multigrid(;level=8,L=3,nu=10)
+function multigrid(;level=8,L=3,nu=10,use_galerkin=true)
     # level = 8
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     # L = 3 # multigrid level
@@ -338,7 +338,11 @@ function multigrid(;level=8,L=3,nu=10)
             jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
             rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
             N_values[i+1] = div(N_values[i]+1,2)
-            A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+            if use_galerkin
+                A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+            else
+                A_matrices[i+1] = Assembling_matrix(level-i)[1]
+            end
             v_values[i+1] = zeros(N_values[i+1]^2)
         else
             v_values[i] = A_matrices[i] \ rhs_values[i]
