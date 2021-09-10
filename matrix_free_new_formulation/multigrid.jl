@@ -287,33 +287,35 @@ end
 #     (x,iter_times)
 # end
 
-function Two_Grid_Correction()
+function Two_Grid_Correction(;nu=10)
     level = 9
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1);
 
     x = zeros(length(b));
-    jacobi!(x,A,b;maxiter=40);
+    jacobi!(x,A,b;maxiter=nu*2);
     
-    println("Without coarse grid correction, norm(A*x-b) after 20 iterations: $(norm(A*x-b))")
+    println("Without coarse grid correction, norm(A*x-b) after $(nu*2) iterations: $(norm(A*x-b))")
 
     x = zeros(length(b));
     x_p = zeros(length(b_p));
     e_fine = zeros(length(b));
 
-    jacobi!(x,A,b;maxiter=20);
+    jacobi!(x,A,b;maxiter=nu);
     r = b - A*x;
     # @show norm(r)
     println("Without coarse grid correction, norm(A*x-b) after 10 iterations: $(norm(A*x-b))")
 
     f = restriction_2d(Nx) * r;
     A_coarse = restriction_2d(Nx) * A * prolongation_2d(Nx_p);
-    jacobi!(x_p,A_coarse,f);
+    # jacobi!(x_p,A_coarse,f);
+    x_p = A_coarse \ f
+    # x_p = A_p \ f 
     # jacobi!(x_p,A_p,f);
     e_1 = prolongation_2d(Nx_p) * x_p;
     x = x + e_1;
     println("After coarse grid correction, norm(A*x-b): $(norm(A*x-b))")
-    jacobi!(x,A,b;maxiter=20);
+    jacobi!(x,A,b;maxiter=nu);
     println("After coarse grid correction, norm(A*x-b) after another 10 iterations: $(norm(A*x-b))")
 end
 
@@ -329,7 +331,7 @@ function multigrid(;level=8,L=3,nu=10)
     # max_iter = 10
     for i in 1:L
         if i != L
-            @show i
+            # @show i
             jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
             rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
             N_values[i+1] = div(N_values[i]+1,2)
@@ -341,14 +343,14 @@ function multigrid(;level=8,L=3,nu=10)
         
     end
 
-    println("Pass first part")
+    # println("Pass first part")
 
     for i in 1:L-1
         j = L-i
         v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
         jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
     end
-    @show norm(A_matrices[1] * v_values[1] - b)
+    # @show norm(A_matrices[1] * v_values[1] - b)
     return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
 end
 
