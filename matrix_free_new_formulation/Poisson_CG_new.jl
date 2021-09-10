@@ -402,7 +402,10 @@ function test_CG_initial_guess(level;alpha=1)
     y = range(0,step=hy,1);
     analy_sol = u(x,y');
 
+    time_assembling = time()  
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    time_assembling = time() - time_assembling
+    println("Time to assemble sparse matrices for current level $level: $time_assembling\n")
 
     # x_init_direct = A\b;
 
