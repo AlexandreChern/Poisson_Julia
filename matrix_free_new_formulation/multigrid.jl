@@ -287,8 +287,8 @@ end
 #     (x,iter_times)
 # end
 
-function Two_Grid_Correction(;nu=10)
-    level = 9
+function Two_Grid_Correction(;level=9,nu=10,use_galerkin=true)
+    # level = 9
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1);
 
@@ -309,8 +309,11 @@ function Two_Grid_Correction(;nu=10)
     f = restriction_2d(Nx) * r;
     A_coarse = restriction_2d(Nx) * A * prolongation_2d(Nx_p);
     # jacobi!(x_p,A_coarse,f);
-    x_p = A_coarse \ f
-    # x_p = A_p \ f 
+    if use_galerkin
+        x_p = A_coarse \ f
+    else
+        x_p = A_p \ f
+    end 
     # jacobi!(x_p,A_p,f);
     e_1 = prolongation_2d(Nx_p) * x_p;
     x = x + e_1;
