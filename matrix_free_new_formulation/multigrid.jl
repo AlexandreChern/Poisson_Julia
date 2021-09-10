@@ -384,3 +384,13 @@ function test_multigrid_CG()
 
     # cg!(r1,A,b,abstol=1e-8,log=true)
 end
+
+
+
+function richardson(x,A,b;maxiter=10)
+    ω = -1/14
+    for _ in 1:maxiter
+        x .= x .+ ω*(b - A*x)
+    end
+    return norm(A*x-b)
+end
