@@ -192,9 +192,16 @@ function check_memory_allocations_for_factorization(lower_level,upper_level)
         println("Allocated memory to store A: $(Base.summarysize(A))")
         println("Allocated memory for LU factorization: $allocated_memory_lu")
         println("Ratio malloc(lu(A)) / malloc(A): $(allocated_memory_lu/Base.summarysize(A))")
+        lu_A = lu(A)
+        allocated_memory_lu_solving = @allocated lu_A \ b
+        println("Memory allocation for solving A\b with lu factorization: $allocated_memory_lu_solving")
+
         allocated_memory_cholesky = @allocated cholesky(A)
         println("Allocated memory for Cholesky factorization: $allocated_memory_cholesky")
         println("Ratio malloc(cholesky(A)) / malloc(A): $(allocated_memory_cholesky/Base.summarysize(A))")
+        cholesky_A = cholesky(A)
+        allocated_memory_cholesky_solving = @allocated cholesky_A \ b
+        println("Memory allocation for solving A\b with cholesky factorization: $allocated_memory_cholesky_solving")
         println()
     end
 end
