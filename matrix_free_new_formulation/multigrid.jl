@@ -184,9 +184,10 @@ function Assembling_matrix(level)
 end
 
 
-function check_memory_allocations_for_LU(lower_level,upper_level)
+function check_memory_allocations_for_factorization(lower_level,upper_level)
     for level in lower_level:upper_level
         (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+        @show Nx,Ny
         allocated_memory_lu = @allocated lu(A)
         println("Allocated memory to store A: $(Base.summarysize(A))")
         println("Allocated memory for LU factorization: $allocated_memory_lu")
