@@ -177,12 +177,26 @@ function Assembling_matrix(level)
 
     b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N;
 
-    A = H_tilde*A;
-    b = H_tilde*b;
+    A = -H_tilde*A;
+    b = -H_tilde*b;
 
     return (A,b,H_tilde,Nx,Ny)
 end
 
+
+function check_memory_allocations_for_LU(lower_level,upper_level)
+    for level in lower_level:upper_level
+        (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+        allocated_memory_lu = @allocated lu(A)
+        println("Allocated memory to store A: $(Base.summarysize(A))")
+        println("Allocated memory for LU factorization: $allocated_memory_lu")
+        println("Ratio malloc(lu(A)) / malloc(A): $(allocated_memory_lu/Base.summarysize(A))")
+        allocated_memory_cholesky = @allocated cholesky(A)
+        println("Allocated memory for Cholesky factorization: $allocated_memory_cholesky")
+        println("Ratio malloc(cholesky(A)) / malloc(A): $(allocated_memory_cholesky/Base.summarysize(A))")
+        println()
+    end
+end
 
 
 function matrix_prolongation(idata)
