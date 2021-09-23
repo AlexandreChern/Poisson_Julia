@@ -416,3 +416,117 @@ function richardson(x,A,b;maxiter=10)
     end
     return norm(A*x-b)
 end
+
+
+
+function jacobi_smoothed_CG(A,b,x)
+    r = b - A * x;
+    z = jacobi(A,r,maxiter=10)
+    p = z;
+    Ap = A*p;
+    alpha = r'*z/(p'*Ap);
+    x .= x .+ alpha * p;
+    r .= r .- alpha * Ap;
+    num_iter_steps = 0
+    # for _ = 1:length(b)
+    for _ in 1:40
+        num_iter_steps += 1
+        znew = jacobi(A,r,maxiter=10)
+        beta = r'*znew / (r'*z)
+        p .= znew .+ beta * p;
+        mul!(Ap,A,p);
+        # alpha = rsold / (p' * Ap)
+        alpha = r'*znew / (p'*Ap)
+        x .= x .+ alpha * p;
+        r .= r .- alpha * Ap;
+        rsnew = r' * r
+        if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
+              break
+        end
+        # p = r + (rsnew / rsold) * p;
+        z .= znew
+        rsold = rsnew
+        @show rsold
+    end
+    # @show num_iter_steps
+    num_iter_steps
+end
+
+
+
+function jacobi_preconditioned_CG(A,b,x)
+    r = b - A * x;
+    # z = jacobi(A,r,maxiter=10)
+    M = spdiagm(diag(A))
+    z = M \ r
+    p = z;
+    Ap = A*p;
+    alpha = r'*z/(p'*Ap);
+    x .= x .+ alpha * p;
+    r .= r .- alpha * Ap;
+    num_iter_steps = 0
+    # for _ = 1:length(b)
+    for _ in 1:40
+        num_iter_steps += 1
+        # znew = jacobi(A,r,maxiter=10)
+        znew = M \ r
+        beta = r'*znew / (r'*z)
+        p .= znew .+ beta * p;
+        mul!(Ap,A,p);
+        # alpha = rsold / (p' * Ap)
+        alpha = r'*znew / (p'*Ap)
+        x .= x .+ alpha * p;
+        r .= r .- alpha * Ap;
+        rsnew = r' * r
+        if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
+              break
+        end
+        # p = r + (rsnew / rsold) * p;
+        z .= znew
+        rsold = rsnew
+        @show rsold
+    end
+    # @show num_iter_steps
+    num_iter_steps
+end
+
+
+function CG_CPU(A,b,x)
+    r = b - A * x;
+    p = r;
+    rsold = r' * r
+    # Ap = spzeros(length(b))
+    Ap = similar(b);
+
+    num_iter_steps = 0
+    # @show rsold
+    # for _ = 1:length(b)
+    for _ in 1:40
+        num_iter_steps += 1
+        mul!(Ap,A,p);
+        alpha = rsold / (p' * Ap)
+        x .= x .+ alpha * p;
+        r .= r .- alpha * Ap;
+        rsnew = r' * r
+        if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
+              break
+        end
+        p = r + (rsnew / rsold) * p;
+        rsold = rsnew
+        @show rsold
+    end
+    # @show num_iter_steps
+    num_iter_steps
+end
+
+
+function test_preconditioned_CG()
+    level = 6
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+    x = zeros(Nx*Ny);
+    CG_CPU(A,b,x)
+    x = zeros(Nx*Ny);
+    jacobi_smoothed_CG(A,b,x)
+    x = zeros(Nx*Ny);
+    jacobi_preconditioned_CG(A,b,x)
+end
