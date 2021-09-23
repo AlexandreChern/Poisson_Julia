@@ -419,34 +419,33 @@ end
 
 
 
-function jacobi_smoothed_CG(A,b,x)
+function jacobi_smoothed_CG(A,b,x;jacobi_iter=10)
     r = b - A * x;
-    z = jacobi(A,r,maxiter=10)
+    rnew = similar(r)
+    z = jacobi(A,r,maxiter=jacobi_iter)
+    znew = similar(z)
     p = z;
     Ap = A*p;
-    alpha = r'*z/(p'*Ap);
-    x .= x .+ alpha * p;
-    r .= r .- alpha * Ap;
     num_iter_steps = 0
-    # for _ = 1:length(b)
-    for _ in 1:40
+    for _ = 1:length(b)
+    # for _ in 1:40
         num_iter_steps += 1
-        znew = jacobi(A,r,maxiter=10)
-        beta = r'*znew / (r'*z)
-        p .= znew .+ beta * p;
+        alpha = r'*z/(p'*Ap)
         mul!(Ap,A,p);
-        # alpha = rsold / (p' * Ap)
-        alpha = r'*znew / (p'*Ap)
+        alpha = r'*z / (p'*Ap)
         x .= x .+ alpha * p;
-        r .= r .- alpha * Ap;
-        rsnew = r' * r
+        rnew .= r .- alpha * Ap;
+        rsnew = rnew' * rnew
         if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
               break
         end
         # p = r + (rsnew / rsold) * p;
+        znew = jacobi(A,rnew,maxiter=jacobi_iter=10);
+        beta = rnew'*znew/(r'*z);
+        p .= znew .+ beta * p;
         z .= znew
-        rsold = rsnew
-        @show rsold
+        r .= rnew
+        @show rsnew
     end
     # @show num_iter_steps
     num_iter_steps
@@ -459,17 +458,19 @@ function jacobi_preconditioned_CG(A,b,x)
     # z = jacobi(A,r,maxiter=10)
     M = spdiagm(diag(A))
     z = M \ r
+    # z = A \ r
     p = z;
     Ap = A*p;
     alpha = r'*z/(p'*Ap);
     x .= x .+ alpha * p;
     r .= r .- alpha * Ap;
     num_iter_steps = 0
-    # for _ = 1:length(b)
-    for _ in 1:40
+    for _ = 1:length(b)
+    # for _ in 1:40
         num_iter_steps += 1
         # znew = jacobi(A,r,maxiter=10)
-        znew = M \ r
+        znew = M \ r 
+        # znew = A \ r
         beta = r'*znew / (r'*z)
         p .= znew .+ beta * p;
         mul!(Ap,A,p);
@@ -500,8 +501,8 @@ function CG_CPU(A,b,x)
 
     num_iter_steps = 0
     # @show rsold
-    # for _ = 1:length(b)
-    for _ in 1:40
+    for _ = 1:length(b)
+    # for _ in 1:40
         num_iter_steps += 1
         mul!(Ap,A,p);
         alpha = rsold / (p' * Ap)
@@ -513,7 +514,7 @@ function CG_CPU(A,b,x)
         end
         p = r + (rsnew / rsold) * p;
         rsold = rsnew
-        @show rsold
+        # @show rsold
     end
     # @show num_iter_steps
     num_iter_steps
@@ -521,12 +522,12 @@ end
 
 
 function test_preconditioned_CG()
-    level = 6
-    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+    level = 5
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     x = zeros(Nx*Ny);
     CG_CPU(A,b,x)
     x = zeros(Nx*Ny);
-    jacobi_smoothed_CG(A,b,x)
+    jacobi_smoothed_CG(A,b,x,jacobi_iter=50)
     x = zeros(Nx*Ny);
     jacobi_preconditioned_CG(A,b,x)
 end
