@@ -590,23 +590,23 @@ function CG_CPU(A,b,x;abstol=sqrt(eps(real(eltype(b)))))
 end
 
 
-function test_preconditioned_CG(;level=5)
+function test_preconditioned_CG(;level=5,tol=sqrt(eps(real(Float64))))
     # level = 3
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     x = zeros(Nx*Ny);
     println("############# STARTING CG ###################")
-    CG_CPU(A,b,x)
+    CG_CPU(A,b,x,abstol=tol)
     println("############# END OF CG #####################")
     println()
     println("###### STARTING JACOBI SMOOTHED CG ##########")
     x = zeros(Nx*Ny);
-    jacobi_smoothed_CG(A,b,x,jacobi_iter=50)
+    jacobi_smoothed_CG(A,b,x,jacobi_iter=50,abstol=tol)
     println("######## END OF JACOBI SMOOTHED CG ##########")
     println()
     # x = zeros(Nx*Ny);
     # jacobi_preconditioned_CG(A,b,x)
     println("###### STARTING MG SMOOTHED CG ##############")
     x = zeros(Nx*Ny)
-    mg_preconditioned_CG(A,b,x)
+    mg_preconditioned_CG(A,b,x,abstol=tol)
     println("######## END OF MG SMOOTHED CG ##############")
 end
