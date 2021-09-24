@@ -453,7 +453,7 @@ end
 
 
 
-function jacobi_smoothed_CG(A,b,x;jacobi_iter=10)
+function jacobi_smoothed_CG(A,b,x;jacobi_iter=10,abstol=sqrt(eps(real(eltype(b)))))
     r = b - A * x;
     rnew = similar(r)
     z = jacobi(A,r,maxiter=jacobi_iter)
@@ -470,7 +470,7 @@ function jacobi_smoothed_CG(A,b,x;jacobi_iter=10)
         x .= x .+ alpha * p;
         rnew .= r .- alpha * Ap;
         rsnew = rnew' * rnew
-        if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
+        if sqrt(rsnew) < abstol
               break
         end
         # p = r + (rsnew / rsold) * p;
@@ -525,7 +525,7 @@ function jacobi_preconditioned_CG(A,b,x)
 end
 
 
-function mg_preconditioned_CG(A,b,x)
+function mg_preconditioned_CG(A,b,x;abstol=sqrt(eps(real(eltype(b)))))
     r = b - A * x;
     rnew = similar(r)
     # z = jacobi(A,r,maxiter=jacobi_iter)
@@ -543,7 +543,7 @@ function mg_preconditioned_CG(A,b,x)
         x .= x .+ alpha * p;
         rnew .= r .- alpha * Ap;
         rsnew = rnew' * rnew
-        if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
+        if sqrt(rsnew) < abstol
               break
         end
         # p = r + (rsnew / rsold) * p;
@@ -560,7 +560,7 @@ function mg_preconditioned_CG(A,b,x)
     num_iter_steps
 end
 
-function CG_CPU(A,b,x)
+function CG_CPU(A,b,x;abstol=sqrt(eps(real(eltype(b)))))
     r = b - A * x;
     p = r;
     rsold = r' * r
@@ -577,7 +577,7 @@ function CG_CPU(A,b,x)
         x .= x .+ alpha * p;
         r .= r .- alpha * Ap;
         rsnew = r' * r
-        if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
+        if sqrt(rsnew) < abstol
               break
         end
         p = r + (rsnew / rsold) * p;
