@@ -384,6 +384,40 @@ function multigrid(;level=8,L=3,nu=10,use_galerkin=true)
 end
 
 
+function mg(A,b,L;nu=5,use_galerkin=true)
+    Nx = Ny = Int(sqrt(length(b)))
+    v_values = Dict(1=>zeros(Nx*Ny))
+    rhs_values = Dict(1 => b)
+    A_matrices = Dict(1 => A)
+    N_values = Dict(1=>Nx)
+    for i in 1:L
+        if i != L
+            # @show i
+            jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+            rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
+            N_values[i+1] = div(N_values[i]+1,2)
+            if use_galerkin
+                A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+            else
+                A_matrices[i+1] = Assembling_matrix(level-i)[1]
+            end
+            v_values[i+1] = zeros(N_values[i+1]^2)
+        else
+            v_values[i] = A_matrices[i] \ rhs_values[i]
+        end
+        
+    end
+
+    # println("Pass first part")
+
+    for i in 1:L-1
+        j = L-i
+        v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
+        jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+    end
+    return v_values[1]
+end
+
 function pure_jacobi(;level=8,nu=10)
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     x = zeros(Nx*Ny)
@@ -452,7 +486,6 @@ function jacobi_smoothed_CG(A,b,x;jacobi_iter=10)
 end
 
 
-
 function jacobi_preconditioned_CG(A,b,x)
     r = b - A * x;
     # z = jacobi(A,r,maxiter=10)
@@ -492,6 +525,40 @@ function jacobi_preconditioned_CG(A,b,x)
 end
 
 
+function mg_preconditioned_CG(A,b,x)
+    r = b - A * x;
+    rnew = similar(r)
+    # z = jacobi(A,r,maxiter=jacobi_iter)
+    z = mg(A,r,3)
+    znew = similar(z)
+    p = z;
+    Ap = A*p;
+    num_iter_steps = 0
+    for _ = 1:length(b)
+    # for _ in 1:40
+        num_iter_steps += 1
+        alpha = r'*z/(p'*Ap)
+        mul!(Ap,A,p);
+        alpha = r'*z / (p'*Ap)
+        x .= x .+ alpha * p;
+        rnew .= r .- alpha * Ap;
+        rsnew = rnew' * rnew
+        if sqrt(rsnew) < sqrt(eps(real(eltype(b))))
+              break
+        end
+        # p = r + (rsnew / rsold) * p;
+        # znew = jacobi(A,rnew,maxiter=jacobi_iter=10);
+        znew = mg(A,rnew,3)
+        beta = rnew'*znew/(r'*z);
+        p .= znew .+ beta * p;
+        z .= znew
+        r .= rnew
+        # @show rsnew
+    end
+    # @show num_iter_steps
+    num_iter_steps
+end
+
 function CG_CPU(A,b,x)
     r = b - A * x;
     p = r;
@@ -522,12 +589,14 @@ end
 
 
 function test_preconditioned_CG()
-    level = 5
+    level = 4
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     x = zeros(Nx*Ny);
     CG_CPU(A,b,x)
     x = zeros(Nx*Ny);
     jacobi_smoothed_CG(A,b,x,jacobi_iter=50)
-    x = zeros(Nx*Ny);
-    jacobi_preconditioned_CG(A,b,x)
+    # x = zeros(Nx*Ny);
+    # jacobi_preconditioned_CG(A,b,x)
+    x = zeros(Nx*Ny)
+    mg_preconditioned_CG(A,b,x)
 end
