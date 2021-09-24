@@ -461,7 +461,7 @@ function jacobi_smoothed_CG(A,b,x;jacobi_iter=10)
     p = z;
     Ap = A*p;
     num_iter_steps = 0
-    for _ = 1:length(b)
+    for step = 1:length(b)
     # for _ in 1:40
         num_iter_steps += 1
         alpha = r'*z/(p'*Ap)
@@ -479,7 +479,7 @@ function jacobi_smoothed_CG(A,b,x;jacobi_iter=10)
         p .= znew .+ beta * p;
         z .= znew
         r .= rnew
-        @show rsnew
+        @show step, rsnew
     end
     # @show num_iter_steps
     num_iter_steps
@@ -534,7 +534,7 @@ function mg_preconditioned_CG(A,b,x)
     p = z;
     Ap = A*p;
     num_iter_steps = 0
-    for _ = 1:length(b)
+    for step = 1:length(b)
     # for _ in 1:40
         num_iter_steps += 1
         alpha = r'*z/(p'*Ap)
@@ -554,6 +554,7 @@ function mg_preconditioned_CG(A,b,x)
         z .= znew
         r .= rnew
         # @show rsnew
+        @show step, rsnew
     end
     # @show num_iter_steps
     num_iter_steps
@@ -568,7 +569,7 @@ function CG_CPU(A,b,x)
 
     num_iter_steps = 0
     # @show rsold
-    for _ = 1:length(b)
+    for step = 1:length(b)
     # for _ in 1:40
         num_iter_steps += 1
         mul!(Ap,A,p);
@@ -582,21 +583,30 @@ function CG_CPU(A,b,x)
         p = r + (rsnew / rsold) * p;
         rsold = rsnew
         # @show rsold
+        @show step, rsold
     end
     # @show num_iter_steps
     num_iter_steps
 end
 
 
-function test_preconditioned_CG()
-    level = 4
+function test_preconditioned_CG(;level=5)
+    # level = 3
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     x = zeros(Nx*Ny);
+    println("############# STARTING CG ###################")
     CG_CPU(A,b,x)
+    println("############# END OF CG #####################")
+    println()
+    println("###### STARTING JACOBI SMOOTHED CG ##########")
     x = zeros(Nx*Ny);
     jacobi_smoothed_CG(A,b,x,jacobi_iter=50)
+    println("######## END OF JACOBI SMOOTHED CG ##########")
+    println()
     # x = zeros(Nx*Ny);
     # jacobi_preconditioned_CG(A,b,x)
+    println("###### STARTING MG SMOOTHED CG ##############")
     x = zeros(Nx*Ny)
     mg_preconditioned_CG(A,b,x)
+    println("######## END OF MG SMOOTHED CG ##############")
 end
