@@ -453,7 +453,7 @@ end
 
 
 
-function jacobi_smoothed_CG(A,b,x;jacobi_iter=10,abstol=sqrt(eps(real(eltype(b)))))
+function jacobi_smoothed_CG(A,b,x;maxiter=length(b),jacobi_iter=10,abstol=sqrt(eps(real(eltype(b)))))
     r = b - A * x;
     rnew = similar(r)
     z = jacobi(A,r,maxiter=jacobi_iter)
@@ -461,7 +461,7 @@ function jacobi_smoothed_CG(A,b,x;jacobi_iter=10,abstol=sqrt(eps(real(eltype(b))
     p = z;
     Ap = A*p;
     num_iter_steps = 0
-    for step = 1:length(b)
+    for step = 1:maxiter
     # for _ in 1:40
         num_iter_steps += 1
         alpha = r'*z/(p'*Ap)
@@ -525,7 +525,7 @@ function jacobi_preconditioned_CG(A,b,x)
 end
 
 
-function mg_preconditioned_CG(A,b,x;abstol=sqrt(eps(real(eltype(b)))))
+function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
     r = b - A * x;
     rnew = similar(r)
     # z = jacobi(A,r,maxiter=jacobi_iter)
@@ -534,7 +534,7 @@ function mg_preconditioned_CG(A,b,x;abstol=sqrt(eps(real(eltype(b)))))
     p = z;
     Ap = A*p;
     num_iter_steps = 0
-    for step = 1:length(b)
+    for step = 1:maxiter
     # for _ in 1:40
         num_iter_steps += 1
         alpha = r'*z/(p'*Ap)
@@ -560,7 +560,7 @@ function mg_preconditioned_CG(A,b,x;abstol=sqrt(eps(real(eltype(b)))))
     num_iter_steps
 end
 
-function CG_CPU(A,b,x;abstol=sqrt(eps(real(eltype(b)))))
+function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
     r = b - A * x;
     p = r;
     rsold = r' * r
@@ -569,7 +569,7 @@ function CG_CPU(A,b,x;abstol=sqrt(eps(real(eltype(b)))))
 
     num_iter_steps = 0
     # @show rsold
-    for step = 1:length(b)
+    for step = 1:maxiter
     # for _ in 1:40
         num_iter_steps += 1
         mul!(Ap,A,p);
@@ -590,23 +590,25 @@ function CG_CPU(A,b,x;abstol=sqrt(eps(real(eltype(b)))))
 end
 
 
-function test_preconditioned_CG(;level=5,tol=sqrt(eps(real(Float64))))
+function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,tol=sqrt(eps(real(Float64))))
     # level = 3
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     x = zeros(Nx*Ny);
+    # max_iter=length(b)
+    # max_iter=100
     println("############# STARTING CG ###################")
-    CG_CPU(A,b,x,abstol=tol)
+    CG_CPU(A,b,x,maxiter=max_iter,abstol=tol)
     println("############# END OF CG #####################")
     println()
     println("###### STARTING JACOBI SMOOTHED CG ##########")
     x = zeros(Nx*Ny);
-    jacobi_smoothed_CG(A,b,x,jacobi_iter=50,abstol=tol)
+    jacobi_smoothed_CG(A,b,x,maxiter=max_iter,jacobi_iter=50,abstol=tol)
     println("######## END OF JACOBI SMOOTHED CG ##########")
     println()
     # x = zeros(Nx*Ny);
     # jacobi_preconditioned_CG(A,b,x)
-    println("###### STARTING MG SMOOTHED CG ##############")
+    println("###### STARTING MG PRECONDITIONED CG ##############")
     x = zeros(Nx*Ny)
-    mg_preconditioned_CG(A,b,x,abstol=tol)
-    println("######## END OF MG SMOOTHED CG ##############")
+    mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol)
+    println("######## END OF MG PRECONDITIONED CG ##############")
 end
