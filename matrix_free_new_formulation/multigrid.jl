@@ -591,6 +591,7 @@ end
 
 function CG_hybrid(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
     mg_cg_tol = 1e-4
+    mg_cg_tol = 4e-5
     iter_1 = mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=mg_cg_tol)
     iter_2 = CG_CPU(A,b,x)
     # return iter_1 + iter_2
