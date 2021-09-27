@@ -529,11 +529,12 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
     r = b - A * x;
     rnew = similar(r)
     # z = jacobi(A,r,maxiter=jacobi_iter)
-    z = mg(A,r,3)
+    z = mg(A,r,3,nu=50)
     znew = similar(z)
     p = z;
     Ap = A*p;
     num_iter_steps = 0
+    norms = [norm(z)^2]
     for step = 1:maxiter
     # for _ in 1:40
         num_iter_steps += 1
@@ -548,16 +549,17 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         end
         # p = r + (rsnew / rsold) * p;
         # znew = jacobi(A,rnew,maxiter=jacobi_iter=10);
-        znew = mg(A,rnew,3)
+        znew = mg(A,rnew,3,nu=50)
         beta = rnew'*znew/(r'*z);
         p .= znew .+ beta * p;
         z .= znew
         r .= rnew
+        append!(norms,norm(znew)^2)
         # @show rsnew
         # @show step, rsnew
     end
     # @show num_iter_steps
-    num_iter_steps
+    return num_iter_steps, norms
 end
 
 function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
@@ -568,6 +570,7 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
     Ap = similar(b);
 
     num_iter_steps = 0
+    norms = [sqrt(rsold)]
     # @show rsold
     for step = 1:maxiter
     # for _ in 1:40
@@ -582,27 +585,28 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
         end
         p = r + (rsnew / rsold) * p;
         rsold = rsnew
+        append!(norms,rsold)
         # @show rsold
         # @show step, rsold
     end
     # @show num_iter_steps
-    num_iter_steps
+    return (num_iter_steps,norms)
 end
 
 function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),mg_cg_tol=1e-5)
     # mg_cg_tol = 1e-4
     # mg_cg_tol = 4e-5
-    iter_1 = mg_preconditioned_CG(A,b,x;maxiter=maxiter_mg,abstol=mg_cg_tol)
+    iter_1, norms_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=maxiter_mg,abstol=mg_cg_tol)
     @show iter_1
     @show norm(A*x-b)
-    iter_2 = CG_CPU(A,b,x)
+    iter_2, norms_cg = CG_CPU(A,b,x)
     @show iter_2
     # return iter_1 + iter_2
     @show norm(A*x-b)
     rsold = norm(A*x-b)^2
     # @show iter_1, iter_2
     # @show iter_1 + iter_2, rsold^2
-    return iter_1, iter_2
+    return iter_1, iter_2, norms_mg_cg, norms_cg
 end
 
 
@@ -651,11 +655,11 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     
     println("###### STARTING HYBRID MG PRECONDITIONED CG ##############")
     x = zeros(Nx*Ny)
-    (num_iter_mg_CG_1, num_iter_CG_2) = CG_hybrid(A,b,x,maxiter_mg=maxiter_mg,abstol=tol,mg_cg_tol=mg_cg_tol)
+    (num_iter_mg_CG_1, num_iter_CG_2, norms_mg_cg, norms_cg) = CG_hybrid(A,b,x,maxiter_mg=maxiter_mg,abstol=tol,mg_cg_tol=mg_cg_tol)
 
     time = @elapsed for _ in 1:repeat
         x = zeros(Nx*Ny)
-        (num_iter_mg_CG_1, num_iter_CG_2) = CG_hybrid(A,b,x,maxiter_mg=maxiter_mg,abstol=tol,mg_cg_tol=mg_cg_tol)
+        (num_iter_mg_CG_1, num_iter_CG_2, norms_mg_cg, norms_cg) = CG_hybrid(A,b,x,maxiter_mg=maxiter_mg,abstol=tol,mg_cg_tol=mg_cg_tol)
     end
     time_mg_CG = time / repeat
     println("######## END OF HYBRID MG PRECONDITIONED CG ##############")
@@ -673,5 +677,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     if test_cg
         @show time_CG
     end
+
     @show time_mg_CG
+    plot(log.(10,norms_cg))
 end
