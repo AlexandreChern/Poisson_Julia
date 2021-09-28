@@ -345,7 +345,7 @@ function Two_Grid_Correction(;level=9,nu=10,use_galerkin=true)
 end
 
 
-function multigrid(;level=8,L=3,nu=10,use_galerkin=true)
+function multigrid(;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true)
     # level = 8
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     # L = 3 # multigrid level
@@ -353,33 +353,36 @@ function multigrid(;level=8,L=3,nu=10,use_galerkin=true)
     rhs_values = Dict(1 => b)
     A_matrices = Dict(1 => A)
     N_values = Dict(1=>Nx)
-    # max_iter = 10
-    for i in 1:L
-        if i != L
-            # @show i
-            jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
-            rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
-            N_values[i+1] = div(N_values[i]+1,2)
-            if use_galerkin
-                A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+    # NUM_V_CYCLES = 2
+    for _ in 1:NUM_V_CYCLES
+        # max_iter = 10
+        for i in 1:L
+            if i != L
+                # @show i
+                jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
+                N_values[i+1] = div(N_values[i]+1,2)
+                if use_galerkin
+                    A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+                else
+                    A_matrices[i+1] = Assembling_matrix(level-i)[1]
+                end
+                v_values[i+1] = zeros(N_values[i+1]^2)
             else
-                A_matrices[i+1] = Assembling_matrix(level-i)[1]
+                v_values[i] = A_matrices[i] \ rhs_values[i]
             end
-            v_values[i+1] = zeros(N_values[i+1]^2)
-        else
-            v_values[i] = A_matrices[i] \ rhs_values[i]
+            
         end
-        
-    end
 
-    # println("Pass first part")
+        # println("Pass first part")
 
-    for i in 1:L-1
-        j = L-i
-        v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
-        jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+        for i in 1:L-1
+            j = L-i
+            v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
+            jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+        end
+        # @show norm(A_matrices[1] * v_values[1] - b)
     end
-    # @show norm(A_matrices[1] * v_values[1] - b)
     return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
 end
 
