@@ -387,36 +387,38 @@ function multigrid(;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true)
 end
 
 
-function mg(A,b,L;nu=5,use_galerkin=true)
+function mg(A,b,L;nu=5,NUM_V_CYCLES=1,use_galerkin=true)
     Nx = Ny = Int(sqrt(length(b)))
     v_values = Dict(1=>zeros(Nx*Ny))
     rhs_values = Dict(1 => b)
     A_matrices = Dict(1 => A)
     N_values = Dict(1=>Nx)
-    for i in 1:L
-        if i != L
-            # @show i
-            jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
-            rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
-            N_values[i+1] = div(N_values[i]+1,2)
-            if use_galerkin
-                A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+    for _ in 1:NUM_V_CYCLES
+        for i in 1:L
+            if i != L
+                # @show i
+                jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
+                N_values[i+1] = div(N_values[i]+1,2)
+                if use_galerkin
+                    A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+                else
+                    A_matrices[i+1] = Assembling_matrix(level-i)[1]
+                end
+                v_values[i+1] = zeros(N_values[i+1]^2)
             else
-                A_matrices[i+1] = Assembling_matrix(level-i)[1]
+                v_values[i] = A_matrices[i] \ rhs_values[i]
             end
-            v_values[i+1] = zeros(N_values[i+1]^2)
-        else
-            v_values[i] = A_matrices[i] \ rhs_values[i]
+            
         end
-        
-    end
 
-    # println("Pass first part")
+        # println("Pass first part")
 
-    for i in 1:L-1
-        j = L-i
-        v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
-        jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+        for i in 1:L-1
+            j = L-i
+            v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
+            jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+        end
     end
     return v_values[1]
 end
@@ -528,11 +530,11 @@ function jacobi_preconditioned_CG(A,b,x)
 end
 
 
-function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),nu=5)
+function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=5)
     r = b - A * x;
     rnew = similar(r)
     # z = jacobi(A,r,maxiter=jacobi_iter)
-    z = mg(A,r,3,nu=nu)
+    z = mg(A,r,3,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
     znew = similar(z)
     p = z;
     Ap = A*p;
@@ -552,7 +554,7 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         end
         # p = r + (rsnew / rsold) * p;
         # znew = jacobi(A,rnew,maxiter=jacobi_iter=10);
-        znew = mg(A,rnew,3,nu=nu)
+        znew = mg(A,rnew,3,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
         beta = rnew'*znew/(r'*z);
         p .= znew .+ beta * p;
         z .= znew
@@ -599,7 +601,7 @@ end
 function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),mg_cg_tol=1e-5,NUM_V_CYCLES=3,nu=5)
     # mg_cg_tol = 1e-4
     # mg_cg_tol = 4e-5
-    iter_1, norms_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=maxiter_mg,abstol=mg_cg_tol,nu=nu)
+    iter_1, norms_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=maxiter_mg,abstol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
     @show iter_1
     @show norm(A*x-b)
     iter_2, norms_cg = CG_CPU(A,b,x)
