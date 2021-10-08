@@ -686,3 +686,18 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     @show time_mg_CG
     plot(log.(10,norms_cg_hybrid))
 end
+
+
+function multigrid_iteration_matrix(level)
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    Ir = restriction_2d(Nx)
+    Ip = prolongation_2d(div(Nx+1,2))
+    A_2h = Ir*(A)*Ip
+    part_1 = sparse(I,Nx*Ny,Nx*Ny) - Ip*(A_2h\Matrix(Ir))*A
+    P = Diagonal(A)
+    Q = P - A # for Jacobi
+    Sm = P\Q
+    part_2 = Sm
+    S = part_1 * part_2
+    return S
+end
