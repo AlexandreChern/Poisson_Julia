@@ -719,3 +719,14 @@ function multigrid_iteration_matrix(level)
     S = part_1 * part_2
     return S
 end
+
+
+function multigrid_precondition_matrix(level)
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    Ir = restriction_2d(Nx)
+    Ip = prolongation_2d(div(Nx+1,2))
+    A_2h = Ir*(A)*Ip
+    P = Diagonal(A)
+    Q = P - A # for Jacobi
+    R = inverse(matrix(P))
+end
