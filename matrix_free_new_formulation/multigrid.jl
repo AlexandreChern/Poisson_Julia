@@ -615,16 +615,22 @@ function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),
 end
 
 
-function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^level+1)^2,tol=sqrt(eps(real(Float64))),repeat=1,test_cg=false,test_jacobi=false,test_multigrid_CG=true,mg_cg_tol=4e-5,NUM_V_CYCLES=3,nu=5)
+function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^level+1)^2,reltol=sqrt(eps(real(Float64))),repeat=1,test_cg=false,test_jacobi=false,test_mg_cg=false,mg_cg_tol=4e-5,NUM_V_CYCLES=3,nu=5)
     # level = 3
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     x = zeros(Nx*Ny);
     # max_iter=length(b)
     # max_iter=100
+    r_0 = norm(b-A*x)
+    abstol=0
+    tol = max(reltol*r_0,abstol)
+
+    @show tol
 
     # repeat = 10
     @show test_cg
     @show test_jacobi
+    @show test_mg_cg
     @show maxiter_mg
     @show mg_cg_tol
 
@@ -649,42 +655,54 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
         println()
         # x = zeros(Nx*Ny);
         # jacobi_preconditioned_CG(A,b,x)
+    end
         
-        
+    
+    if test_mg_cg
         println("###### STARTING MG PRECONDITIONED CG ##############")
         x = zeros(Nx*Ny)
         num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol)
         println("######## END OF MG PRECONDITIONED CG ##############")
+        time_mg_cg = @elapsed for _ in 1:repeat
+            x = zeros(Nx*Ny)
+            num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol)
+        end
+        time_mg_cg = time_mg_cg / repeat
     end
     
     
     println("###### STARTING HYBRID MG PRECONDITIONED CG ##############")
     x = zeros(Nx*Ny)
-    (num_iter_mg_CG_1, num_iter_CG_2, norms_mg_cg, norms_cg_hybrid) = CG_hybrid(A,b,x,maxiter_mg=maxiter_mg,abstol=tol,mg_cg_tol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
+    (num_iter_mg_CG_1, num_iter_CG_2, norms_mg_cg, norms_hybrid_cg) = CG_hybrid(A,b,x,maxiter_mg=maxiter_mg,abstol=tol,mg_cg_tol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
 
-    time = @elapsed for _ in 1:repeat
+    time_hybrid = @elapsed for _ in 1:repeat
         x = zeros(Nx*Ny)
         (num_iter_mg_CG_1, num_iter_CG_2, norms_mg_cg, norms_cg_hybrid) = CG_hybrid(A,b,x,maxiter_mg=maxiter_mg,abstol=tol,mg_cg_tol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
     end
-    time_mg_CG = time / repeat
+    time_hybrid_CG = time_hybrid / repeat
     println("######## END OF HYBRID MG PRECONDITIONED CG ##############")
 
     if test_cg
-        @show num_iter_CG
+        @show num_iter_CG[1]
     end
 
     if test_jacobi
         @show num_iter_jacobi_CG
     end
-    # @show num_iter_mg_CG
-    @show (num_iter_mg_CG_1,num_iter_CG_2)
 
     if test_cg
         @show time_CG
     end
 
-    @show time_mg_CG
-    plot(log.(10,norms_cg_hybrid))
+    if test_mg_cg
+        @show time_mg_cg
+        @show num_iter_mg_CG[1]
+    end
+
+    @show (num_iter_mg_CG_1,num_iter_CG_2)
+
+    @show time_hybrid_CG
+    plot(log.(10,norms_hybrid_cg))
 end
 
 
