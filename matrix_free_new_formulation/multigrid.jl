@@ -604,7 +604,7 @@ function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),
     iter_1, norms_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=maxiter_mg,abstol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
     @show iter_1
     @show norm(A*x-b)
-    iter_2, norms_cg = CG_CPU(A,b,x)
+    iter_2, norms_cg = CG_CPU(A,b,x,abstol=abstol)
     @show iter_2
     # return iter_1 + iter_2
     @show norm(A*x-b)
@@ -638,6 +638,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
         println("############# STARTING CG ###################")
         x = zeros(Nx*Ny);
         num_iter_CG = CG_CPU(A,b,x,maxiter=max_iter,abstol=tol)
+        @show num_iter_CG[1], sqrt(num_iter_CG[2][end])
         time = @elapsed for _ in 1:repeat
             x = zeros(Nx*Ny);
             num_iter_CG = CG_CPU(A,b,x,maxiter=max_iter,abstol=tol)
