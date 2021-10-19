@@ -560,7 +560,7 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         p .= znew .+ beta * p;
         z .= znew
         r .= rnew
-        append!(norms,norm(znew)^2)
+        append!(norms,rsnew)
         # @show rsnew
         # @show step, rsnew
     end
