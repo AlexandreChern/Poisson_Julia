@@ -387,7 +387,7 @@ function multigrid(;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true)
 end
 
 
-function mg(A,b,L;nu=5,NUM_V_CYCLES=1,use_galerkin=true)
+function mg(A,b,L;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
     Nx = Ny = Int(sqrt(length(b)))
     v_values = Dict(1=>zeros(Nx*Ny))
     rhs_values = Dict(1 => b)
@@ -530,7 +530,7 @@ function jacobi_preconditioned_CG(A,b,x)
 end
 
 
-function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=5)
+function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4)
     r = b - A * x;
     rnew = similar(r)
     # z = jacobi(A,r,maxiter=jacobi_iter)
@@ -598,7 +598,7 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
     return (num_iter_steps,norms)
 end
 
-function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),mg_cg_tol=1e-5,NUM_V_CYCLES=3,nu=5)
+function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),mg_cg_tol=1e-5,NUM_V_CYCLES=3,nu=4)
     # mg_cg_tol = 1e-4
     # mg_cg_tol = 4e-5
     iter_1, norms_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=maxiter_mg,abstol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
@@ -615,7 +615,7 @@ function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),
 end
 
 
-function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^level+1)^2,reltol=sqrt(eps(real(Float64))),repeat=1,test_cg=false,test_jacobi=false,test_mg_cg=false,mg_cg_tol=4e-5,NUM_V_CYCLES=3,nu=5)
+function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^level+1)^2,reltol=sqrt(eps(real(Float64))),repeat=1,test_cg=false,test_jacobi=false,test_mg_cg=false,mg_cg_tol=4e-5,NUM_V_CYCLES=3,nu=4)
     # level = 3
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     x = zeros(Nx*Ny);
