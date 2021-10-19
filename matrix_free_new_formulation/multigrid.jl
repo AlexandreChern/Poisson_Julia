@@ -728,5 +728,13 @@ function multigrid_precondition_matrix(level)
     A_2h = Ir*(A)*Ip
     P = Diagonal(A)
     Q = P - A # for Jacobi
-    R = inverse(matrix(P))
+    m = 2
+    # m = 1
+    H = inv(Matrix(P))*Q
+    R = zeros(size(H))
+    for i in 0:m-1
+        R += H^i * inv(Matrix(P))
+    end
+    M = R + Ip * A_2h * Ir * (Matrix(I,size(A)) - A*R)
+    return M
 end
