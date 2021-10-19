@@ -642,7 +642,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
         println("############# STARTING CG ###################")
         x = zeros(Nx*Ny);
         time_CG = @elapsed num_iter_CG = CG_CPU(A,b,x,maxiter=max_iter,abstol=tol)
-        @show num_iter_CG[1], sqrt(num_iter_CG[2][end])
+        @show num_iter_CG[1], num_iter_CG[2][end]
         # time = @elapsed for _ in 1:repeat
         #     x = zeros(Nx*Ny);
         #     num_iter_CG = CG_CPU(A,b,x,maxiter=max_iter,abstol=tol)
@@ -669,7 +669,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
         println("###### STARTING MG PRECONDITIONED CG ##############")
         x = zeros(Nx*Ny)
         time_mg_cg = @elapsed num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol,nu=nu,mg_level=mg_level)
-        @show num_iter_mg_CG[1], sqrt(num_iter_mg_CG[2][end])
+        @show num_iter_mg_CG[1], num_iter_mg_CG[2][end]
         println("######## END OF MG PRECONDITIONED CG ##############")
         println()
         # time_mg_cg = @elapsed for _ in 1:repeat
