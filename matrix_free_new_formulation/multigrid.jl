@@ -634,6 +634,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     @show test_mg_cg
     @show maxiter_mg
     @show mg_cg_tol
+    @show mg_level
 
     if test_cg
         println()
