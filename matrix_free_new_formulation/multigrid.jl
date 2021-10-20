@@ -668,8 +668,8 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
         println()
         println("###### STARTING MG PRECONDITIONED CG ##############")
         x = zeros(Nx*Ny)
-        time_mg_cg = @elapsed num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol,nu=nu,mg_level=mg_level)
-        @show num_iter_mg_CG[1], num_iter_mg_CG[2][end]
+        time_mg_CG = @elapsed num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol,nu=nu,mg_level=mg_level)
+        @show num_iter_mg_CG[1], num_iter_mg_CG[2]
         println("######## END OF MG PRECONDITIONED CG ##############")
         println()
         # time_mg_cg = @elapsed for _ in 1:repeat
@@ -705,14 +705,18 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     end
 
     if test_mg_cg
-        @show time_mg_cg
+        @show time_mg_CG
         @show num_iter_mg_CG[1]
     end
 
     @show (num_iter_mg_CG_1,num_iter_CG_2)
+    @show (norms_mg_cg, norms_hybrid_cg) 
 
     @show time_hybrid_CG
-    plot(log.(10,norms_hybrid_cg))
+    # plot(log.(10,norms_hybrid_cg))
+    plot(log.(10,num_iter_CG[2]),label="CG, time=$time_CG")
+    plot!(log.(10,num_iter_mg_CG[2]),label="MG-CG, time=$time_mg_CG")
+    plot!(log.(10,vcat(norms_mg_cg,norms_hybrid_cg)),label="Hybrid-CG, time=$time_hybrid_CG")
 end
 
 
