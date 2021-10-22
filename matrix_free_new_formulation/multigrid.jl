@@ -345,50 +345,96 @@ function Two_Grid_Correction(;level=9,nu=10,use_galerkin=true)
 end
 
 
-function multigrid(;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true)
+A_matrices = Dict()
+
+function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true)
     # level = 8
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     # L = 3 # multigrid level
     v_values = Dict(1=>zeros(Nx*Ny))
     rhs_values = Dict(1 => b)
-    A_matrices = Dict(1 => A)
-    N_values = Dict(1=>Nx)
-    # NUM_V_CYCLES = 2
-    for _ in 1:NUM_V_CYCLES
-        # max_iter = 10
-        for i in 1:L
-            if i != L
-                # @show i
-                jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
-                # @show i 
-                # @show size(restriction_2d(N_values[i]))
-                # @show size(rhs_values[i]) 
-                # @show size(A_matrices[i])
-                # @show size(v_values[i])
-                rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
-                N_values[i+1] = div(N_values[i]+1,2)
-                if use_galerkin
-                    A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+
+    # @show A_matrices
+    @show isempty(A_matrices)
+    if isempty(A_matrices)
+        # A_matrices = Dict(1 => A)
+        A_matrices[1] = lu(A)
+        N_values = Dict(1=>Nx)
+        # NUM_V_CYCLES = 2
+        for _ in 1:NUM_V_CYCLES
+            # max_iter = 10
+            for i in 1:L
+                if i != L
+                    # @show i
+                    jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                    # @show i 
+                    # @show size(restriction_2d(N_values[i]))
+                    # @show size(rhs_values[i]) 
+                    # @show size(A_matrices[i])
+                    # @show size(v_values[i])
+                    rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
+                    N_values[i+1] = div(N_values[i]+1,2)
+                    if use_galerkin
+                        A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+                    else
+                        A_matrices[i+1] = Assembling_matrix(level-i)[1]
+                    end
+                    v_values[i+1] = zeros(N_values[i+1]^2)
                 else
-                    A_matrices[i+1] = Assembling_matrix(level-i)[1]
+                    v_values[i] = A_matrices[i] \ rhs_values[i]
                 end
-                v_values[i+1] = zeros(N_values[i+1]^2)
-            else
-                v_values[i] = A_matrices[i] \ rhs_values[i]
+                
             end
-            
-        end
 
-        # println("Pass first part")
+            # println("Pass first part")
 
-        for i in 1:L-1
-            j = L-i
-            v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
-            jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+            for i in 1:L-1
+                j = L-i
+                v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
+                jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+            end
+            # @show norm(A_matrices[1] * v_values[1] - b)
         end
-        # @show norm(A_matrices[1] * v_values[1] - b)
+        return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
+    else
+        N_values = Dict(1=>Nx)
+        # NUM_V_CYCLES = 2
+        for _ in 1:NUM_V_CYCLES
+            # max_iter = 10
+            for i in 1:L
+                if i != L
+                    # @show i
+                    jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                    # @show i 
+                    # @show size(restriction_2d(N_values[i]))
+                    # @show size(rhs_values[i]) 
+                    # @show size(A_matrices[i])
+                    # @show size(v_values[i])
+                    rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
+                    N_values[i+1] = div(N_values[i]+1,2)
+                    # if use_galerkin
+                    #     A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+                    # else
+                    #     A_matrices[i+1] = Assembling_matrix(level-i)[1]
+                    # end
+                    v_values[i+1] = zeros(N_values[i+1]^2)
+                else
+                    v_values[i] = A_matrices[i] \ rhs_values[i]
+                end
+                
+            end
+
+            # println("Pass first part")
+
+            for i in 1:L-1
+                j = L-i
+                v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
+                jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+            end
+            # @show norm(A_matrices[1] * v_values[1] - b)
+        end
+        return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
     end
-    return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
 end
 
 
@@ -432,6 +478,88 @@ function mg(A,b,L=mg_level;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
         end
     end
     return v_values[1]
+end
+
+function mg_v2(A,b,A_matrices,L=mg_level,;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
+    Nx = Ny = Int(sqrt(length(b)))
+    level = Int(log(2,Nx-1))
+    v_values = Dict(1=>zeros(Nx*Ny))
+    rhs_values = Dict(1 => b)
+    # A_matrices = Dict(1 => A)
+    N_values = Dict(1=>Nx)
+    
+    if isempty(A_matrices)
+        println("A_matrices is empty, starting to assemble")
+        A_matrices[1] = A
+        # @show L
+        for _ in 1:NUM_V_CYCLES
+            for i in 1:L
+                if i != L
+                    # @show i
+                    # jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                    # @show size(restriction_2d(N_values[i]))
+                    # @show size(rhs_values[i]) 
+                    # @show size(A_matrices[i])
+                    # @show size(v_values[i])
+                    rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
+                    N_values[i+1] = div(N_values[i]+1,2)
+                    if use_galerkin
+                        A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+                    else
+                        A_matrices[i+1] = Assembling_matrix(level-i)[1]
+                    end
+                    v_values[i+1] = zeros(N_values[i+1]^2)
+                else
+                    A_matrices[i] = lu(A_matrices[i])
+                    v_values[i] = A_matrices[i] \ rhs_values[i]
+                end
+                
+            end
+
+            # println("Pass first part")
+
+            for i in 1:L-1
+                j = L-i
+                v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
+                jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+            end
+        end
+        return v_values[1]
+    else
+        # println("A_matrices is not empty, using existing results")
+        for _ in 1:NUM_V_CYCLES
+            for i in 1:L
+                if i != L
+                    # @show i
+                    # jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                    # @show size(restriction_2d(N_values[i]))
+                    # @show size(rhs_values[i]) 
+                    # @show size(A_matrices[i])
+                    # @show size(v_values[i])
+                    rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
+                    N_values[i+1] = div(N_values[i]+1,2)
+                    # if use_galerkin
+                    #     A_matrices[i+1] = restriction_2d(N_values[i]) * A_matrices[i] * prolongation_2d(N_values[i+1])
+                    # else
+                    #     A_matrices[i+1] = Assembling_matrix(level-i)[1]
+                    # end
+                    v_values[i+1] = zeros(N_values[i+1]^2)
+                else
+                    v_values[i] = A_matrices[i] \ rhs_values[i]
+                end
+                
+            end
+
+            # println("Pass first part")
+
+            for i in 1:L-1
+                j = L-i
+                v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
+                jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+            end
+        end
+        return v_values[1]
+    end
 end
 
 function pure_jacobi(;level=8,nu=10)
@@ -579,6 +707,45 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
     return num_iter_steps, norms
 end
 
+function mg_preconditioned_CG_v2(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4,mg_level=mg_level,use_galerkin=true)
+    r = b - A * x;
+    rnew = similar(r)
+    # z = jacobi(A,r,maxiter=jacobi_iter)
+    # mg_level = 3
+    A_matrices = Dict()
+    z = mg_v2(A,r,A_matrices,mg_level,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu,use_galerkin=use_galerkin)
+    znew = similar(z)
+    p = z;
+    Ap = A*p;
+    num_iter_steps = 0
+    norms = [norm(r)]
+    for step = 1:maxiter
+    # for _ in 1:40
+        num_iter_steps += 1
+        alpha = r'*z/(p'*Ap)
+        mul!(Ap,A,p);
+        alpha = r'*z / (p'*Ap)
+        x .= x .+ alpha * p;
+        rnew .= r .- alpha * Ap;
+        rsnew = rnew' * rnew
+        append!(norms,sqrt(rsnew))
+        if sqrt(rsnew) < abstol
+              break
+        end
+        # p = r + (rsnew / rsold) * p;
+        # znew = jacobi(A,rnew,maxiter=jacobi_iter=10);
+        znew = mg_v2(A,rnew,A_matrices,mg_level,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu,use_galerkin=use_galerkin)
+        beta = rnew'*znew/(r'*z);
+        p .= znew .+ beta * p;
+        z .= znew
+        r .= rnew
+        # @show rsnew
+        # @show step, rsnew
+    end
+    # @show num_iter_steps
+    return num_iter_steps, norms
+end
+
 function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
     r = b - A * x;
     p = r;
@@ -642,7 +809,7 @@ mg_level=3
 NUM_V_CYCLES=3
 nu=4
 
-function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^level+1)^2,reltol=sqrt(eps(real(Float64))),repeat=1,use_galerkin=true,test_cg=false,test_jacobi=false,test_mg_cg=false,mg_cg_tol=4e-5,mg_level=3,NUM_V_CYCLES=3,nu=4)
+function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^level+1)^2,reltol=sqrt(eps(real(Float64))),repeat=1,use_galerkin=true,test_cg=false,test_jacobi=false,test_mg_cg=false,preassembled_A=true,mg_cg_tol=4e-5,mg_level=3,NUM_V_CYCLES=3,nu=4)
     # level = 3
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     @show size(A)
@@ -664,6 +831,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     @show mg_cg_tol
     @show mg_level
     @show use_galerkin
+    @show preassembled_A
 
     if test_cg
         println()
@@ -696,8 +864,13 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
         println()
         println("###### STARTING MG PRECONDITIONED CG ##############")
         x = zeros(Nx*Ny)
-        time_mg_CG = @elapsed num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol,nu=nu,mg_level=mg_level,use_galerkin=use_galerkin)
+        if preassembled_A
+            time_mg_CG = @elapsed num_iter_mg_CG = mg_preconditioned_CG_v2(A,b,x,maxiter=max_iter,abstol=tol,nu=nu,mg_level=mg_level,use_galerkin=use_galerkin)
+        else
+            time_mg_CG = @elapsed num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol,nu=nu,mg_level=mg_level,use_galerkin=use_galerkin)
+        end
         # @show num_iter_mg_CG[1], num_iter_mg_CG[2]
+        @show num_iter_mg_CG[1]
         println("######## END OF MG PRECONDITIONED CG ##############")
         println()
         # time_mg_cg = @elapsed for _ in 1:repeat
