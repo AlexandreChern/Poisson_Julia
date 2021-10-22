@@ -360,6 +360,11 @@ function multigrid(;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true)
             if i != L
                 # @show i
                 jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                # @show i 
+                # @show size(restriction_2d(N_values[i]))
+                # @show size(rhs_values[i]) 
+                # @show size(A_matrices[i])
+                # @show size(v_values[i])
                 rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
                 N_values[i+1] = div(N_values[i]+1,2)
                 if use_galerkin
@@ -387,17 +392,23 @@ function multigrid(;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true)
 end
 
 
-function mg(A,b,L;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
+function mg(A,b,L=mg_level;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
     Nx = Ny = Int(sqrt(length(b)))
+    level = Int(log(2,Nx-1))
     v_values = Dict(1=>zeros(Nx*Ny))
     rhs_values = Dict(1 => b)
     A_matrices = Dict(1 => A)
     N_values = Dict(1=>Nx)
+    @show L
     for _ in 1:NUM_V_CYCLES
         for i in 1:L
             if i != L
                 # @show i
-                jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                # jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                # @show size(restriction_2d(N_values[i]))
+                # @show size(rhs_values[i]) 
+                # @show size(A_matrices[i])
+                # @show size(v_values[i])
                 rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
                 N_values[i+1] = div(N_values[i]+1,2)
                 if use_galerkin
@@ -530,12 +541,12 @@ function jacobi_preconditioned_CG(A,b,x)
 end
 
 
-function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4,mg_level=3)
+function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4,mg_level=mg_level,use_galerkin=true)
     r = b - A * x;
     rnew = similar(r)
     # z = jacobi(A,r,maxiter=jacobi_iter)
     # mg_level = 3
-    z = mg(A,r, mg_level,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
+    z = mg(A,r, mg_level,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu,use_galerkin=use_galerkin)
     znew = similar(z)
     p = z;
     Ap = A*p;
@@ -556,7 +567,7 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         end
         # p = r + (rsnew / rsold) * p;
         # znew = jacobi(A,rnew,maxiter=jacobi_iter=10);
-        znew = mg(A,rnew,mg_level,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu)
+        znew = mg(A,rnew,mg_level,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu,use_galerkin=use_galerkin)
         beta = rnew'*znew/(r'*z);
         p .= znew .+ beta * p;
         z .= znew
@@ -599,10 +610,10 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
     return (num_iter_steps,norms)
 end
 
-function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),mg_cg_tol=1e-5,NUM_V_CYCLES=3,mg_level=mg_level,nu=4)
+function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),use_galerkin=use_galerkin,mg_cg_tol=1e-5,NUM_V_CYCLES=3,mg_level=mg_level,nu=4)
     # mg_cg_tol = 1e-4
     # mg_cg_tol = 4e-5
-    iter_1, norms_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=maxiter_mg,abstol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,mg_level=mg_level,nu=nu)
+    iter_1, norms_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=maxiter_mg,use_galerkin=use_galerkin,abstol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,mg_level=mg_level,nu=nu)
     @show iter_1
     @show norm(A*x-b)
     @show abstol
@@ -617,9 +628,25 @@ function CG_hybrid(A,b,x;maxiter_mg=length(b),abstol=sqrt(eps(real(eltype(b)))),
 end
 
 
-function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^level+1)^2,reltol=sqrt(eps(real(Float64))),repeat=1,test_cg=false,test_jacobi=false,test_mg_cg=false,mg_cg_tol=4e-5,mg_level=3,NUM_V_CYCLES=3,nu=4)
+level=5
+max_iter=(2^level+1)^2
+maxiter_mg=(2^level+1)^2
+reltol=sqrt(eps(real(Float64)))
+repeat=1
+use_galerkin=true
+test_cg=false
+test_jacobi=false
+test_mg_cg=false
+mg_cg_tol=4e-5
+mg_level=3
+NUM_V_CYCLES=3
+nu=4
+
+function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^level+1)^2,reltol=sqrt(eps(real(Float64))),repeat=1,use_galerkin=true,test_cg=false,test_jacobi=false,test_mg_cg=false,mg_cg_tol=4e-5,mg_level=3,NUM_V_CYCLES=3,nu=4)
     # level = 3
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    @show size(A)
+    @show size(b)
     x = zeros(Nx*Ny);
     # max_iter=length(b)
     # max_iter=100
@@ -636,6 +663,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     @show maxiter_mg
     @show mg_cg_tol
     @show mg_level
+    @show use_galerkin
 
     if test_cg
         println()
@@ -668,7 +696,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
         println()
         println("###### STARTING MG PRECONDITIONED CG ##############")
         x = zeros(Nx*Ny)
-        time_mg_CG = @elapsed num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol,nu=nu,mg_level=mg_level)
+        time_mg_CG = @elapsed num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol,nu=nu,mg_level=mg_level,use_galerkin=use_galerkin)
         @show num_iter_mg_CG[1], num_iter_mg_CG[2]
         println("######## END OF MG PRECONDITIONED CG ##############")
         println()
@@ -682,7 +710,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     println()
     println("###### STARTING HYBRID MG PRECONDITIONED CG ##############")
     x = zeros(Nx*Ny)
-    time_hybrid_CG = @elapsed (num_iter_mg_CG_1, num_iter_CG_2, norms_mg_cg, norms_hybrid_cg) = CG_hybrid(A,b,x,maxiter_mg=maxiter_mg,abstol=tol,mg_cg_tol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,mg_level=mg_level,nu=nu)
+    time_hybrid_CG = @elapsed (num_iter_mg_CG_1, num_iter_CG_2, norms_mg_cg, norms_hybrid_cg) = CG_hybrid(A,b,x,maxiter_mg=maxiter_mg,use_galerkin=use_galerkin,abstol=tol,mg_cg_tol=mg_cg_tol,NUM_V_CYCLES=NUM_V_CYCLES,mg_level=mg_level,nu=nu)
 
     # time_hybrid = @elapsed for _ in 1:repeat
     #     x = zeros(Nx*Ny)
@@ -714,9 +742,15 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
 
     @show time_hybrid_CG
     # plot(log.(10,norms_hybrid_cg))
-    plot(log.(10,num_iter_CG[2]),label="CG, time=$time_CG")
-    plot!(log.(10,num_iter_mg_CG[2]),label="MG-CG, time=$time_mg_CG")
-    plot!(log.(10,vcat(norms_mg_cg,norms_hybrid_cg)),label="Hybrid-CG, time=$time_hybrid_CG")
+    plot(log.(10,vcat(norms_mg_cg,norms_hybrid_cg)),label="Hybrid-CG, time=$time_hybrid_CG")
+    # if test_cg
+    #     plot(log.(10,num_iter_CG[2]),label="CG, time=$time_CG")
+    #     # plot!(log.(10,num_iter_mg_CG[2]),label="MG-CG, time=$time_mg_CG")
+    # end
+    # if test_mg_cg
+    #     plot(log.(10,num_iter_mg_CG[2]),label="MG-CG, time=$time_mg_CG")
+    # end
+    # plot(log.(10,vcat(norms_mg_cg,norms_hybrid_cg)),label="Hybrid-CG, time=$time_hybrid_CG")
 end
 
 
