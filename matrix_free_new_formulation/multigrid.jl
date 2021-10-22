@@ -399,7 +399,7 @@ function mg(A,b,L=mg_level;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
     rhs_values = Dict(1 => b)
     A_matrices = Dict(1 => A)
     N_values = Dict(1=>Nx)
-    @show L
+    # @show L
     for _ in 1:NUM_V_CYCLES
         for i in 1:L
             if i != L
@@ -697,7 +697,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
         println("###### STARTING MG PRECONDITIONED CG ##############")
         x = zeros(Nx*Ny)
         time_mg_CG = @elapsed num_iter_mg_CG = mg_preconditioned_CG(A,b,x,maxiter=max_iter,abstol=tol,nu=nu,mg_level=mg_level,use_galerkin=use_galerkin)
-        @show num_iter_mg_CG[1], num_iter_mg_CG[2]
+        # @show num_iter_mg_CG[1], num_iter_mg_CG[2]
         println("######## END OF MG PRECONDITIONED CG ##############")
         println()
         # time_mg_cg = @elapsed for _ in 1:repeat
@@ -720,6 +720,9 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     println("######## END OF HYBRID MG PRECONDITIONED CG ##############")
     println()
 
+    @show (num_iter_mg_CG_1,num_iter_CG_2)
+    # @show (norms_mg_cg, norms_hybrid_cg) 
+
     if test_cg
         @show num_iter_CG[1]
     end
@@ -734,22 +737,22 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
 
     if test_mg_cg
         @show time_mg_CG
-        @show num_iter_mg_CG[1]
+        # @show num_iter_mg_CG[1]
     end
 
-    @show (num_iter_mg_CG_1,num_iter_CG_2)
-    @show (norms_mg_cg, norms_hybrid_cg) 
 
     @show time_hybrid_CG
     # plot(log.(10,norms_hybrid_cg))
     plot(log.(10,vcat(norms_mg_cg,norms_hybrid_cg)),label="Hybrid-CG, time=$time_hybrid_CG")
-    # if test_cg
-    #     plot(log.(10,num_iter_CG[2]),label="CG, time=$time_CG")
-    #     # plot!(log.(10,num_iter_mg_CG[2]),label="MG-CG, time=$time_mg_CG")
-    # end
-    # if test_mg_cg
-    #     plot(log.(10,num_iter_mg_CG[2]),label="MG-CG, time=$time_mg_CG")
-    # end
+    
+    if test_mg_cg
+        plot!(log.(10,num_iter_mg_CG[2]),label="MG-CG, time=$time_mg_CG")
+    end
+
+    if test_cg
+        plot!(log.(10,num_iter_CG[2]),label="CG, time=$time_CG")
+        # plot!(log.(10,num_iter_mg_CG[2]),label="MG-CG, time=$time_mg_CG")
+    end
     # plot(log.(10,vcat(norms_mg_cg,norms_hybrid_cg)),label="Hybrid-CG, time=$time_hybrid_CG")
 end
 
