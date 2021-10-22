@@ -277,6 +277,20 @@ function restriction_matrix(N)
     return odata
 end
 
+function restriction_matrix_normal(N)
+    # SBP preserving
+    odata = spzeros(div(N+1,2),N)
+    odata[1,1] = 1/2
+    odata[1,2] = 1/4
+    odata[end,end-1] = 1/4
+    odata[end,end] = 1/2
+    for i in 2:div(N+1,2)-1
+        odata[i,2*i-2] = 1/4
+        odata[i,2*i-1] = 1/2
+        odata[i,2*i] = 1/4
+    end
+    return odata
+end
 
 function prolongation_2d(N)
     prolongation_1d = prolongation_matrix(N)
@@ -285,7 +299,7 @@ function prolongation_2d(N)
 end
 
 function restriction_2d(N)
-    restriction_1d = restriction_matrix(N)
+    restriction_1d = restriction_matrix_normal(N)
     restriction_2d = kron(restriction_1d,restriction_1d)
     return restriction_2d
 end
@@ -900,6 +914,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
 
     if test_cg
         @show num_iter_CG[1]
+        time_CG_rounded = round(time_CG,digits=5)
     end
 
     if test_jacobi
@@ -912,6 +927,7 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
 
     if test_mg_cg
         @show time_mg_CG
+        time_mg_CG_rounded = round(time_mg_CG,digits=5)
         # @show num_iter_mg_CG[1]
     end
 
@@ -922,8 +938,8 @@ function test_preconditioned_CG(;level=5,max_iter=(2^level+1)^2,maxiter_mg=(2^le
     plot()
     
 
-    time_CG_rounded = round(time_CG,digits=5)
-    time_mg_CG_rounded = round(time_mg_CG,digits=5)
+    
+    
     time_hybrid_CG_rounded = round(time_hybrid_CG,digits=5)
 
     if test_mg_cg
@@ -977,3 +993,4 @@ end
 test_preconditioned_CG(level=8,test_mg_cg=true,preassembled_A=true,test_cg=true,nu=10)
 test_preconditioned_CG(level=9,test_mg_cg=true,preassembled_A=true,test_cg=true,nu=10)
 test_preconditioned_CG(level=10,test_mg_cg=true,preassembled_A=true,test_cg=true,nu=10)
+test_preconditioned_CG(level=10,test_mg_cg=true,preassembled_A=true,test_cg=false,nu=10)
