@@ -970,3 +970,10 @@ function multigrid_precondition_matrix(level)
     M = R + Ip * A_2h * Ir * (Matrix(I,size(A)) - A*R)
     return M
 end
+
+
+
+
+test_preconditioned_CG(level=8,test_mg_cg=true,preassembled_A=true,test_cg=true,nu=10)
+test_preconditioned_CG(level=9,test_mg_cg=true,preassembled_A=true,test_cg=true,nu=10)
+test_preconditioned_CG(level=10,test_mg_cg=true,preassembled_A=true,test_cg=true,nu=10)
