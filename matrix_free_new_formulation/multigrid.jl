@@ -248,6 +248,7 @@ end
 
 
 function prolongation_matrix(N)
+    # SBP preserving
     # N = 2^level + 1
     odata = spzeros(2*N-1,N)
     for i in 1:2*N-1
@@ -262,6 +263,7 @@ function prolongation_matrix(N)
 end
 
 function restriction_matrix(N)
+    # SBP preserving
     odata = spzeros(div(N+1,2),N)
     odata[1,1] = 1/2
     odata[1,2] = 1/2
