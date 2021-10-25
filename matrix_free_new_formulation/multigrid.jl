@@ -995,4 +995,4 @@ test_preconditioned_CG(level=9,test_mg_cg=true,preassembled_A=true,test_cg=true,
 test_preconditioned_CG(level=10,test_mg_cg=true,preassembled_A=true,test_cg=true,nu=10)
 test_preconditioned_CG(level=10,test_mg_cg=true,preassembled_A=true,test_cg=false,nu=10)
 test_preconditioned_CG(level=11,test_mg_cg=true,preassembled_A=true,test_cg=false,nu=10)
-test_preconditioned_CG(level=12,test_mg_cg=true,preassembled_A=true,test_cg=false,nu=10)
+# test_preconditioned_CG(level=12,test_mg_cg=true,preassembled_A=true,test_cg=false,nu=10)
