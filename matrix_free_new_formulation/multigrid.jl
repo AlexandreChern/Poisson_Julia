@@ -983,8 +983,15 @@ function multigrid_precondition_matrix(level)
     for i in 0:m-1
         R += H^i * inv(Matrix(P))
     end
-    M = R + Ip * A_2h * Ir * (Matrix(I,size(A)) - A*R)
-    return M
+    M_no_post = R + Ip * (A_2h \ ( Ir * (Matrix(I,size(A)) - A*R)))
+    M_post = H^m*R + R + H^m * Ip *( A_2h \ (Ir * (Matrix(I,size(A)) - A*R)))
+
+    @show eigvals(M_no_post)
+    @show eigvals(M_post)
+    @show cond(Matrix(A))
+    @show cond(M_no_post*Matrix(A))
+    @show cond(M_post*Matrix(A))
+    return M_no_post, M_post
 end
 
 
