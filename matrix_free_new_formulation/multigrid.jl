@@ -512,7 +512,8 @@ function mg_v2(A,b,A_matrices,L=mg_level,;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
             for i in 1:L
                 if i != L
                     # @show i
-                    # jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                    jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                    # ssor!(v_values[i],A_matrices[i],rhs_values[i],2/3;maxiter=nu)
                     # @show size(restriction_2d(N_values[i]))
                     # @show size(rhs_values[i]) 
                     # @show size(A_matrices[i])
@@ -976,18 +977,19 @@ function multigrid_precondition_matrix(level)
     A_2h = Ir*(A)*Ip
     P = Diagonal(A)
     Q = P - A # for Jacobi
-    m = 2
+    m = 4
     # m = 1
-    H = inv(Matrix(P))*Q
-    R = zeros(size(H))
+    # H = inv(Matrix(P))*Q
+    H = P\Q
+    dim1,dim2 = size(H)
+    R = spzeros(dim1,dim2)
     for i in 0:m-1
-        R += H^i * inv(Matrix(P))
+        R += H^i * inv(P)
     end
-    M_no_post = R + Ip * (A_2h \ ( Ir * (Matrix(I,size(A)) - A*R)))
+    M_no_post = R + Ip * (A_2h \ ( Ir * (Matrix(1.0I,size(A)) - A*R)))
     M_post = H^m*R + R + H^m * Ip *( A_2h \ (Ir * (Matrix(I,size(A)) - A*R)))
-
-    @show eigvals(M_no_post)
-    @show eigvals(M_post)
+    # @show eigvals(M_no_post)
+    # @show eigvals(M_post)
     @show cond(Matrix(A))
     @show cond(M_no_post*Matrix(A))
     @show cond(M_post*Matrix(A))
