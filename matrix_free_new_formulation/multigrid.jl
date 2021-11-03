@@ -404,6 +404,7 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
             for i in 1:L
                 if i != L
                     # @show i
+                    @show i, norm(rhs_values[i]) / (N_values[i] - 1)
                     jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
                     # @show i 
                     # @show size(restriction_2d(N_values[i]))
@@ -429,6 +430,7 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
 
             for i in 1:L-1
                 j = L-i
+                @show j, norm(rhs_values[j]) / (N_values[j] - 1)
                 v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
                 jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
                 @show j, norm(A_matrices[j]*v_values[j] - rhs_values[j]) * 1/ (N_values[j] - 1)
@@ -445,6 +447,7 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
             for i in 1:L
                 if i != L
                     # @show i
+                    @show i, norm(rhs_values[i]) / (N_values[i] - 1)
                     jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
                     @show i, norm(A_matrices[i] * v_values[i] - rhs_values[i]) * 1/ (N_values[i] - 1)
                     # @show i 
@@ -470,6 +473,7 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
 
             for i in 1:L-1
                 j = L-i
+                @show j, norm(rhs_values[j]) / (N_values[j] - 1)
                 v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
                 jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
                 @show j, norm(A_matrices[j] * v_values[j] - rhs_values[j]) * 1 / (N_values[j]-1)
