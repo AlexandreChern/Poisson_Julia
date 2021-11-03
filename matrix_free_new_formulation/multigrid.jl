@@ -325,6 +325,26 @@ end
 #     (x,iter_times)
 # end
 
+function jacobi_iter!(x,A,b;maxiter=4)
+    k = 0
+    n = length(x)
+    iter_times = 0
+    # while norm(A*x-b) >= 1e-8
+    for _ in 1:maxiter
+        iter_times += 1
+        for i = 1:n
+            σ = 0
+            for j = 1:n
+                if j != i
+                    σ = σ + A[i,j]*x[j]
+                end
+            end
+            x[i] = (b[i] - σ)/A[i,i]
+        end
+    end
+    # (x,iter_times)
+end
+
 function Two_Grid_Correction(;level=9,nu=10,use_galerkin=true)
     # level = 9
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
@@ -374,7 +394,8 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
     @show isempty(A_matrices)
     if isempty(A_matrices)
         # A_matrices = Dict(1 => A)
-        A_matrices[1] = lu(A)
+        A_matrices[1] = A
+        # A_matrices[1] = lu(A)
         N_values = Dict(1=>Nx)
         # NUM_V_CYCLES = 2
         for _ in 1:NUM_V_CYCLES
@@ -388,6 +409,7 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
                     # @show size(rhs_values[i]) 
                     # @show size(A_matrices[i])
                     # @show size(v_values[i])
+                    @show i, norm(A_matrices[i] * v_values[i] - rhs_values[i]) * 1/ (N_values[i] - 1)
                     rhs_values[i+1] = restriction_2d(N_values[i]) * (rhs_values[i] - A_matrices[i] * v_values[i])
                     N_values[i+1] = div(N_values[i]+1,2)
                     if use_galerkin
@@ -408,6 +430,7 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
                 j = L-i
                 v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
                 jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+                @show j, norm(A_matrices[j]*v_values[j] - rhs_values[j]) * 1/ (N_values[j] - 1)
             end
             # @show norm(A_matrices[1] * v_values[1] - b)
         end
@@ -421,6 +444,7 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
                 if i != L
                     # @show i
                     jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                    @show i, norm(v_values[i]) * 1/ (N_values[i] - 1)
                     # @show i 
                     # @show size(restriction_2d(N_values[i]))
                     # @show size(rhs_values[i]) 
@@ -446,10 +470,12 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
                 j = L-i
                 v_values[j] = v_values[j] + prolongation_2d(N_values[j+1]) * v_values[j+1]
                 jacobi!(v_values[j],A_matrices[j],rhs_values[j];maxiter=nu)
+                @show j, norm(A_matrices[j] * v_values[j] - rhs_values[j]) * 1 / (N_values[j]-1)
             end
             # @show norm(A_matrices[1] * v_values[1] - b)
         end
-        return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
+        # return (v_values[1],norm(A_matrices[1] * v_values[1] - b) / (N_values[1] - 1))
+        return norm(A_matrices[1] * v_values[1] - b) / (N_values[1] - 1)
     end
 end
 
@@ -496,7 +522,7 @@ function mg(A,b,L=mg_level;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
     return v_values[1]
 end
 
-function mg_v2(A,b,A_matrices,L=mg_level,;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
+function mg_v2(A,b,A_matrices,L=mg_level;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
     Nx = Ny = Int(sqrt(length(b)))
     level = Int(log(2,Nx-1))
     v_values = Dict(1=>zeros(Nx*Ny))
@@ -974,7 +1000,8 @@ function multigrid_precondition_matrix(level)
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     Ir = restriction_2d(Nx)
     Ip = prolongation_2d(div(Nx+1,2))
-    A_2h = Ir*(A)*Ip
+    # A_2h = Ir*(A)*Ip
+    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1);
     P = Diagonal(A)
     Q = P - A # for Jacobi
     m = 4
