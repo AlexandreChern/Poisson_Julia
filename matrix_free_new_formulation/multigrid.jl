@@ -398,7 +398,8 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
         # A_matrices[1] = lu(A)
         N_values = Dict(1=>Nx)
         # NUM_V_CYCLES = 2
-        for _ in 1:NUM_V_CYCLES
+        for cycle_number in 1:NUM_V_CYCLES
+            @show cycle_number
             # max_iter = 10
             for i in 1:L
                 if i != L
@@ -438,13 +439,14 @@ function multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true
     else
         N_values = Dict(1=>Nx)
         # NUM_V_CYCLES = 2
-        for _ in 1:NUM_V_CYCLES
+        for cycle_number in 1:NUM_V_CYCLES
+            @show cycle_number
             # max_iter = 10
             for i in 1:L
                 if i != L
                     # @show i
                     jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
-                    @show i, norm(v_values[i]) * 1/ (N_values[i] - 1)
+                    @show i, norm(A_matrices[i] * v_values[i] - rhs_values[i]) * 1/ (N_values[i] - 1)
                     # @show i 
                     # @show size(restriction_2d(N_values[i]))
                     # @show size(rhs_values[i]) 
