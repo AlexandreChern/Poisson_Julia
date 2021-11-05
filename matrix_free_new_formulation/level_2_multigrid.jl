@@ -241,6 +241,36 @@ function restriction_2d(N)
     restriction_2d = kron(restriction_1d,restriction_1d)
     return restriction_2d
 end
+function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
+    r = b - A * x;
+    p = r;
+    rsold = r' * r
+    # Ap = spzeros(length(b))
+    Ap = similar(b);
+
+    num_iter_steps = 0
+    norms = [sqrt(rsold)]
+    # @show rsold
+    for step = 1:maxiter
+    # for _ in 1:40
+        num_iter_steps += 1
+        mul!(Ap,A,p);
+        alpha = rsold / (p' * Ap)
+        x .= x .+ alpha * p;
+        r .= r .- alpha * Ap;
+        rsnew = r' * r
+        append!(norms,sqrt(rsnew))
+        if sqrt(rsnew) < abstol
+              break
+        end
+        p = r + (rsnew / rsold) * p;
+        rsold = rsnew
+        # @show rsold
+        # @show step, rsold
+    end
+    # @show num_iter_steps
+    return (num_iter_steps,norms)
+end
 
 function jacobi_iter!(x,A,b;maxiter=4)
     k = 0
@@ -352,26 +382,15 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
         end
         return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
     else
-        # N_values = Dict(1=>Nx)
-        # NUM_V_CYCLES = 2
-        # x = zeros(length(b));
-        # v_values[1] = x
         for cycle_number in 1:NUM_V_CYCLES
             # @show cycle_number
             # max_iter = 10
-            jacobi!(v_values[1],A,b;maxiter=nu);
-            # jacobi!(v_values[1],A,b;maxiter=nu-1);
+            jacobi!(v_values[1],A,b;maxiter=nu-1);
+            # jacobi!(v_values[1],A,b;maxiter=nu);
             r = b - A*v_values[1];
             f = restriction_2d(Nx) * r;
-            # A_coarse = restriction_2d(Nx) * A_matrices[1] * prolongation_2d(N_values[2]);
-            # if use_galerkin
-            #     x_p = A_coarse \ f
-            #     v_values[2] = x_p
-            # else
-            #     x_p = A_p \ f
-            #     v_values[2] = x_p
-            # end 
             v_values[2] = A_matrices[2] \ f
+
             # println("Pass first part")
             e_1 = prolongation_2d(N_values[2]) * v_values[2];
             v_values[1] = v_values[1] + e_1;
@@ -407,7 +426,7 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         rsnew = rnew' * rnew
         append!(norms,sqrt(rsnew))
         if sqrt(rsnew) < abstol
-              break
+            break
         end
         # p = r + (rsnew / rsold) * p;
         # znew = jacobi(A,rnew,maxiter=jacobi_iter=10);
@@ -423,8 +442,30 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
     return num_iter_steps, norms
 end
 
+
+
 function test_preconditioned_CG(;level=6,nu=4)
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
-    x = zeros(Nx*Ny)
-    mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=nu,use_galerkin=true)
+    reltol = sqrt(eps(real(eltype(b))))
+    x = zeros(Nx*Ny);
+    abstol = norm(A*x-b) * reltol
+    x = zeros(Nx*Ny);
+    iter_mg_cg, norm_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=abstol,NUM_V_CYCLES=1,nu=nu,use_galerkin=true)
+    x = zeros(Nx*Ny);
+    iter_cg, norm_cg = CG_CPU(A,b,x;maxiter=length(b),abstol=abstol)
+
+    time_mg_cg = @elapsed for _ in 1:2
+        x = zeros(Nx*Ny)
+        mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=abstol,NUM_V_CYCLES=1,nu=nu,use_galerkin=true)
+    end
+
+    time_cg = @elapsed for _ in 1:2
+        x = zeros(Nx*Ny)
+        CG_CPU(A,b,x;maxiter=length(b),abstol=abstol)
+    end
+    @show iter_cg, norm_cg[end], time_cg
+    @show iter_mg_cg, norm_mg_cg[end], time_mg_cg
+    # @show time_cg
+    # @show time_mg_cg
+    nothing
 end
