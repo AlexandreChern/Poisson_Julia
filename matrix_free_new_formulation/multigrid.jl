@@ -580,7 +580,7 @@ function mg_v2(A,b,A_matrices,L=mg_level;nu=4,NUM_V_CYCLES=1,use_galerkin=true)
             for i in 1:L
                 if i != L
                     # @show i
-                    # jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu)
+                    # jacobi!(v_values[i],A_matrices[i],rhs_values[i];maxiter=nu) # forget to do this iteration
                     # @show size(restriction_2d(N_values[i]))
                     # @show size(rhs_values[i]) 
                     # @show size(A_matrices[i])

@@ -325,18 +325,21 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
         # N_values = Dict(1=>Nx)
         # NUM_V_CYCLES = 2
         for cycle_number in 1:NUM_V_CYCLES
-            @show cycle_number
+            # @show cycle_number
             # max_iter = 10
             # jacobi!(v_values[1],A,b;maxiter=nu);
             jacobi_iter!(v_values[1],A,b;maxiter=nu);
             r = b - A_matrices[1]*v_values[1];
             f = restriction_2d(Nx) * r;
             A_coarse = restriction_2d(Nx) * A_matrices[1] * prolongation_2d(N_values[2]);
+
             if use_galerkin
-                x_p = A_coarse \ f
-                v_values[2] = x_p
+                # x_p = A_coarse \ f
+                A_matrices[2] = lu(A_coarse)
+                v_values[2] = A_matrices[2] \ f
             else
-                x_p = A_p \ f
+                # x_p = A_p \ f
+                A_matrices[2] = lu(Assembling_matrix(level-1)[1]);
                 v_values[2] = x_p
             end 
             # println("Pass first part")
@@ -357,21 +360,24 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
             # @show cycle_number
             # max_iter = 10
             jacobi!(v_values[1],A,b;maxiter=nu);
+            # jacobi!(v_values[1],A,b;maxiter=nu-1);
             r = b - A*v_values[1];
             f = restriction_2d(Nx) * r;
-            A_coarse = restriction_2d(Nx) * A_matrices[1] * prolongation_2d(N_values[2]);
-            if use_galerkin
-                x_p = A_coarse \ f
-                v_values[2] = x_p
-            else
-                x_p = A_p \ f
-                v_values[2] = x_p
-            end 
+            # A_coarse = restriction_2d(Nx) * A_matrices[1] * prolongation_2d(N_values[2]);
+            # if use_galerkin
+            #     x_p = A_coarse \ f
+            #     v_values[2] = x_p
+            # else
+            #     x_p = A_p \ f
+            #     v_values[2] = x_p
+            # end 
+            v_values[2] = A_matrices[2] \ f
             # println("Pass first part")
             e_1 = prolongation_2d(N_values[2]) * v_values[2];
             v_values[1] = v_values[1] + e_1;
             # println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
             jacobi!(v_values[1],A_matrices[1],b;maxiter=nu);
+            # jacobi!(v_values[1],A_matrices[1],b;maxiter=0);
             # @show norm(A_matrices[1] * v_values[1] - b)
         end
         return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
