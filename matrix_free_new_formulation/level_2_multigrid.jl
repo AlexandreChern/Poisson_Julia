@@ -300,30 +300,37 @@ end
 
 A_matrices = Dict()
 
-function Two_level_multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_galerkin=true)
+function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=true)
     # level = 8
-    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
-    (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1);
+    # (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    # (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1);
+    
 
     # L = 3 # multigrid level
+    Nx = Ny = Int(sqrt(length(b)))
+    level = Int(log(2,Nx-1))
+
     v_values = Dict(1=>zeros(Nx*Ny))
     rhs_values = Dict(1 => b)
+    N_values = Dict(1 => Nx)
+    N_values[2] = div(Nx+1,2)
+
+    x = zeros(length(b));
+    v_values[1] = x
 
     # @show A_matrices
-    @show isempty(A_matrices)
+    # @show isempty(A_matrices)
     if isempty(A_matrices)
         A_matrices[1] = A
-        N_values = Dict(1=>Nx)
+        # N_values = Dict(1=>Nx)
         # NUM_V_CYCLES = 2
-        x = zeros(length(b));
-        v_values[1] = x
         for cycle_number in 1:NUM_V_CYCLES
             @show cycle_number
             # max_iter = 10
             jacobi!(v_values[1],A,b;maxiter=nu*2);
             r = b - A_matrices[1]*v_values[1];
             f = restriction_2d(Nx) * r;
-            A_coarse = restriction_2d(Nx) * A_values[1] * prolongation_2d(Nx_p);
+            A_coarse = restriction_2d(Nx) * A_matrices[1] * prolongation_2d(N_values[2]);
             if use_galerkin
                 x_p = A_coarse \ f
                 v_values[2] = x_p
@@ -331,16 +338,16 @@ function Two_level_multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_gal
                 x_p = A_p \ f
                 v_values[2] = x_p
             end 
-            println("Pass first part")
-            e_1 = prolongation_2d(Nx_p) * v_values[2];
+            # println("Pass first part")
+            e_1 = prolongation_2d(N_values[2]) * v_values[2];
             v_values[1] = v_values[1] + e_1;
-            println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
-            jacobi!(v_values[1],A_values[1],b;maxiter=nu);
+            # println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
+            jacobi!(v_values[1],A_matrices[1],b;maxiter=nu);
             # @show norm(A_matrices[1] * v_values[1] - b)
         end
         return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
     else
-        N_values = Dict(1=>Nx)
+        # N_values = Dict(1=>Nx)
         # NUM_V_CYCLES = 2
         # x = zeros(length(b));
         # v_values[1] = x
@@ -350,7 +357,7 @@ function Two_level_multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_gal
             jacobi!(v_values[1],A,b;maxiter=nu*2);
             r = b - A*v_values[1];
             f = restriction_2d(Nx) * r;
-            A_coarse = restriction_2d(Nx) * A * prolongation_2d(Nx_p);
+            A_coarse = restriction_2d(Nx) * A_matrices[1] * prolongation_2d(N_values[2]);
             if use_galerkin
                 x_p = A_coarse \ f
                 v_values[2] = x_p
@@ -358,10 +365,10 @@ function Two_level_multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_gal
                 x_p = A_p \ f
                 v_values[2] = x_p
             end 
-            println("Pass first part")
-            e_1 = prolongation_2d(Nx_p) * v_values[2];
+            # println("Pass first part")
+            e_1 = prolongation_2d(N_values[2]) * v_values[2];
             v_values[1] = v_values[1] + e_1;
-            println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
+            # println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
             jacobi!(v_values[1],A_matrices[1],b;maxiter=nu);
             # @show norm(A_matrices[1] * v_values[1] - b)
         end
@@ -371,13 +378,11 @@ function Two_level_multigrid(A_matrices;level=8,L=3,nu=10,NUM_V_CYCLES=1,use_gal
 end
 
 
-function mg_preconditioned_CG_v2(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4,mg_level=mg_level,use_galerkin=true)
+function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4,use_galerkin=true)
     r = b - A * x;
     rnew = similar(r)
-    # z = jacobi(A,r,maxiter=jacobi_iter)
-    # mg_level = 3
     A_matrices = Dict()
-    z = mg_v2(A,r,A_matrices,mg_level,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu,use_galerkin=use_galerkin)
+    z = Two_level_multigrid(A,r,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=true)[1]
     znew = similar(z)
     p = z;
     Ap = A*p;
@@ -398,7 +403,7 @@ function mg_preconditioned_CG_v2(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(el
         end
         # p = r + (rsnew / rsold) * p;
         # znew = jacobi(A,rnew,maxiter=jacobi_iter=10);
-        znew = mg_v2(A,rnew,A_matrices,mg_level,NUM_V_CYCLES=NUM_V_CYCLES,nu=nu,use_galerkin=use_galerkin)
+        znew = Two_level_multigrid(A,rnew,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=true)[1]
         beta = rnew'*znew/(r'*z);
         p .= znew .+ beta * p;
         z .= znew
@@ -408,4 +413,10 @@ function mg_preconditioned_CG_v2(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(el
     end
     # @show num_iter_steps
     return num_iter_steps, norms
+end
+
+function test_preconditioned_CG(;level=6)
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    x = zeros(Nx*Ny)
+    mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4,use_galerkin=true)
 end
