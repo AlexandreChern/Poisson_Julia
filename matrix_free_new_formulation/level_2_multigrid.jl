@@ -385,7 +385,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
         for cycle_number in 1:NUM_V_CYCLES
             # @show cycle_number
             # max_iter = 10
-            jacobi!(v_values[1],A,b;maxiter=nu-1);
+            jacobi!(v_values[1],A,b;maxiter=nu);
             # jacobi!(v_values[1],A,b;maxiter=nu);
             r = b - A*v_values[1];
             f = restriction_2d(Nx) * r;
