@@ -241,7 +241,9 @@ function restriction_2d(N)
     restriction_2d = kron(restriction_1d,restriction_1d)
     return restriction_2d
 end
-function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
+
+
+function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),direct_sol=0,H_tilde=0)
     r = b - A * x;
     p = r;
     rsold = r' * r
@@ -250,6 +252,10 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
 
     num_iter_steps = 0
     norms = [sqrt(rsold)]
+    errors = []
+    if direct_sol != 0 && H_tilde != 0
+        append!(errors,direct_sol' * H_tilde * direct_sol)
+    end
     # @show rsold
     for step = 1:maxiter
     # for _ in 1:40
@@ -260,6 +266,10 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
         r .= r .- alpha * Ap;
         rsnew = r' * r
         append!(norms,sqrt(rsnew))
+        if direct_sol != 0 && H_tilde != 0
+            error = (x - direct_sol)' * H_tilde * (x - direct_sol)
+            append!(errors,error)
+        end
         if sqrt(rsnew) < abstol
               break
         end
@@ -269,7 +279,7 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))))
         # @show step, rsold
     end
     # @show num_iter_steps
-    return (num_iter_steps,norms)
+    return (num_iter_steps,norms,errors)
 end
 
 function jacobi_iter!(x,A,b;maxiter=4)
@@ -405,7 +415,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
 end
 
 
-function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4,use_galerkin=true)
+function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4,use_galerkin=true,direct_sol=0,H_tilde=0)
     r = b - A * x;
     rnew = similar(r)
     A_matrices = Dict()
@@ -415,6 +425,11 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
     Ap = A*p;
     num_iter_steps = 0
     norms = [norm(r)]
+    errors = []
+    if direct_sol != 0 && H_tilde != 0
+        append!(errors,direct_sol' * H_tilde * direct_sol)
+    end
+
     for step = 1:maxiter
     # for _ in 1:40
         num_iter_steps += 1
@@ -425,6 +440,10 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         rnew .= r .- alpha * Ap;
         rsnew = rnew' * rnew
         append!(norms,sqrt(rsnew))
+        if direct_sol != 0 && H_tilde != 0
+            error = (x - direct_sol)' * H_tilde * (x - direct_sol)
+            append!(errors,error)
+        end
         if sqrt(rsnew) < abstol
             break
         end
@@ -439,20 +458,81 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         # @show step, rsnew
     end
     # @show num_iter_steps
-    return num_iter_steps, norms
+    return num_iter_steps, norms, errors
 end
 
+function multigrid_precondition_matrix(level;m=4)
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    Ir = restriction_2d(Nx)
+    Ip = prolongation_2d(div(Nx+1,2))
+    # A_2h = Ir*(A)*Ip
+    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1);
+    P = Diagonal(A)
+    Q = P - A # for Jacobi
+    # m = 4
+    # m = 1
+    # H = inv(Matrix(P))*Q
+    H = P\Q
+    dim1,dim2 = size(H)
+    R = spzeros(dim1,dim2)
+    for i in 0:m-1
+        R += H^i * inv(P)
+    end
+    M_no_post = R + Ip * (A_2h \ ( Ir * (Matrix(1.0I,size(A)) - A*R)))
+    M_post = H^m*R + R + H^m * Ip *( A_2h \ (Ir * (Matrix(I,size(A)) - A*R)))
 
+    m2 = m-1
+    R2 = spzeros(dim1,dim2)
+    for i in 0:m2-1
+        R2 += H^i * inv(P)
+    end
+    M_post_2 = H^m2 * M_no_post + R2
+    # @show eigvals(M_no_post)
+    # @show eigvals(M_post)
+    @show cond(Matrix(A))
+    @show cond(M_no_post*Matrix(A))
+    @show cond(M_post*Matrix(A))
+    @show cond(M_post_2*Matrix(A))
+    return M_no_post, M_post, M_post_2   
+end
 
 function test_preconditioned_CG(;level=6,nu=4)
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    cond_A = cond(Array(A))
+
+    M_no_post, M_post, M_post_2 = multigrid_precondition_matrix(level;m=4)
+    cond_A_M = cond(M_post * A)
+
+    direct_sol = A\b
     reltol = sqrt(eps(real(eltype(b))))
     x = zeros(Nx*Ny);
     abstol = norm(A*x-b) * reltol
+
+
     x = zeros(Nx*Ny);
-    iter_mg_cg, norm_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=abstol,NUM_V_CYCLES=1,nu=nu,use_galerkin=true)
+    iter_cg, norm_cg, errors = CG_CPU(A,b,x;maxiter=length(b),abstol=abstol)
+
+    x = zeros(Nx*Ny)
+    iter_cg, norm_cg, error_cg = CG_CPU(A,b,x;maxiter=length(b),abstol=abstol,direct_sol=direct_sol,H_tilde=H_tilde)
+    
+    error_cg_bound_coef = (sqrt(cond_A) - 1) / (sqrt(cond_A) + 1)
+    error_cg_bound = error_cg[1] .* 2 .* error_cg_bound_coef .^ (0:1:length(error_cg)-1)
+
+
     x = zeros(Nx*Ny);
-    iter_cg, norm_cg = CG_CPU(A,b,x;maxiter=length(b),abstol=abstol)
+    iter_mg_cg, norm_mg_cg, error_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=abstol,NUM_V_CYCLES=1,nu=nu,use_galerkin=true,direct_sol=direct_sol,H_tilde=H_tilde)
+    error_mg_cg_bound_coef = (sqrt(cond_A_M) - 1) / (sqrt(cond_A_M) + 1)
+    error_mg_cg_bound = error_cg[1] .* 2 .* error_mg_cg_bound_coef .^ (0:1:length(error_mg_cg)-1)
+
+    plot(error_cg,label="error_cg")
+    plot!(error_cg_bound, label="error_cg_bound")
+    plot!(error_mg_cg,label="error_mg_cg")
+    plot!(error_mg_cg_bound,label="error_mg_cg_bound")
+
+    plot(log.(error_cg),label="error_cg")
+    plot!(log.(error_cg_bound), label="error_cg_bound")
+    plot!(log.(error_mg_cg),label="error_mg_cg")
+    plot!(log.(error_mg_cg_bound),label="error_mg_cg_bound")
 
     time_mg_cg = @elapsed for _ in 1:2
         x = zeros(Nx*Ny)
