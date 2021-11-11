@@ -237,7 +237,8 @@ function prolongation_2d(N)
 end
 
 function restriction_2d(N)
-    restriction_1d = restriction_matrix_normal(N)
+    # restriction_1d = restriction_matrix_normal(N)
+    restriction_1d = restriction_matrix(N)
     restriction_2d = kron(restriction_1d,restriction_1d)
     return restriction_2d
 end
@@ -254,7 +255,7 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),direct
     norms = [sqrt(rsold)]
     errors = []
     if direct_sol != 0 && H_tilde != 0
-        append!(errors,direct_sol' * H_tilde * direct_sol)
+        append!(errors,sqrt(direct_sol' * A * direct_sol))
     end
     # @show rsold
     for step = 1:maxiter
@@ -267,7 +268,7 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),direct
         rsnew = r' * r
         append!(norms,sqrt(rsnew))
         if direct_sol != 0 && H_tilde != 0
-            error = (x - direct_sol)' * H_tilde * (x - direct_sol)
+            error = sqrt((x - direct_sol)' * A * (x - direct_sol))
             append!(errors,error)
         end
         if sqrt(rsnew) < abstol
@@ -343,12 +344,13 @@ A_matrices = Dict()
 function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=true)
     # level = 8
     # (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
-    # (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1);
+    
     
 
     # L = 3 # multigrid level
     Nx = Ny = Int(sqrt(length(b)))
     level = Int(log(2,Nx-1))
+    (A_p,b_p,H_tilde_p,Nx_p,Ny_p) = Assembling_matrix(level-1);
 
     v_values = Dict(1=>zeros(Nx*Ny))
     rhs_values = Dict(1 => b)
@@ -372,6 +374,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
             r = b - A_matrices[1]*v_values[1];
             f = restriction_2d(Nx) * r;
             A_coarse = restriction_2d(Nx) * A_matrices[1] * prolongation_2d(N_values[2]);
+            A_coarse = A_p
 
             if use_galerkin
                 # x_p = A_coarse \ f
@@ -427,7 +430,7 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
     norms = [norm(r)]
     errors = []
     if direct_sol != 0 && H_tilde != 0
-        append!(errors,direct_sol' * H_tilde * direct_sol)
+        append!(errors,sqrt(direct_sol' * A * direct_sol))
     end
 
     for step = 1:maxiter
@@ -441,7 +444,7 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         rsnew = rnew' * rnew
         append!(norms,sqrt(rsnew))
         if direct_sol != 0 && H_tilde != 0
-            error = (x - direct_sol)' * H_tilde * (x - direct_sol)
+            error = sqrt((x - direct_sol)' * A * (x - direct_sol))
             append!(errors,error)
         end
         if sqrt(rsnew) < abstol
@@ -500,7 +503,15 @@ function test_preconditioned_CG(;level=6,nu=4)
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     cond_A = cond(Array(A))
 
-    M_no_post, M_post, M_post_2 = multigrid_precondition_matrix(level;m=4)
+    M_no_post, M_post, M_post_2 = multigrid_precondition_matrix(level;m=nu)
+    plot(eigvals(Matrix(M_no_post*A)))
+    savefig("eigvals_M_no_post_A.png")
+
+    plot(eigvals(Matrix(M_post*A)))
+    savefig("eigvals_M_post_A.png")
+
+    plot(eigvals(Matrix(M_post_2*A)))
+    savefig("eigvals_M_post_2_A.png")
     cond_A_M = cond(M_post * A)
 
     direct_sol = A\b
@@ -528,11 +539,13 @@ function test_preconditioned_CG(;level=6,nu=4)
     plot!(error_cg_bound, label="error_cg_bound")
     plot!(error_mg_cg,label="error_mg_cg")
     plot!(error_mg_cg_bound,label="error_mg_cg_bound")
+    savefig("plot1.png")
 
-    plot(log.(error_cg),label="error_cg")
-    plot!(log.(error_cg_bound), label="error_cg_bound")
-    plot!(log.(error_mg_cg),label="error_mg_cg")
-    plot!(log.(error_mg_cg_bound),label="error_mg_cg_bound")
+    plot(log.(10,error_cg),label="error_cg")
+    plot!(log.(10,error_cg_bound), label="error_cg_bound")
+    plot!(log.(10,error_mg_cg),label="error_mg_cg")
+    plot!(log.(10,error_mg_cg_bound),label="error_mg_cg_bound")
+    savefig("plot2.png")
 
     time_mg_cg = @elapsed for _ in 1:2
         x = zeros(Nx*Ny)
