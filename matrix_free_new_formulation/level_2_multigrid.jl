@@ -283,7 +283,7 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),direct
     return (num_iter_steps,norms,errors)
 end
 
-function jacobi_iter!(x,A,b;maxiter=4)
+function jacobi_iter!(x,A,b;maxiter=4,ω=2/3)
     k = 0
     n = length(x)
     iter_times = 0
@@ -297,10 +297,22 @@ function jacobi_iter!(x,A,b;maxiter=4)
                     σ = σ + A[i,j]*x[j]
                 end
             end
-            x[i] = (b[i] - σ)/A[i,i]
+            x[i] = (ω) * (b[i] - σ)/A[i,i] + (1-ω)*x[i]
         end
     end
     # (x,iter_times)
+end
+
+function jacobi_bae!(x,A,b;maxiter=3, ω = 2/3)
+
+    Pinv = Diagonal(1 ./ diag(A))
+    P = Diagonal(diag(A))
+    Q = A-P
+
+    for j in 1:maxiter
+        x[:] = ω * Pinv*(b .- Q*x[:]) + (1 - ω)*x[:]
+    end
+    
 end
 
 function Two_Grid_Correction(;level=9,nu=10,use_galerkin=true)
@@ -341,7 +353,7 @@ end
 
 A_matrices = Dict()
 
-function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=true)
+function Two_level_multigrid(A,b,A_matrices;nu=3,NUM_V_CYCLES=1,use_galerkin=true)
     # level = 8
     # (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
     
@@ -370,7 +382,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
             # @show cycle_number
             # max_iter = 10
             # jacobi!(v_values[1],A,b;maxiter=nu);
-            jacobi_iter!(v_values[1],A,b;maxiter=nu);
+            jacobi_bae!(v_values[1],A,b;maxiter=nu);
             r = b - A_matrices[1]*v_values[1];
             f = restriction_2d(Nx) * r;
             A_coarse = restriction_2d(Nx) * A_matrices[1] * prolongation_2d(N_values[2]);
@@ -390,7 +402,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
             v_values[1] = v_values[1] + e_1;
             # println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
             # jacobi!(v_values[1],A_matrices[1],b;maxiter=nu);
-            jacobi_iter!(v_values[1],A_matrices[1],b;maxiter=nu);
+            jacobi_bae!(v_values[1],A_matrices[1],b;maxiter=nu);
             # @show norm(A_matrices[1] * v_values[1] - b)
         end
         return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
@@ -398,7 +410,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
         for cycle_number in 1:NUM_V_CYCLES
             # @show cycle_number
             # max_iter = 10
-            jacobi!(v_values[1],A,b;maxiter=nu);
+            jacobi_bae!(v_values[1],A,b;maxiter=nu);
             # jacobi!(v_values[1],A,b;maxiter=nu);
             r = b - A*v_values[1];
             f = restriction_2d(Nx) * r;
@@ -408,7 +420,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=10,NUM_V_CYCLES=1,use_galerkin=tr
             e_1 = prolongation_2d(N_values[2]) * v_values[2];
             v_values[1] = v_values[1] + e_1;
             # println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
-            jacobi!(v_values[1],A_matrices[1],b;maxiter=nu);
+            jacobi_bae!(v_values[1],A_matrices[1],b;maxiter=nu);
             # jacobi!(v_values[1],A_matrices[1],b;maxiter=0);
             # @show norm(A_matrices[1] * v_values[1] - b)
         end
@@ -464,55 +476,97 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
     return num_iter_steps, norms, errors
 end
 
-function multigrid_precondition_matrix(level;m=4)
-    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
-    Ir = restriction_2d(Nx)
-    Ip = prolongation_2d(div(Nx+1,2))
-    # A_2h = Ir*(A)*Ip
-    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1);
-    P = Diagonal(A)
-    Q = P - A # for Jacobi
-    # m = 4
-    # m = 1
-    # H = inv(Matrix(P))*Q
-    H = P\Q
-    dim1,dim2 = size(H)
-    R = spzeros(dim1,dim2)
-    for i in 0:m-1
-        R += H^i * inv(P)
-    end
-    M_no_post = R + Ip * (A_2h \ ( Ir * (Matrix(1.0I,size(A)) - A*R)))
-    M_post = H^m*R + R + H^m * Ip *( A_2h \ (Ir * (Matrix(I,size(A)) - A*R)))
+# function multigrid_precondition_matrix(level;m=4)
+#     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+#     Ir = restriction_2d(Nx)
+#     Ip = prolongation_2d(div(Nx+1,2))
+#     # A_2h = Ir*(A)*Ip
+#     (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1);
+#     P = Diagonal(A)
+#     Q = P - A # for Jacobi
+#     # m = 4
+#     # m = 1
+#     # H = inv(Matrix(P))*Q
+#     H = P\Q
+#     dim1,dim2 = size(H)
+#     R = spzeros(dim1,dim2)
+#     for i in 0:m-1
+#         R += H^i * inv(P)
+#     end
+#     M_no_post = R + Ip * (A_2h \ ( Ir * (Matrix(1.0I,size(A)) - A*R)))
+#     M_post = H^m*R + R + H^m * Ip *( A_2h \ (Ir * (Matrix(I,size(A)) - A*R)))
 
-    m2 = m-1
-    R2 = spzeros(dim1,dim2)
-    for i in 0:m2-1
-        R2 += H^i * inv(P)
+#     m2 = m-1
+#     R2 = spzeros(dim1,dim2)
+#     for i in 0:m2-1
+#         R2 += H^i * inv(P)
+#     end
+#     M_post_2 = H^m2 * M_no_post + R2
+#     # @show eigvals(M_no_post)
+#     # @show eigvals(M_post)
+#     @show cond(Matrix(A))
+#     @show cond(M_no_post*Matrix(A))
+#     @show cond(M_post*Matrix(A))
+#     @show cond(M_post_2*Matrix(A))
+#     return M_no_post, M_post, M_post_2   
+# end
+
+function precond_matrix(A, b; m=3, solver="jacobi")
+    #pre and post smoothing 
+    N = length(b)
+    IN = sparse(Matrix(I, N, N))
+    P = Diagonal(diag(A))
+    Pinv = Diagonal(1 ./ diag(A))
+    Q = P-A
+    L = A - triu(A)
+    U = A - tril(A)
+
+    if solver == "jacobi"
+       ω = 2/3
+        H = ω*Pinv*Q + (1-ω)*IN 
+        R = ω*Pinv 
+        R0 = ω*Pinv 
+    elseif solver == "ssor"
+        ω = 1.4  #this is just a guess. Need to compute ω_optimal (from jacobi method)
+        B1 = (P + ω*U)\Matrix(-ω*L + (1-ω)*P)
+        B2 = (P + ω*L)\Matrix(-ω*U + (1-ω)*P) 
+        H = B1*B2
+        X = (P+ω*L)\Matrix(IN)
+   
+        R = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
+        R0 = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
+    else   
     end
-    M_post_2 = H^m2 * M_no_post + R2
-    # @show eigvals(M_no_post)
-    # @show eigvals(M_post)
-    @show cond(Matrix(A))
-    @show cond(M_no_post*Matrix(A))
-    @show cond(M_post*Matrix(A))
-    @show cond(M_post_2*Matrix(A))
-    return M_no_post, M_post, M_post_2   
+
+    for i = 1:m-1
+        R += H^i * R0
+    end
+
+    # (A_2h, b_2h, x_2h, H1_2h) = get_operators(p, 2*h);
+    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1)
+    I_r = restriction_2d(Nx)
+    
+    I_p = prolongation_2d(Nx_2h)
+    M = H^m * (R + I_p * (A_2h\Matrix(I_r*(IN - A * R)))) + R
+   
+    return (M, R, H, I_p, A_2h, I_r, IN)
 end
 
-function test_preconditioned_CG(;level=6,nu=4)
+function test_preconditioned_CG(;level=6,nu=3,ω=2/3)
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=nu,solver="jacobi")
     cond_A = cond(Array(A))
 
-    M_no_post, M_post, M_post_2 = multigrid_precondition_matrix(level;m=nu)
-    plot(eigvals(Matrix(M_no_post*A)))
-    savefig("eigvals_M_no_post_A.png")
+    # M_no_post, M_post, M_post_2 = multigrid_precondition_matrix(level;m=nu)
+    # plot(eigvals(Matrix(M_no_post*A)))
+    # savefig("eigvals_M_no_post_A.png")
 
-    plot(eigvals(Matrix(M_post*A)))
+    plot(eigvals(Matrix(M*A)))
     savefig("eigvals_M_post_A.png")
 
-    plot(eigvals(Matrix(M_post_2*A)))
-    savefig("eigvals_M_post_2_A.png")
-    cond_A_M = cond(M_post * A)
+    # plot(eigvals(Matrix(M_post_2*A)))
+    # savefig("eigvals_M_post_2_A.png")
+    cond_A_M = cond(M * A)
 
     direct_sol = A\b
     reltol = sqrt(eps(real(eltype(b))))
