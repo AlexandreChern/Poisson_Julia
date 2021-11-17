@@ -549,7 +549,8 @@ function precond_matrix(A, b; m=3, solver="jacobi")
     I_r = restriction_2d(Nx)
     
     I_p = prolongation_2d(Nx_2h)
-    M = H^m * (R + I_p * (A_2h\Matrix(I_r*(IN - A * R)))) + R
+    # M = H^m * (R + I_p * (A_2h\Matrix(I_r*(IN - A * R)))) + R
+    M = H^m * (R - I_p * (A_2h\Matrix(I_r*(A * R - IN)))) + R
    
     return (M, R, H, I_p, A_2h, I_r, IN)
 end
