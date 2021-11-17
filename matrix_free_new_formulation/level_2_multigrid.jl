@@ -515,6 +515,7 @@ function precond_matrix(A, b; m=3, solver="jacobi")
     #pre and post smoothing 
     N = length(b)
     Nx = Ny = Integer((sqrt(N)))
+    level = Integer(log(2,Nx-1))
     IN = sparse(Matrix(I, N, N))
     P = Diagonal(diag(A))
     Pinv = Diagonal(1 ./ diag(A))
