@@ -514,6 +514,7 @@ end
 function precond_matrix(A, b; m=3, solver="jacobi")
     #pre and post smoothing 
     N = length(b)
+    Nx = Ny = Integer((sqrt(N)))
     IN = sparse(Matrix(I, N, N))
     P = Diagonal(diag(A))
     Pinv = Diagonal(1 ./ diag(A))
@@ -561,8 +562,8 @@ function test_preconditioned_CG(;level=6,nu=3,ω=2/3)
     # plot(eigvals(Matrix(M_no_post*A)))
     # savefig("eigvals_M_no_post_A.png")
 
-    plot(eigvals(Matrix(M*A)))
-    savefig("eigvals_M_post_A.png")
+    # plot(eigvals(Matrix(M*A)))
+    # savefig("eigvals_M_post_A.png")
 
     # plot(eigvals(Matrix(M_post_2*A)))
     # savefig("eigvals_M_post_2_A.png")
