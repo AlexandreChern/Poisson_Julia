@@ -303,7 +303,7 @@ function jacobi_iter!(x,A,b;maxiter=4,ω=2/3)
     # (x,iter_times)
 end
 
-function jacobi_bae!(x,A,b;maxiter=3, ω = 2/3)
+function jacobi_brittany!(x,A,b;maxiter=3, ω = 2/3)
 
     Pinv = Diagonal(1 ./ diag(A))
     P = Diagonal(diag(A))
@@ -382,7 +382,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=3,NUM_V_CYCLES=1,use_galerkin=tru
             # @show cycle_number
             # max_iter = 10
             # jacobi!(v_values[1],A,b;maxiter=nu);
-            jacobi_bae!(v_values[1],A,b;maxiter=nu);
+            jacobi_brittany!(v_values[1],A,b;maxiter=nu);
             r = b - A_matrices[1]*v_values[1];
             f = restriction_2d(Nx) * r;
             A_coarse = restriction_2d(Nx) * A_matrices[1] * prolongation_2d(N_values[2]);
@@ -402,7 +402,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=3,NUM_V_CYCLES=1,use_galerkin=tru
             v_values[1] = v_values[1] + e_1;
             # println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
             # jacobi!(v_values[1],A_matrices[1],b;maxiter=nu);
-            jacobi_bae!(v_values[1],A_matrices[1],b;maxiter=nu);
+            jacobi_brittany!(v_values[1],A_matrices[1],b;maxiter=nu);
             # @show norm(A_matrices[1] * v_values[1] - b)
         end
         return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
@@ -410,7 +410,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=3,NUM_V_CYCLES=1,use_galerkin=tru
         for cycle_number in 1:NUM_V_CYCLES
             # @show cycle_number
             # max_iter = 10
-            jacobi_bae!(v_values[1],A,b;maxiter=nu);
+            jacobi_brittany!(v_values[1],A,b;maxiter=nu);
             # jacobi!(v_values[1],A,b;maxiter=nu);
             r = b - A*v_values[1];
             f = restriction_2d(Nx) * r;
@@ -420,7 +420,7 @@ function Two_level_multigrid(A,b,A_matrices;nu=3,NUM_V_CYCLES=1,use_galerkin=tru
             e_1 = prolongation_2d(N_values[2]) * v_values[2];
             v_values[1] = v_values[1] + e_1;
             # println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
-            jacobi_bae!(v_values[1],A_matrices[1],b;maxiter=nu);
+            jacobi_brittany!(v_values[1],A_matrices[1],b;maxiter=nu);
             # jacobi!(v_values[1],A_matrices[1],b;maxiter=0);
             # @show norm(A_matrices[1] * v_values[1] - b)
         end
