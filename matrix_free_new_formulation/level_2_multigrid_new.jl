@@ -415,14 +415,14 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
 
     rzold = r'*z
 
-    # for step = 1:maxiter
-    for step = 1:5
+    for step = 1:maxiter
+    # for step = 1:5
         num_iter_steps += 1
-        @show norm(A*p)
+        # @show norm(A*p)
 
         # alpha = r'*z/(p'*A*p)
         alpha = rzold / (p'*A*p)
-        @show alpha
+        # @show alpha
 
         x .= x .+ alpha * p;
 
@@ -432,7 +432,7 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         append!(norms,sqrt(rs))
         if direct_sol != 0 && H_tilde != 0
             error = sqrt((x - direct_sol)' * A * (x - direct_sol))
-            @show error
+            # @show error
             append!(errors,error)
         end
         if sqrt(rs) < abstol
@@ -445,7 +445,7 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         z = M*r
         rznew = r'*z
         beta = rznew/(rzold);
-        @show beta
+        # @show beta
         p = z + beta * p;
         # z .= znew
         # r .= rnew
@@ -473,8 +473,8 @@ function MGCG!(A,b,x,H1,exact, my_solver;smooth_steps = 4,maxiter=length(b)^2,ab
     err = sqrt(diff'*A*diff)
     
     E = [err]
-    # for step = 1:maxiter
-    for step = 1:5
+    for step = 1:maxiter
+    # for step = 1:5
         Ap = A*p;
         @show norm(A*p)
         num_iter_steps += 1
@@ -519,30 +519,27 @@ function test_preconditioned_CG(;level=6,nu=3,ω=2/3)
     abstol = norm(A*x-b) * reltol
 
     (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=nu,solver="jacobi")
-    cond_A = cond(Matrix(A))
     cond_A_M = cond(M*A)
-   
-
     x = zeros(Nx*Ny);
     iter_mg_cg, norm_mg_cg, error_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=abstol,NUM_V_CYCLES=1,nu=nu,use_galerkin=true,direct_sol=direct_sol,H_tilde=H_tilde)
     error_mg_cg_bound_coef = (sqrt(cond_A_M) - 1) / (sqrt(cond_A_M) + 1)
     error_mg_cg_bound = error_mg_cg[1] .* 2 .* error_mg_cg_bound_coef .^ (0:1:length(error_mg_cg)-1)
-
-    x0 = zeros(Nx*Ny)
-    (E_cg, num_iter_steps_cg, norms_cg) = regularCG!(A,b,x0,H_tilde,direct_sol;maxiter=20000,abstol=abstol)
-
-
     plot(log.(10,error_mg_cg),label="error_mg_cg")
     plot!(log.(10,error_mg_cg_bound),label="error_mg_cg_bound")
+
+
+    cond_A = cond(Matrix(A))
+    x0 = zeros(Nx*Ny)
+    (E_cg, num_iter_steps_cg, norms_cg) = regularCG!(A,b,x0,H_tilde,direct_sol;maxiter=20000,abstol=abstol)
 
     plot!(log.(10,E_cg),label="error_cg")
     error_cg_bound_coef = (sqrt(cond_A) - 1) / (sqrt(cond_A) + 1)
     error_cg_bound = E_cg[1] .* 2 .* error_cg_bound_coef .^ (0:1:length(E_cg)-1)
     plot!(log.(10,error_cg_bound),label="error_cg_bound")
 
-    my_solver = "jacobi"
-    x0 = zeros(Nx*Ny)
-    (E_mgcg, num_iter_steps_mgcg, norms_mgcg) = MGCG!(A,b,x0,H_tilde,direct_sol,my_solver;smooth_steps = nu,maxiter=20000,abstol=abstol)
+    # my_solver = "jacobi"
+    # x0 = zeros(Nx*Ny)
+    # (E_mgcg, num_iter_steps_mgcg, norms_mgcg) = MGCG!(A,b,x0,H_tilde,direct_sol,my_solver;smooth_steps = nu,maxiter=20000,abstol=abstol)
 
 
     # plot(error_mg_cg,label="error_mg_cg")
