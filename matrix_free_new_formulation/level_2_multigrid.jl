@@ -590,7 +590,7 @@ function test_preconditioned_CG(;level=6,nu=3,ω=2/3)
     x = zeros(Nx*Ny);
     iter_mg_cg, norm_mg_cg, error_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=abstol,NUM_V_CYCLES=1,nu=nu,use_galerkin=true,direct_sol=direct_sol,H_tilde=H_tilde)
     error_mg_cg_bound_coef = (sqrt(cond_A_M) - 1) / (sqrt(cond_A_M) + 1)
-    error_mg_cg_bound = error_cg[1] .* 2 .* error_mg_cg_bound_coef .^ (0:1:length(error_mg_cg)-1)
+    error_mg_cg_bound = error_mg_cg[1] .* 2 .* error_mg_cg_bound_coef .^ (0:1:length(error_mg_cg)-1)
 
     plot(error_cg,label="error_cg")
     plot!(error_cg_bound, label="error_cg_bound")

@@ -271,7 +271,7 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),direct
     return (num_iter_steps,norms,errors)
 end
 
-function jacobi!(x,A,b;maxiter=3, ω = 2/3)
+function jacobi_brittany!(x,A,b;maxiter=3, ω = 2/3)
 
     Pinv = Diagonal(1 ./ diag(A))
     P = Diagonal(diag(A))
@@ -305,19 +305,62 @@ function Two_level_multigrid(A,b;nu=3,NUM_V_CYCLES=1)
         e_1 = prolongation_2d(N_values[2]) * v_values[2];
         v_values[1] = v_values[1] + e_1;
         # println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
-        jacobi_brittany!(v_values[1],A_matrices[1],b;maxiter=nu);
+        jacobi_brittany!(v_values[1],A,b;maxiter=nu);
     end
-    return (v_values[1],norm(A_matrices[1] * v_values[1] - b))
+    return (v_values[1],norm(A * v_values[1] - b))
 end
 
-function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=4,use_galerkin=true,direct_sol=0,H_tilde=0)
+function precond_matrix(A, b; m=3, solver="jacobi")
+    #pre and post smoothing 
+    N = length(b)
+    Nx = Ny = Integer((sqrt(N)))
+    level = Integer(log(2,Nx-1))
+    IN = sparse(Matrix(I, N, N))
+    P = Diagonal(diag(A))
+    Pinv = Diagonal(1 ./ diag(A))
+    Q = P-A
+    L = A - triu(A)
+    U = A - tril(A)
+
+    if solver == "jacobi"
+        ω = 2/3
+        H = ω*Pinv*Q + (1-ω)*IN 
+        R = ω*Pinv 
+        R0 = ω*Pinv 
+    elseif solver == "ssor"
+        ω = 1.4  #this is just a guess. Need to compute ω_optimal (from jacobi method)
+        B1 = (P + ω*U)\Matrix(-ω*L + (1-ω)*P)
+        B2 = (P + ω*L)\Matrix(-ω*U + (1-ω)*P) 
+        H = B1*B2
+        X = (P+ω*L)\Matrix(IN)
+   
+        R = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
+        R0 = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
+    else   
+    end
+
+    for i = 1:m-1
+        R += H^i * R0
+    end
+
+    # (A_2h, b_2h, x_2h, H1_2h) = get_operators(p, 2*h);
+    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1)
+    I_r = restriction_2d(Nx)
+    
+    I_p = prolongation_2d(Nx_2h)
+    # M = H^m * (R + I_p * (A_2h\Matrix(I_r*(IN - A * R)))) + R
+    M = H^m * (R - I_p * (A_2h\Matrix(I_r*(A * R - IN)))) + R
+   
+    return (M, R, H, I_p, A_2h, I_r, IN)
+end
+
+function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=3,use_galerkin=true,direct_sol=0,H_tilde=0)
     r = b - A * x;
-    rnew = similar(r)
-    A_matrices = Dict()
+    rnew = zeros(length(r))
     z = Two_level_multigrid(A,r;nu=nu,NUM_V_CYCLES=1)[1]
-    znew = similar(z)
+    znew = zeros(length(z))
     p = z;
-    Ap = A*p;
+    # Ap = A*p;
     num_iter_steps = 0
     norms = [norm(r)]
     errors = []
@@ -326,13 +369,10 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
     end
 
     for step = 1:maxiter
-    # for _ in 1:40
         num_iter_steps += 1
-        alpha = r'*z/(p'*Ap)
-        mul!(Ap,A,p);
-        alpha = r'*z / (p'*Ap)
+        alpha = r'*z/(p'*A*p)
         x .= x .+ alpha * p;
-        rnew .= r .- alpha * Ap;
+        rnew .= r .- alpha * A*p;
         rsnew = rnew' * rnew
         append!(norms,sqrt(rsnew))
         if direct_sol != 0 && H_tilde != 0
@@ -354,4 +394,27 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
     end
     # @show num_iter_steps
     return num_iter_steps, norms, errors
+end
+
+function test_preconditioned_CG(;level=6,nu=3,ω=2/3)
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+    direct_sol = A\b
+    reltol = sqrt(eps(real(eltype(b))))
+    x = zeros(Nx*Ny);
+    abstol = norm(A*x-b) * reltol
+
+    (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=nu,solver="jacobi")
+    cond_A_M = cond(M*A)
+   
+
+    x = zeros(Nx*Ny);
+    iter_mg_cg, norm_mg_cg, error_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=abstol,NUM_V_CYCLES=1,nu=nu,use_galerkin=true,direct_sol=direct_sol,H_tilde=H_tilde)
+    error_mg_cg_bound_coef = (sqrt(cond_A_M) - 1) / (sqrt(cond_A_M) + 1)
+    error_mg_cg_bound = error_mg_cg[1] .* 2 .* error_mg_cg_bound_coef .^ (0:1:length(error_mg_cg)-1)
+
+    plot(error_mg_cg,label="error_mg_cg")
+    plot!(error_mg_cg_bound,label="error_mg_cg_bound")
+
+    plot(log.(10,error_mg_cg),label="error_mg_cg")
+    plot!(log.(10,error_mg_cg_bound),label="error_mg_cg_bound")
 end
