@@ -271,6 +271,95 @@ function CG_CPU(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),direct
     return (num_iter_steps,norms,errors)
 end
 
+function regularCG!(A,b,x,H1,exact;maxiter=length(b)^2,abstol=sqrt(eps(real(eltype(b)))))
+    r = b - A * x;
+    p = r;
+    rsold = r'*r
+    
+    num_iter_steps = 0
+    norms = [sqrt(r'*H1*r)]
+ 
+    diff = x-exact
+    err = sqrt(diff'*A*diff)
+    
+    E = [err]
+    for step = 1:maxiter
+        Ap = A*p;
+        num_iter_steps += 1
+        alpha = rsold/(p'*Ap)
+        x .= x .+ alpha * p;
+
+        diff = x-exact
+        err = sqrt(diff'*A*diff)
+        append!(E, err)
+        
+        r .= r .- alpha * Ap;
+        rsnew = r' * r
+    
+        norm_r = sqrt(rsnew)
+        append!(norms,norm_r)
+
+        if norm_r < abstol
+            break
+        end
+        
+        beta = rsnew/rsold;
+        p = r + beta * p;
+        rsold = rsnew
+    end
+
+    return E, num_iter_steps, norms
+end
+
+function MGCG!(A,b,x,H1,exact, my_solver;smooth_steps = 4,maxiter=length(b)^2,abstol=sqrt(eps(real(eltype(b)))))
+    r = b - A * x;
+    z = zeros(length(b))
+    (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=smooth_steps,solver="jacobi")
+    # Two_level_multigrid!(A,r,z;nu=smooth_steps, solver = my_solver)
+    z = M*r #test 
+    p = z;
+    rzold = r'*z
+    
+    num_iter_steps = 0
+    norms = [sqrt(r'*H1*r)]
+ 
+    diff = x-exact
+    err = sqrt(diff'*A*diff)
+    
+    E = [err]
+    for step = 1:maxiter
+        Ap = A*p;
+        num_iter_steps += 1
+        alpha = rzold/(p'*Ap)
+        x .= x .+ alpha * p;
+
+        diff = x-exact
+        err = sqrt(diff'*A*diff)
+        append!(E, err)
+        
+        r .= r .- alpha * Ap;
+      
+        norm_r = sqrt(r' * r)
+        append!(norms,norm_r)
+
+        if norm_r < abstol
+            break
+        end
+
+    
+        z .= 0
+        # Two_level_multigrid!(A,r,z;nu=smooth_steps, solver = my_solver)
+        z = M*r
+
+        rznew = r' * z
+        beta = rznew/rzold;
+        p = z + beta * p;
+        rzold = rznew
+    end
+
+    return E, num_iter_steps, norms
+end
+
 function jacobi_brittany!(x,A,b;maxiter=3, ω = 2/3)
 
     Pinv = Diagonal(1 ./ diag(A))
@@ -337,6 +426,7 @@ function precond_matrix(A, b; m=3, solver="jacobi")
         R = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
         R0 = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
     else   
+        # wait to be implemented
     end
 
     for i = 1:m-1
@@ -356,8 +446,10 @@ end
 
 function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=3,use_galerkin=true,direct_sol=0,H_tilde=0)
     r = b - A * x;
+    (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=nu,solver="jacobi")
     rnew = zeros(length(r))
-    z = Two_level_multigrid(A,r;nu=nu,NUM_V_CYCLES=1)[1]
+    # z = Two_level_multigrid(A,r;nu=nu,NUM_V_CYCLES=1)[1]
+    z = M*r
     znew = zeros(length(z))
     p = z;
     # Ap = A*p;
@@ -384,7 +476,8 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
         end
         # p = r + (rsnew / rsold) * p;
         # znew = jacobi(A,rnew,maxiter=jacobi_iter=10);
-        znew = Two_level_multigrid(A,rnew;nu=nu,NUM_V_CYCLES=1)[1]
+        # znew = Two_level_multigrid(A,rnew;nu=nu,NUM_V_CYCLES=1)[1]
+        znew = M*rnew
         beta = rnew'*znew/(r'*z);
         p .= znew .+ beta * p;
         z .= znew
@@ -404,6 +497,7 @@ function test_preconditioned_CG(;level=6,nu=3,ω=2/3)
     abstol = norm(A*x-b) * reltol
 
     (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=nu,solver="jacobi")
+    cond_A = cond(Matrix(A))
     cond_A_M = cond(M*A)
    
 
@@ -412,9 +506,23 @@ function test_preconditioned_CG(;level=6,nu=3,ω=2/3)
     error_mg_cg_bound_coef = (sqrt(cond_A_M) - 1) / (sqrt(cond_A_M) + 1)
     error_mg_cg_bound = error_mg_cg[1] .* 2 .* error_mg_cg_bound_coef .^ (0:1:length(error_mg_cg)-1)
 
-    plot(error_mg_cg,label="error_mg_cg")
-    plot!(error_mg_cg_bound,label="error_mg_cg_bound")
+    x0 = zeros(Nx*Ny)
+    (E_cg, num_iter_steps_cg, norms_cg) = regularCG!(A,b,x0,H_tilde,direct_sol;maxiter=20000,abstol=abstol)
+
 
     plot(log.(10,error_mg_cg),label="error_mg_cg")
     plot!(log.(10,error_mg_cg_bound),label="error_mg_cg_bound")
+
+    plot!(log.(10,E_cg),label="error_cg")
+    error_cg_bound_coef = (sqrt(cond_A) - 1) / (sqrt(cond_A) + 1)
+    error_cg_bound = E_cg[1] .* 2 .* error_cg_bound_coef .^ (0:1:length(E_cg)-1)
+    plot!(log.(10,error_cg_bound),label="error_cg_bound")
+
+    my_solver = "jacobi"
+    x0 = zeros(Nx*Ny)
+    (E_mgcg, num_iter_steps_mgcg, norms_mgcg) = MGCG!(A,b,x0,H_tilde,direct_sol,my_solver;smooth_steps = nu,maxiter=20000,abstol=abstol)
+    
+
+    # plot(error_mg_cg,label="error_mg_cg")
+    # plot!(error_mg_cg_bound,label="error_mg_cg_bound")
 end
