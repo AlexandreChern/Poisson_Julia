@@ -113,7 +113,7 @@ function Operators_2d(i, j, h_list_x, h_list_y; p=2)
     return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
-function Assembling_matrix(level)
+function Assembling_matrix(level;p=2)
     i = j = level
     hx = h_list_x[i];
     hy = h_list_y[j];
@@ -129,7 +129,7 @@ function Assembling_matrix(level)
     Nx = N_x + 1;
     Ny = N_y + 1;
 
-    (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j,h_list_x,h_list_y);
+    (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j,h_list_x,h_list_y,p=p);
     analy_sol = u(x,y');
 
     # Penalty Parameters
@@ -324,10 +324,10 @@ function jacobi_brittany!(x,A,b;maxiter=3, ω = 2/3)
     end
 end
 
-function Two_level_multigrid(A,b;nu=3,NUM_V_CYCLES=1)
+function Two_level_multigrid(A,b;nu=3,NUM_V_CYCLES=1,p=2)
     Nx = Ny = Int(sqrt(length(b)))
     level = Int(log(2,Nx-1))
-    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1);
+    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1,p=p);
 
     v_values = Dict(1=>zeros(Nx*Ny))
     rhs_values = Dict(1 => b)
@@ -352,7 +352,7 @@ function Two_level_multigrid(A,b;nu=3,NUM_V_CYCLES=1)
     return (v_values[1],norm(A * v_values[1] - b))
 end
 
-function precond_matrix(A, b; m=3, solver="jacobi")
+function precond_matrix(A, b; m=3, solver="jacobi",p=2)
     #pre and post smoothing 
     N = length(b)
     Nx = Ny = Integer((sqrt(N)))
@@ -387,7 +387,7 @@ function precond_matrix(A, b; m=3, solver="jacobi")
     end
 
     # (A_2h, b_2h, x_2h, H1_2h) = get_operators(p, 2*h);
-    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1)
+    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = Assembling_matrix(level-1,p=p)
     I_r = restriction_2d(Nx)
     
     I_p = prolongation_2d(Nx_2h)
@@ -397,9 +397,9 @@ function precond_matrix(A, b; m=3, solver="jacobi")
     return (M, R, H, I_p, A_2h, I_r, IN)
 end
 
-function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=3,use_galerkin=true,direct_sol=0,H_tilde=0)
+function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=3,use_galerkin=true,direct_sol=0,H_tilde=0,p=2)
     r = b - A * x;
-    (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=nu,solver="jacobi")
+    (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=nu,solver="jacobi",p=p)
     rnew = zeros(length(r))
     # z = Two_level_multigrid(A,r;nu=nu,NUM_V_CYCLES=1)[1]
     z = M*r
@@ -511,8 +511,8 @@ function MGCG!(A,b,x,H1,exact, my_solver;smooth_steps = 4,maxiter=length(b)^2,ab
     return E, num_iter_steps, norms
 end
 
-function test_preconditioned_CG(;level=6,nu=3,ω=2/3)
-    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level);
+function test_preconditioned_CG(;level=6,nu=3,ω=2/3,p=2)
+    (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level,p=p);
     direct_sol = A\b
     reltol = sqrt(eps(real(eltype(b))))
     x = zeros(Nx*Ny);
@@ -521,7 +521,7 @@ function test_preconditioned_CG(;level=6,nu=3,ω=2/3)
     (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=nu,solver="jacobi")
     cond_A_M = cond(M*A)
     x = zeros(Nx*Ny);
-    iter_mg_cg, norm_mg_cg, error_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=abstol,NUM_V_CYCLES=1,nu=nu,use_galerkin=true,direct_sol=direct_sol,H_tilde=H_tilde)
+    iter_mg_cg, norm_mg_cg, error_mg_cg = mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=abstol,NUM_V_CYCLES=1,nu=nu,use_galerkin=true,direct_sol=direct_sol,H_tilde=H_tilde,p=p)
     error_mg_cg_bound_coef = (sqrt(cond_A_M) - 1) / (sqrt(cond_A_M) + 1)
     error_mg_cg_bound = error_mg_cg[1] .* 2 .* error_mg_cg_bound_coef .^ (0:1:length(error_mg_cg)-1)
     plot(log.(10,error_mg_cg),label="error_mg_cg")
