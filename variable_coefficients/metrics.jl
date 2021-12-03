@@ -24,8 +24,8 @@ function create_metrics(pm, Nr, Ns,
     s = range(-1,stop=1,length=Nsp)
 
     # Create the mesh
-    r = ones(1,Nsp) ⨂ r
-    s = s' ⨂ ones(Nrp)
+    r = ones(1,Nsp) ⊗ r
+    s = s' ⊗ ones(Nrp)
 
     (x,xr,xs) = yf(r,s)
     (y,yr,ys) = yf(r,s)
