@@ -2,7 +2,8 @@ using LinearAlgebra
 using SparseArrays
 using SparseArrays
 using Plots
-include("../matrix_free_new_formulation/diagonal_sbp.jl")
+# include("../matrix_free_new_formulation/diagonal_sbp.jl")
+include("metrics.jl")
 
 sim_years = 3000.
 
@@ -46,6 +47,31 @@ EToN0[2, :] .= N
 Lx = 80
 Ly = 80
 
-Nr = EToN0[1, :]
-Ns = EToN0[2, :]
+Nr = EToN0[1, :][1]
+Ns = EToN0[2, :][1]
 
+p = 2
+
+xf = (r,s) -> (r,ones(size(r)),zeros(size(r)))
+yf = (r,s) -> (s,zeros(size(s)),ones(size(s)))
+metrics = create_metrics(2,Nr,Ns)
+
+Nrp = Nr + 1
+Nsp = Ns + 1
+Np = Nrp + Nsp
+
+r = range(-1,stop=1,length=Nrp)
+s = range(-1,stop=1,length=Nsp)
+
+r = ones(1,Nsp) ⊗ r
+s = s' ⊗ ones(Nrp)
+
+(x,xr,xs) = xf(r,s)
+(y,yr,ys) = yf(r,s)
+
+J = xr .* ys - xs .* yr
+@assert minimum(J) > 0
+
+metrics = create_metrics(p,Nr,Ns)
+
+locoperator(p,Nr,Ns)
