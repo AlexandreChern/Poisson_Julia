@@ -74,4 +74,6 @@ J = xr .* ys - xs .* yr
 
 metrics = create_metrics(p,Nr,Ns)
 
+LFtoB = [BC_DIRICHLET,BC_DIRICHLET,BC_NEUMANN,BC_NEUMANN]
+
 locoperator(p,Nr,Ns)
