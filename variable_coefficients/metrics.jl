@@ -370,3 +370,76 @@ function locoperator(p, Nr, Ns, metrics=create_metrics(p, Nr, Ns),
     τ = (τ1, τ2, τ3, τ4),
     bctype = bctype)
 end
+
+function locbcarray_mod!(ge, lop, LFToB, bc_Dirichlet, bc_Neumann,
+    bcargs = ())
+    F = lop.F
+    (xf, yf) = lop.facecoord
+    Hf = lop.Hf
+    sJ = lop.sJ
+    nx = lop.nx
+    ny = lop.ny
+    τ = lop.τ
+    ge[:] .= 0
+    for lf = 1:4
+        if LFToB[lf] == BC_DIRICHLET
+            vf = bc_Dirichlet(lf, xf[lf], yf[lf], bcargs...)
+        elseif LFToB[lf] == BC_NEUMANN
+            gN = bc_Neumann(lf, xf[lf], yf[lf], nx[lf], ny[lf], bcargs...)
+            vf = sJ[lf] .* gN ./ diag(τ[lf])
+        elseif LFToB[lf] == BC_LOCKED_INTERFACE
+            continue # nothing to do here
+        else
+            error("invalid bc")
+        end
+        ge[:] -= F[lf] * vf
+    end
+end
+
+#{{{
+struct SBPLocalOperator1{T<:Real, S<:Factorization}
+    offset::Array{Int64,1}
+    H::Array{T,1}
+    X::Array{T,1}
+    Y::Array{T,1}
+    E::Array{Int64,1}
+    F::Array{S,1}
+    SBPLocalOperator1{T,S}(vstarts::Array{Int64,1}, H::Array{T,1}, X::Array{T,1},
+                            Y::Array{T,1}, E::Array{Int64,1},
+                            F::Array{S,1}) where {T<:Real, S<:Factorization} =
+    new(vstarts, H, X, Y, E, F)
+end
+    
+function SBPLocalOperator1(lop, Nr, Ns, factorization)
+    nelems = length(lop)
+    vstarts = Array{Int64, 1}(undef, nelems + 1)
+    vstarts[1] = 1
+    Np = Array{Int64, 1}(undef, nelems)
+    VH = Array{Float64,1}(undef,0)
+    X = Array{Float64,1}(undef,0)
+    Y = Array{Float64,1}(undef,0)
+    E = Array{Int64,1}(undef,0)
+    FTYPE = typeof(factorization(sparse([1],[1],[1.0])))
+    factors = Array{FTYPE, 1}(undef, nelems)
+    for e = 1:nelems
+        # Fill arrays to build global sparse matrix
+        Np[e] = (Nr[e]+1)*(Ns[e]+1)
+        vstarts[e+1] = vstarts[e] + Np[e]
+    
+        # Global "mass" matrix
+        JH = lop[e].JH
+        VH = [VH;Vector(diag(JH))]
+    
+        # global coordinates and element number array (needed for jump)
+        (x,y) = lop[e].coord
+        X = [X;x[:]]
+        Y = [Y;y[:]]
+        E = [E;e * ones(Int64, Np[e])]
+    
+        factors[e] = factorization(lop[e].M̃)
+    end
+    VNp = vstarts[nelems+1]-1 # total number of volume points
+    
+    SBPLocalOperator1{Float64, FTYPE}(vstarts, VH, X, Y, E, factors)
+end
+#}}}
