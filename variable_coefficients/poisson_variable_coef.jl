@@ -95,4 +95,4 @@ bc_Dirichlet = (lf,x,y,e) -> zeros(size(x))
 bc_Neumann   = (lf,x,y,nx,ny,e) -> zeros(size(x))
 locbcarray_mod!(ge,lop[e],LFtoB,bc_Dirichlet,bc_Neumann,(e))
 
-M \ ge
+M.F[e] \ ge
