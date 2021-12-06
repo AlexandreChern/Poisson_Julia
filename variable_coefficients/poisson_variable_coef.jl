@@ -178,3 +178,5 @@ yseries = y_coord[1,:]
 plot(xseries,yseries,direct_sol_reshaped,st=:surface)
 
 plot(xseries,yseries,direct_sol_reshaped,st=:surface,camera=(45,45))
+
+error = sqrt((direct_sol - analy_sol)' * lop[e].JH * (direct_sol - analy_sol))
