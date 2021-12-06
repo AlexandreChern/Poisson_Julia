@@ -409,7 +409,7 @@ function locsourcearray!(ge, source, lop, volargs = ())
   end
 
 function locbcarray_mod!(ge, lop, LFToB, bc_Dirichlet, bc_Neumann,
-    bcargs = ())
+    bcargs = ()) # probably should use this instead cuz we only have one element
     F = lop.F
     (xf, yf) = lop.facecoord
     Hf = lop.Hf
