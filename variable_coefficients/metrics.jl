@@ -371,6 +371,43 @@ function locoperator(p, Nr, Ns, metrics=create_metrics(p, Nr, Ns),
     bctype = bctype)
 end
 
+function locbcarray!(ge, gδe, lop, LFToB, bc_Dirichlet, bc_Neumann, in_jump,
+    bcargs = ())
+    F = lop.F
+    (xf, yf) = lop.facecoord
+    Hf = lop.Hf
+    sJ = lop.sJ
+    nx = lop.nx
+    ny = lop.ny
+    τ = lop.τ
+    ge[:] .= 0
+    for lf = 1:4
+        if LFToB[lf] == BC_DIRICHLET
+            vf = bc_Dirichlet(lf, xf[lf], yf[lf], bcargs...)
+        elseif LFToB[lf] == BC_NEUMANN
+            gN = bc_Neumann(lf, xf[lf], yf[lf], nx[lf], ny[lf], bcargs...)
+            vf = sJ[lf] .* gN ./ diag(τ[lf])
+        elseif LFToB[lf] == BC_LOCKED_INTERFACE
+            continue # nothing to do here
+        elseif LFToB[lf] >= BC_JUMP_INTERFACE
+            # In this case we need to add in half the jump
+            vf = in_jump(lf, xf[lf], yf[lf], bcargs...) / 2
+            gδe[lf][:] -= Hf[lf] * τ[lf] * vf
+        else
+            error("invalid bc")
+        end
+        ge[:] -= F[lf] * vf
+    end
+end
+
+function locsourcearray!(ge, source, lop, volargs = ())
+
+    (xloc, yloc) = lop.coord
+    JHloc = lop.JH
+    ge[:] += JHloc * source(xloc[:], yloc[:], volargs...)
+  
+  end
+
 function locbcarray_mod!(ge, lop, LFToB, bc_Dirichlet, bc_Neumann,
     bcargs = ())
     F = lop.F
