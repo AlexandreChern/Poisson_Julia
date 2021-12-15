@@ -119,12 +119,42 @@ let
         # yf = (r,s) -> (s,zeros(size(s)),ones(size(s)))
         # metrics = create_metrics(p,Nr,Ns)
 
+        # metric 1
         el_x = 10
         el_y = 10
         xt = (r,s) -> (el_x .* tan.(atan((Lx )/el_x).* (0.5*r .+ 0.5))  , el_x .* sec.(atan((Lx )/el_x).* (0.5*r .+ 0.5)).^2 * atan((Lx)/el_x) * 0.5 ,zeros(size(s)))
         yt = (r,s) -> (el_y .* tan.(atan((Ly )/el_y).* (0.5*s .+ 0.5))  , zeros(size(r)), el_y .* sec.(atan((Ly )/el_y).*(0.5*s .+ 0.5)) .^2 * atan((Ly )/el_y) * 0.5 )
 
         metrics = create_metrics(SBPp,Nr,Ns,xt,yt)
+
+        # metric 2
+        (x1, x2, x3, x4) = (0, 1, 0, 1)
+        (y1, y2, y3, y4) = (0, .5, 1, 1.5)
+
+        ex = [(α) -> x1 * (1 .- α) / 2 + x3 * (1 .+ α) / 2,
+                (α) -> x2 * (1 .- α) / 2 + x4 * (1 .+ α) / 2,
+                (α) -> x1 * (1 .- α) / 2 + x2 * (1 .+ α) / 2,
+                (α) -> x3 * (1 .- α) / 2 + x4 * (1 .+ α) / 2]
+        exα = [(α) -> -x1 / 2 + x3 / 2,
+                (α) -> -x2 / 2 + x4 / 2,
+                (α) -> -x1 / 2 + x2 / 2,
+                (α) -> -x3 / 2 + x4 / 2]
+        ey = [(α) -> y1 * (1 .- α) / 2 + y3 * (1 .+ α) / 2,
+                (α) -> y2 * (1 .- α) / 2 + y4 * (1 .+ α) / 2,
+                (α) -> y1 * (1 .- α) / 2 + y2 * (1 .+ α) / 2,
+                (α) -> y3 * (1 .- α) / 2 + y4 * (1 .+ α) / 2]
+        eyα = [(α) -> -y1 / 2 + y3 / 2,
+                (α) -> -y2 / 2 + y4 / 2,
+                (α) -> -y1 / 2 + y2 / 2,
+                (α) -> -y3 / 2 + y4 / 2]
+        
+        xt(x,y) = transfinite_blend(ex[1], ex[2], ex[3], ex[4],
+                exα[1], exα[2], exα[3], exα[4],
+                x, y)
+        yt(x,y) = transfinite_blend(ey[1], ey[2], ey[3], ey[4],
+                eyα[1], eyα[2], eyα[3], eyα[4],
+                x, y)
+        metrics = create_metrics(SBPp, Nr, Ns, xt, yt)
 
         Nrp = Nr + 1
         Nsp = Ns + 1
