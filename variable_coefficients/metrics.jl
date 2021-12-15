@@ -480,3 +480,67 @@ function SBPLocalOperator1(lop, Nr, Ns, factorization)
     SBPLocalOperator1{Float64, FTYPE}(vstarts, VH, X, Y, E, factors)
 end
 #}}}
+
+
+#{{{ Transfinite Blend
+function transfinite_blend(α1, α2, α3, α4, α1s, α2s, α3r, α4r, r, s)
+    # +---4---+
+    # |       |
+    # 1       2
+    # |       |
+    # +---3---+
+    @assert [α1(-1) α2(-1) α1( 1) α2( 1)] ≈ [α3(-1) α3( 1) α4(-1) α4( 1)]
+  
+  
+    x = (1 .+ r) .* α2(s)/2 + (1 .- r) .* α1(s)/2 +
+        (1 .+ s) .* α4(r)/2 + (1 .- s) .* α3(r)/2 -
+       ((1 .+ r) .* (1 .+ s) .* α2( 1) +
+        (1 .- r) .* (1 .+ s) .* α1( 1) +
+        (1 .+ r) .* (1 .- s) .* α2(-1) +
+        (1 .- r) .* (1 .- s) .* α1(-1)) / 4
+  
+    xr =  α2(s)/2 - α1(s)/2 +
+          (1 .+ s) .* α4r(r)/2 + (1 .- s) .* α3r(r)/2 -
+        (+(1 .+ s) .* α2( 1) +
+         -(1 .+ s) .* α1( 1) +
+         +(1 .- s) .* α2(-1) +
+         -(1 .- s) .* α1(-1)) / 4
+  
+  
+    xs = (1 .+ r) .* α2s(s)/2 + (1 .- r) .* α1s(s)/2 +
+         α4(r)/2 - α3(r)/2 -
+        (+(1 .+ r) .* α2( 1) +
+         +(1 .- r) .* α1( 1) +
+         -(1 .+ r) .* α2(-1) +
+         -(1 .- r) .* α1(-1)) / 4
+  
+    return (x, xr, xs)
+  end
+  
+  function transfinite_blend(α1, α2, α3, α4, r, s, p)
+    (Nrp, Nsp) = size(r)
+    (Dr, _, _, _) = diagonal_sbp_D1(p, Nrp-1; xc = (-1,1))
+    (Ds, _, _, _) = diagonal_sbp_D1(p, Nsp-1; xc = (-1,1))
+  
+    α2s(s) = α2(s) * Ds'
+    α1s(s) = α1(s) * Ds'
+    α4r(s) = Dr * α4(r)
+    α3r(s) = Dr * α3(r)
+  
+    transfinite_blend(α1, α2, α3, α4, α1s, α2s, α3r, α4r, r, s)
+  end
+  
+  function transfinite_blend(v1::T1, v2::T2, v3::T3, v4::T4, r, s
+                            ) where {T1 <: Number, T2 <: Number,
+                                     T3 <: Number, T4 <: Number}
+    e1(α) = v1 * (1 .- α) / 2 + v3 * (1 .+ α) / 2
+    e2(α) = v2 * (1 .- α) / 2 + v4 * (1 .+ α) / 2
+    e3(α) = v1 * (1 .- α) / 2 + v2 * (1 .+ α) / 2
+    e4(α) = v3 * (1 .- α) / 2 + v4 * (1 .+ α) / 2
+    e1α(α) = -v1 / 2 + v3 / 2
+    e2α(α) = -v2 / 2 + v4 / 2
+    e3α(α) = -v1 / 2 + v2 / 2
+    e4α(α) = -v3 / 2 + v4 / 2
+    transfinite_blend(e1, e2, e3, e4, e1α, e2α, e3α, e4α, r, s)
+  end
+  #}}}
