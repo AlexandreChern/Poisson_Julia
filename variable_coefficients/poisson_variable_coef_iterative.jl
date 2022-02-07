@@ -172,6 +172,9 @@ let
         locsourcearray!(ge,source,lop[e],e)
 
         direct_sol = M.F[e] \ ge
+
+        iterative_sol = cg(lop[e].M̃,ge)
+
         direct_sol_reshaped = reshape(direct_sol,Nrp,Nsp)
 
         xseries = x_coord[:,1]
@@ -182,6 +185,7 @@ let
 
         analy_sol = vex(x_coord,y_coord,e)[:]
         numerical_error = sqrt((direct_sol - analy_sol)' * lop[e].JH * (direct_sol - analy_sol))
+        numerical_error_cg = sqrt((iterative_sol - analy_sol)' * lop[e].JH * (iterative_sol - analy_sol))
         append!(errors,numerical_error)
     end
 
