@@ -153,7 +153,7 @@ function create_A_b(level)
     δNp = N + 1
 
 
-    SBPp = 6
+    SBPp = 2
 
 
     bc_map = [BC_DIRICHLET, BC_DIRICHLET, BC_NEUMANN, BC_NEUMANN,
@@ -177,10 +177,16 @@ function create_A_b(level)
     # yf = (r,s) -> (s,zeros(size(s)),ones(size(s)))
     # metrics = create_metrics(p,Nr,Ns)
 
-    el_x = 10
-    el_y = 10
+    # transformation 1
+    el_x = 1e12
+    el_y = 1e12
+    # el_x = 10
+    # el_y = 10
     xt = (r,s) -> (el_x .* tan.(atan((Lx )/el_x).* (0.5*r .+ 0.5))  , el_x .* sec.(atan((Lx )/el_x).* (0.5*r .+ 0.5)).^2 * atan((Lx)/el_x) * 0.5 ,zeros(size(s)))
     yt = (r,s) -> (el_y .* tan.(atan((Ly )/el_y).* (0.5*s .+ 0.5))  , zeros(size(r)), el_y .* sec.(atan((Ly )/el_y).*(0.5*s .+ 0.5)) .^2 * atan((Ly )/el_y) * 0.5 )
+
+    # transformation 2
+
 
     metrics = create_metrics(SBPp,Nr,Ns,xt,yt)
 
@@ -276,6 +282,50 @@ function Two_level_multigrid(A,b;nu=3,NUM_V_CYCLES=1,p=2)
     return (v_values[1],norm(A * v_values[1] - b))
 end
 
+function precond_matrix(A, b; m=3, solver="jacobi",p=2)
+    #pre and post smoothing 
+    N = length(b)
+    Nx = Ny = Integer((sqrt(N)))
+    level = Integer(log(2,Nx-1))
+    IN = sparse(Matrix(I, N, N))
+    P = Diagonal(diag(A))
+    Pinv = Diagonal(1 ./ diag(A))
+    Q = P-A
+    L = A - triu(A)
+    U = A - tril(A)
+
+    if solver == "jacobi"
+        ω = 2/3
+        H = ω*Pinv*Q + (1-ω)*IN 
+        R = ω*Pinv 
+        R0 = ω*Pinv 
+    elseif solver == "ssor"
+        ω = 1.4  #this is just a guess. Need to compute ω_optimal (from jacobi method)
+        B1 = (P + ω*U)\Matrix(-ω*L + (1-ω)*P)
+        B2 = (P + ω*L)\Matrix(-ω*U + (1-ω)*P) 
+        H = B1*B2
+        X = (P+ω*L)\Matrix(IN)
+   
+        R = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
+        R0 = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
+    else   
+        # wait to be implemented
+    end
+
+    for i = 1:m-1
+        R += H^i * R0
+    end
+
+    # (A_2h, b_2h, x_2h, H1_2h) = get_operators(p, 2*h);
+    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = create_A_b(level-1)
+    I_r = restriction_2d(Nx)
+    
+    I_p = prolongation_2d(Nx_2h)
+    # M = H^m * (R + I_p * (A_2h\Matrix(I_r*(IN - A * R)))) + R
+    M = H^m * (R - I_p * (A_2h\Matrix(I_r*(A * R - IN)))) + R
+   
+    return (M, R, H, I_p, A_2h, I_r, IN)
+end
 
 
 function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=3,use_galerkin=true,direct_sol=0,H_tilde=0)
@@ -295,8 +345,8 @@ function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltyp
 
     rzold = r'*z
 
-    # for step = 1:maxiter
-    for step = 1:100
+    for step = 1:maxiter
+    # for step = 1:100
     # for step = 1:5
         num_iter_steps += 1
         # @show norm(A*p)
@@ -331,8 +381,11 @@ end
 
 function test_preconditioned_CG(;level=6)
     (A,b,H_tilde,Nx,Ny) = create_A_b(level)
+    M = precond_matrix(A,b)[1]
+    @show cond(Matrix(A))
+    @show cond(M*A)
     x = zeros(Nx*Ny)
-    mg_preconditioned_CG(A,b,x)
+    mg_preconditioned_CG(A,b,x)M
 end
 
 direct_sol = M.F[e] \ ge
