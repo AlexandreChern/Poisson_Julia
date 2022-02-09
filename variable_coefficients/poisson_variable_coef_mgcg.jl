@@ -3,6 +3,7 @@ using SparseArrays
 using Plots
 using IterativeSolvers
 include("metrics.jl")
+include("transfinite_blend.jl")
 
 # Solving Poisson Equation with Coordinate Transformation
 # Δ u(x,y) = f(x,y)
@@ -147,7 +148,7 @@ RSH2 = 18
 
 level = 6
 
-function create_A_b(level)
+function create_A_b(level;xt=xt,yt=yt)
     N = 2^level
 
     δNp = N + 1
@@ -178,14 +179,16 @@ function create_A_b(level)
     # metrics = create_metrics(p,Nr,Ns)
 
     # transformation 1
-    el_x = 1e12
-    el_y = 1e12
+    # el_x = 1e12
+    # el_y = 1e12
     # el_x = 10
     # el_y = 10
-    xt = (r,s) -> (el_x .* tan.(atan((Lx )/el_x).* (0.5*r .+ 0.5))  , el_x .* sec.(atan((Lx )/el_x).* (0.5*r .+ 0.5)).^2 * atan((Lx)/el_x) * 0.5 ,zeros(size(s)))
-    yt = (r,s) -> (el_y .* tan.(atan((Ly )/el_y).* (0.5*s .+ 0.5))  , zeros(size(r)), el_y .* sec.(atan((Ly )/el_y).*(0.5*s .+ 0.5)) .^2 * atan((Ly )/el_y) * 0.5 )
+    # xt = (r,s) -> (el_x .* tan.(atan((Lx )/el_x).* (0.5*r .+ 0.5))  , el_x .* sec.(atan((Lx )/el_x).* (0.5*r .+ 0.5)).^2 * atan((Lx)/el_x) * 0.5 ,zeros(size(s)))
+    # yt = (r,s) -> (el_y .* tan.(atan((Ly )/el_y).* (0.5*s .+ 0.5))  , zeros(size(r)), el_y .* sec.(atan((Ly )/el_y).*(0.5*s .+ 0.5)) .^2 * atan((Ly )/el_y) * 0.5 )
 
     # transformation 2
+    xt = xt
+    yt = yt
 
 
     metrics = create_metrics(SBPp,Nr,Ns,xt,yt)
@@ -394,8 +397,8 @@ iterative_sol = cg(lop[e].M̃,ge)
 
 direct_sol_reshaped = reshape(direct_sol,Nrp,Nsp)
 
-xseries = x_coord[:,1]
-yseries = y_coord[1,:]
+# xseries = x_coord[:,1]
+# yseries = y_coord[1,:]
 # plot(xseries,yseries,direct_sol_reshaped,st=:surface)
 
 # plot(xseries,yseries,direct_sol_reshaped,st=:surface,camera=(45,45))
