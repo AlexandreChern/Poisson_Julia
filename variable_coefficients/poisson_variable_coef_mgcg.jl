@@ -3,7 +3,7 @@ using SparseArrays
 using Plots
 using IterativeSolvers
 include("metrics.jl")
-include("transfinite_blend.jl")
+include("transfinite_blend_metrics.jl")
 
 # Solving Poisson Equation with Coordinate Transformation
 # Δ u(x,y) = f(x,y)
@@ -11,10 +11,6 @@ include("transfinite_blend.jl")
 #                        u(x,y) = sin(πx/Lx .+ πy/Ly) on real grid
 
 # Exact Solutions: Define vex, vex_x, vex_y, vex_xx, vex_xy, vex_yy
-Lx = 80
-Ly = 80
-
-(kx,ky) = (π/Lx, π/Ly)
 
 
 vex(x,y,e) = begin
@@ -126,89 +122,31 @@ end
 
 
 
-sim_years = 3000.
-
-Vp = 1e-9 # plate rate
-ρ = 2.670
-cs = 3.464
-σn = 50
-RSamin = 0.01
-RSamax = 0.025
-RSb = 0.015
-RSDc = 0.008 # change it to be 0.008
-RSf0 = 0.6
-RSV0 = 1e-6
-RSVinit = 1e-9
-RSH1 = 15
-RSH2 = 18
-
-μshear = cs^2 * ρ
-η = μshear / (2 * cs)
-
-
 level = 6
 
-function create_A_b(level;xt=xt,yt=yt)
+
+function get_metrics(level;SBPp=SBPp,bc_map=bc_map,xt=xt,yt=yt)
     N = 2^level
-
     δNp = N + 1
-
-
-    SBPp = 2
-
-
-    bc_map = [BC_DIRICHLET, BC_DIRICHLET, BC_NEUMANN, BC_NEUMANN,
-    BC_JUMP_INTERFACE]
-
     nelems = 1
     nfaces = 4
-
     EToN0 = zeros(Int64, 2, nelems)
     EToN0[1, :] .= N
     EToN0[2, :] .= N
-
-
-
     Nr = EToN0[1, :][1]
     Ns = EToN0[2, :][1]
-
-
-
-    # xf = (r,s) -> (r,ones(size(r)),zeros(size(r)))
-    # yf = (r,s) -> (s,zeros(size(s)),ones(size(s)))
-    # metrics = create_metrics(p,Nr,Ns)
-
-    # transformation 1
-    # el_x = 1e12
-    # el_y = 1e12
-    # el_x = 10
-    # el_y = 10
-    # xt = (r,s) -> (el_x .* tan.(atan((Lx )/el_x).* (0.5*r .+ 0.5))  , el_x .* sec.(atan((Lx )/el_x).* (0.5*r .+ 0.5)).^2 * atan((Lx)/el_x) * 0.5 ,zeros(size(s)))
-    # yt = (r,s) -> (el_y .* tan.(atan((Ly )/el_y).* (0.5*s .+ 0.5))  , zeros(size(r)), el_y .* sec.(atan((Ly )/el_y).*(0.5*s .+ 0.5)) .^2 * atan((Ly )/el_y) * 0.5 )
-
-    # transformation 2
     xt = xt
     yt = yt
-
-
+    Np = Nrp + Nsp
     metrics = create_metrics(SBPp,Nr,Ns,xt,yt)
+    return metrics
+end
 
+function create_A_b(level)
+    metrics= get_metrics(level)
+    (Nr,Ns) = size(metrics.coord[1]) .- 1
     Nrp = Nr + 1
     Nsp = Ns + 1
-    Np = Nrp + Nsp
-
-    # r = range(-1,stop=1,length=Nrp)
-    # s = range(-1,stop=1,length=Nsp)
-
-    # r = ones(1,Nsp) ⊗ r
-    # s = s' ⊗ ones(Nrp)
-
-    # (x,xr,xs) = xf(r,s)
-    # (y,yr,ys) = yf(r,s)
-
-    # J = xr .* ys - xs .* yr
-    # @assert minimum(J) > 0
-
     LFtoB = [BC_DIRICHLET,BC_DIRICHLET,BC_NEUMANN,BC_NEUMANN]
     OPTYPE = typeof(locoperator(2,8,8))
 
@@ -403,6 +341,8 @@ direct_sol_reshaped = reshape(direct_sol,Nrp,Nsp)
 
 # plot(xseries,yseries,direct_sol_reshaped,st=:surface,camera=(45,45))
 
+x_coord = metrics.coord[1]
+y_coord = metrics.coord[2]
 analy_sol = vex(x_coord,y_coord,e)[:]
 numerical_error = sqrt((direct_sol - analy_sol)' * lop[e].JH * (direct_sol - analy_sol))
 numerical_error_cg = sqrt((iterative_sol - analy_sol)' * lop[e].JH * (iterative_sol - analy_sol))

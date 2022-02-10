@@ -1,3 +1,38 @@
+
+
+## BP1 parameters
+sim_years = 3000.
+
+Vp = 1e-9 # plate rate
+ρ = 2.670
+cs = 3.464
+σn = 50
+RSamin = 0.01
+RSamax = 0.025
+RSb = 0.015
+RSDc = 0.008 # change it to be 0.008
+RSf0 = 0.6
+RSV0 = 1e-6
+RSVinit = 1e-9
+RSH1 = 15
+RSH2 = 18
+
+μshear = cs^2 * ρ
+η = μshear / (2 * cs)
+
+
+## Domain size
+Lx = 80
+Ly = 80
+
+(kx,ky) = (π/Lx, π/Ly)
+
+## SBP parameters
+SBPp = 2
+bc_map = [BC_DIRICHLET, BC_DIRICHLET, BC_NEUMANN, BC_NEUMANN,
+BC_JUMP_INTERFACE]
+
+
 (x1,x2,x3,x4) = (0,1,0,2)
 (y1,y2,y3,y4) = (0,0,1,2)
 
