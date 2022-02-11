@@ -136,11 +136,11 @@ let
     test_direct_convergence(SBPp=SBPp)
     x,history_cg = cg(A,b,log=true)
     history_cg.data[:resnorm]
-    test_direct_convergence(SBPp=SBPp)
+    test_preconditioned_CG(level=level)
 end
 
 let 
-    SBPp = 4
+    SBPp = 6
     level = 6
     metrics= get_metrics(level,SBPp=SBPp)
     (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics)
@@ -148,7 +148,5 @@ let
     x,history_cg = cg(A,b,log=true)
     history_cg.data[:resnorm]
     test_direct_convergence(SBPp=SBPp)
+    test_preconditioned_CG(level=level)
 end
-
-
-test_preconditioned_CG(level=6)
