@@ -85,8 +85,8 @@ end
 
 function test_preconditioned_CG(;level=6,SBPp=SBPp)
     @show SBPp
-    (A,b,H_tilde,Nx,Ny) = create_A_b(level)
-    M = precond_matrix(A,b)[1]
+    (A,b,H_tilde,Nx,Ny) = create_A_b(level,SBPp=SBPp)
+    M = precond_matrix(A,b,SBPp=SBPp)[1]
     @show cond(Matrix(A))
     @show cond(M*A)
     x = zeros(Nx*Ny)
@@ -97,7 +97,7 @@ end
 
 function test_direct_solve(;level=6,SBPp=SBPp)
     metrics= get_metrics(level,SBPp=SBPp)
-    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics)
+    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics,SBPp=SBPp)
     direct_sol = A\b
     x_coord = metrics.coord[1]
     y_coord = metrics.coord[2]
@@ -122,22 +122,22 @@ let
     SBPp = 2
     level = 6
     metrics= get_metrics(level,SBPp=SBPp)
-    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics)
+    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics,SBPp=SBPp)
     test_direct_convergence(SBPp=SBPp)
     x,history_cg = cg(A,b;log=true)
     history_cg.data[:resnorm]
-    test_preconditioned_CG(level=6)
+    test_preconditioned_CG(level=6,SBPp=SBPp)
 end
     
 let 
     SBPp = 4
     level = 6
     metrics= get_metrics(level,SBPp=SBPp)
-    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics)
+    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics,SBPp=SBPp)
     test_direct_convergence(SBPp=SBPp)
     x,history_cg = cg(A,b,log=true)
     history_cg.data[:resnorm]
-    test_preconditioned_CG(level=level)
+    test_preconditioned_CG(level=level,SBPp=SBPp)
 end
 
 let 
@@ -148,6 +148,5 @@ let
     test_direct_convergence(SBPp=SBPp)
     x,history_cg = cg(A,b,log=true)
     history_cg.data[:resnorm]
-    test_direct_convergence(SBPp=SBPp)
-    test_preconditioned_CG(level=level)
+    test_preconditioned_CG(level=level,SBPp=SBPp)
 end
