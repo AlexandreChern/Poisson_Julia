@@ -64,3 +64,53 @@ xt(r,s) = transfinite_blend(ex[1], ex[2], ex[3], ex[4],
 yt(r,s) = transfinite_blend(ey[1], ey[2], ey[3], ey[4],
  eyα[1], eyα[2], eyα[3], eyα[4],
  r, s)
+
+ 
+ ## Numerical Solutions
+ vex(x,y,e) = begin
+    if e == 1
+        return sin.(kx * x .+ ky * y)
+    else
+        error("Not defined for multiple blocks")
+    end
+end
+
+vex_x(x,y,e) = begin
+    if e == 1
+        return kx * cos.(kx * x .+ ky * y)
+    else
+        error("Not defined for multiple blocks")
+    end
+end
+
+vex_y(x,y,e) = begin
+    if e == 1
+        return ky * cos.(kx * x .+ ky * y)
+    else
+        error("Not defined for multiple blocks")
+    end
+end
+
+vex_xx(x, y, e) = begin
+    if e == 1
+        return - kx^2 * sin.(kx * x .+ ky * y)
+    else
+        error("invalid block")
+    end
+end
+
+vex_xy(x, y, e) = begin
+    if e == 1
+        return - kx*ky * sin.(kx * x .+ ky * y)
+    else
+        error("invalid block")
+    end
+end
+
+vex_yy(x, y, e) = begin
+    if e == 1
+        return - ky^2 * sin.(kx * x .+ ky * y)
+    else
+        error("invalid block")
+    end
+end
