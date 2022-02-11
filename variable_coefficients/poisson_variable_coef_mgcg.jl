@@ -83,13 +83,14 @@ end
 (A_2h, b_2h, H_2h_tilde, Nx_2h, Ny_2h) = create_A_b(level-1)
 
 
-function test_preconditioned_CG(;level=6)
+function test_preconditioned_CG(;level=6,SBPp=SBPp)
+    @show SBPp
     (A,b,H_tilde,Nx,Ny) = create_A_b(level)
     M = precond_matrix(A,b)[1]
     @show cond(Matrix(A))
     @show cond(M*A)
     x = zeros(Nx*Ny)
-    mg_preconditioned_CG(A,b,x)M
+    mg_preconditioned_CG(A,b,x)
 end
 
 
@@ -116,14 +117,38 @@ function test_direct_convergence(;SBPp=SBPp)
 end
 
 
-
-SBPp = 2
-test_direct_convergence(SBPp=SBPp)
+let 
+    SBPp = 2
+    level = 6
+    metrics= get_metrics(level,SBPp=SBPp)
+    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics)
+    test_direct_convergence(SBPp=SBPp)
+    x,history_cg = cg(A,b;log=true)
+    history_cg.data[:resnorm]
+    test_preconditioned_CG(level=6)
+end
     
-SBPp = 4
-test_direct_convergence(SBPp=SBPp)
-    
-SBPp = 6
-test_direct_convergence(SBPp=SBPp)
+let 
+    SBPp = 4
+    level = 6
+    metrics= get_metrics(level,SBPp=SBPp)
+    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics)
+    test_direct_convergence(SBPp=SBPp)
+    x,history_cg = cg(A,b,log=true)
+    history_cg.data[:resnorm]
+    test_direct_convergence(SBPp=SBPp)
+end
+
+let 
+    SBPp = 4
+    level = 6
+    metrics= get_metrics(level,SBPp=SBPp)
+    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics)
+    test_direct_convergence(SBPp=SBPp)
+    x,history_cg = cg(A,b,log=true)
+    history_cg.data[:resnorm]
+    test_direct_convergence(SBPp=SBPp)
+end
 
 
+test_preconditioned_CG(level=6)

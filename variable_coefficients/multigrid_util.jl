@@ -68,7 +68,7 @@ function jacobi_brittany!(x,A,b;maxiter=3, ω = 2/3)
     end
 end
 
-function Two_level_multigrid(A,b;nu=3,NUM_V_CYCLES=1,p=2)
+function Two_level_multigrid(A,b;nu=3,NUM_V_CYCLES=1,SBPp=2)
     Nx = Ny = Int(sqrt(length(b)))
     level = Int(log(2,Nx-1))
     (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = create_A_b(level-1);
@@ -97,7 +97,7 @@ function Two_level_multigrid(A,b;nu=3,NUM_V_CYCLES=1,p=2)
 end
 
 
-function precond_matrix(A, b; m=3, solver="jacobi",p=2)
+function precond_matrix(A, b; m=3, solver="jacobi",SBPp=SBPp)
     #pre and post smoothing 
     N = length(b)
     Nx = Ny = Integer((sqrt(N)))
@@ -132,7 +132,7 @@ function precond_matrix(A, b; m=3, solver="jacobi",p=2)
     end
 
     # (A_2h, b_2h, x_2h, H1_2h) = get_operators(p, 2*h);
-    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = create_A_b(level-1)
+    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = create_A_b(level-1,SBPp=SBPp)
     I_r = restriction_2d(Nx)
     
     I_p = prolongation_2d(Nx_2h)
