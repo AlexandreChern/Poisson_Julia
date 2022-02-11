@@ -23,7 +23,7 @@ level = 6
 
 function get_metrics(level;SBPp=SBPp,bc_map=bc_map,xt=xt,yt=yt)
     N = 2^level
-    δNp = N + 1
+    # δNp = N + 1
     nelems = 1
     nfaces = 4
     EToN0 = zeros(Int64, 2, nelems)
@@ -40,8 +40,10 @@ function get_metrics(level;SBPp=SBPp,bc_map=bc_map,xt=xt,yt=yt)
     return metrics
 end
 
-function create_A_b(level)
-    metrics= get_metrics(level)
+function create_A_b(level;metrics=[])
+    if length(metrics) == 0
+        metrics= get_metrics(level)
+    end
     (Nr,Ns) = size(metrics.coord[1]) .- 1
     Nrp = Nr + 1
     Nsp = Ns + 1
@@ -73,149 +75,12 @@ function create_A_b(level)
     source = (x,y,e) -> (-vex_xx(x,y,e)-vex_yy(x,y,e))
     locsourcearray!(ge,source,lop[e],e)
 
-    return (lop[e].M̃, ge, lop[e].JH, δNp, δNp) # A, b, H_tilde
+    return (lop[e].M̃, ge, lop[e].JH, Nrp, Nsp) # A, b, H_tilde
 end
 
 
 (A,b,H_tilde,Nx,Ny) = create_A_b(level)
 (A_2h, b_2h, H_2h_tilde, Nx_2h, Ny_2h) = create_A_b(level-1)
-
-A_matrices = Dict()
-
-function jacobi_brittany!(x,A,b;maxiter=3, ω = 2/3)
-
-    Pinv = Diagonal(1 ./ diag(A))
-    P = Diagonal(diag(A))
-    Q = A-P
-
-    for j in 1:maxiter
-        x[:] = ω * Pinv*(b .- Q*x[:]) + (1 - ω)*x[:]
-    end
-end
-
-function Two_level_multigrid(A,b;nu=3,NUM_V_CYCLES=1,p=2)
-    Nx = Ny = Int(sqrt(length(b)))
-    level = Int(log(2,Nx-1))
-    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = create_A_b(level-1);
-
-    v_values = Dict(1=>zeros(Nx*Ny))
-    rhs_values = Dict(1 => b)
-    N_values = Dict(1 => Nx)
-    N_values[2] = div(Nx+1,2)
-
-    x = zeros(length(b));
-    v_values[1] = x
-    
-    for cycle_number in 1:NUM_V_CYCLES
-        jacobi_brittany!(v_values[1],A,b;maxiter=nu);
-        r = b - A*v_values[1];
-        f = restriction_2d(Nx) * r;
-        v_values[2] = A_2h \ f
-
-        # println("Pass first part")
-        e_1 = prolongation_2d(N_values[2]) * v_values[2];
-        v_values[1] = v_values[1] + e_1;
-        # println("After coarse grid correction, norm(A*x-b): $(norm(A*v_values[1]-b))")
-        jacobi_brittany!(v_values[1],A,b;maxiter=nu);
-    end
-    return (v_values[1],norm(A * v_values[1] - b))
-end
-
-function precond_matrix(A, b; m=3, solver="jacobi",p=2)
-    #pre and post smoothing 
-    N = length(b)
-    Nx = Ny = Integer((sqrt(N)))
-    level = Integer(log(2,Nx-1))
-    IN = sparse(Matrix(I, N, N))
-    P = Diagonal(diag(A))
-    Pinv = Diagonal(1 ./ diag(A))
-    Q = P-A
-    L = A - triu(A)
-    U = A - tril(A)
-
-    if solver == "jacobi"
-        ω = 2/3
-        H = ω*Pinv*Q + (1-ω)*IN 
-        R = ω*Pinv 
-        R0 = ω*Pinv 
-    elseif solver == "ssor"
-        ω = 1.4  #this is just a guess. Need to compute ω_optimal (from jacobi method)
-        B1 = (P + ω*U)\Matrix(-ω*L + (1-ω)*P)
-        B2 = (P + ω*L)\Matrix(-ω*U + (1-ω)*P) 
-        H = B1*B2
-        X = (P+ω*L)\Matrix(IN)
-   
-        R = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
-        R0 = ω*(2-ω)*(P+ω*U)\Matrix(P*X)
-    else   
-        # wait to be implemented
-    end
-
-    for i = 1:m-1
-        R += H^i * R0
-    end
-
-    # (A_2h, b_2h, x_2h, H1_2h) = get_operators(p, 2*h);
-    (A_2h,b_2h,H_tilde_2h,Nx_2h,Ny_2h) = create_A_b(level-1)
-    I_r = restriction_2d(Nx)
-    
-    I_p = prolongation_2d(Nx_2h)
-    # M = H^m * (R + I_p * (A_2h\Matrix(I_r*(IN - A * R)))) + R
-    M = H^m * (R - I_p * (A_2h\Matrix(I_r*(A * R - IN)))) + R
-   
-    return (M, R, H, I_p, A_2h, I_r, IN)
-end
-
-
-function mg_preconditioned_CG(A,b,x;maxiter=length(b),abstol=sqrt(eps(real(eltype(b)))),NUM_V_CYCLES=1,nu=3,use_galerkin=true,direct_sol=0,H_tilde=0)
-    r = b - A * x;
-    # (M, R, H, I_p, A_2h, I_r, IN) = precond_matrix(A,b;m=nu,solver="jacobi",p=p)
-    # rnew = zeros(length(r))
-    z = Two_level_multigrid(A,r;nu=nu,NUM_V_CYCLES=1)[1]
-    # z = M*r
-    p = z;
-    # Ap = A*p;
-    num_iter_steps = 0
-    norms = [norm(r)]
-    errors = []
-    if direct_sol != 0 && H_tilde != 0
-        append!(errors,sqrt(direct_sol' * A * direct_sol))
-    end
-
-    rzold = r'*z
-
-    for step = 1:maxiter
-    # for step = 1:100
-    # for step = 1:5
-        num_iter_steps += 1
-        # @show norm(A*p)
-
-        # alpha = r'*z/(p'*A*p)
-        alpha = rzold / (p'*A*p)
-        # @show alpha
-
-        x .= x .+ alpha * p;
-
-        r .= r .- alpha * A*p
-        rs = r' * r
-        append!(norms,sqrt(rs))
-        if direct_sol != 0 && H_tilde != 0
-            sol_error = sqrt((x - direct_sol)' * A * (x - direct_sol))
-            # @show error
-            append!(errors,sol_error)
-        end
-        if sqrt(rs) < abstol
-            break
-        end
-        z = Two_level_multigrid(A,r;nu=nu,NUM_V_CYCLES=1)[1]
-        # z = M*r
-        rznew = r'*z
-        beta = rznew/(rzold);
-        p = z + beta * p;
-        rzold = rznew
-    end
-    return num_iter_steps, norms, errors
-end
 
 
 function test_preconditioned_CG(;level=6)
@@ -229,17 +94,33 @@ end
 
 
 
-function test_direct_solve(;level=6)
+function test_direct_solve(;level=6,SBPp=SBPp)
     metrics= get_metrics(level)
+    (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics)
+    direct_sol = A\b
+    x_coord = metrics.coord[1]
+    y_coord = metrics.coord[2]
+    analy_sol = vex(x_coord,y_coord,e)[:]
+    numerical_error = sqrt((direct_sol - analy_sol)' * H_tilde * (direct_sol - analy_sol))
+    return numerical_error
+end
 
+function test_direct_convergence()
+    numerical_errors = []
+    for level in 4:8
+        direct_error = test_direct_solve(level=level)
+        append!(numerical_errors,direct_error)
+    end
+    @show numerical_errors
+    @show log.(2,numerical_errors)
 end
 
 
-direct_sol = M.F[e] \ ge
+# direct_sol = M.F[e] \ ge
 
-iterative_sol = cg(lop[e].M̃,ge)
+# iterative_sol = cg(lop[e].M̃,ge)
 
-direct_sol_reshaped = reshape(direct_sol,Nrp,Nsp)
+# direct_sol_reshaped = reshape(direct_sol,Nrp,Nsp)
 
 # xseries = x_coord[:,1]
 # yseries = y_coord[1,:]
@@ -247,9 +128,7 @@ direct_sol_reshaped = reshape(direct_sol,Nrp,Nsp)
 
 # plot(xseries,yseries,direct_sol_reshaped,st=:surface,camera=(45,45))
 
-x_coord = metrics.coord[1]
-y_coord = metrics.coord[2]
-analy_sol = vex(x_coord,y_coord,e)[:]
-numerical_error = sqrt((direct_sol - analy_sol)' * lop[e].JH * (direct_sol - analy_sol))
-numerical_error_cg = sqrt((iterative_sol - analy_sol)' * lop[e].JH * (iterative_sol - analy_sol))
-append!(errors,numerical_error)
+
+# numerical_error = sqrt((direct_sol - analy_sol)' * H_tilde * (direct_sol - analy_sol))
+# numerical_error_cg = sqrt((iterative_sol - analy_sol)' * H_tilde* (iterative_sol - analy_sol))
+# append!(errors,numerical_error)
