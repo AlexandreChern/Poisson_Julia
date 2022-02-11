@@ -40,9 +40,9 @@ function get_metrics(level;SBPp=SBPp,bc_map=bc_map,xt=xt,yt=yt)
     return metrics
 end
 
-function create_A_b(level;metrics=[])
+function create_A_b(level;metrics=[],SBPp=SBPp)
     if length(metrics) == 0
-        metrics= get_metrics(level)
+        metrics= get_metrics(level,SBPp=SBPp)
     end
     (Nr,Ns) = size(metrics.coord[1]) .- 1
     Nrp = Nr + 1
@@ -95,7 +95,7 @@ end
 
 
 function test_direct_solve(;level=6,SBPp=SBPp)
-    metrics= get_metrics(level)
+    metrics= get_metrics(level,SBPp=SBPp)
     (A,b,H_tilde,Nx,Ny) = create_A_b(level,metrics=metrics)
     direct_sol = A\b
     x_coord = metrics.coord[1]
@@ -105,30 +105,25 @@ function test_direct_solve(;level=6,SBPp=SBPp)
     return numerical_error
 end
 
-function test_direct_convergence()
+function test_direct_convergence(;SBPp=SBPp)
     numerical_errors = []
-    for level in 4:8
-        direct_error = test_direct_solve(level=level)
+    for i in 4:8
+        direct_error = test_direct_solve(level=i,SBPp=SBPp)
         append!(numerical_errors,direct_error)
     end
-    @show numerical_errors
+    # @show numerical_errors
     @show log.(2,numerical_errors)
 end
 
 
-# direct_sol = M.F[e] \ ge
 
-# iterative_sol = cg(lop[e].M̃,ge)
-
-# direct_sol_reshaped = reshape(direct_sol,Nrp,Nsp)
-
-# xseries = x_coord[:,1]
-# yseries = y_coord[1,:]
-# plot(xseries,yseries,direct_sol_reshaped,st=:surface)
-
-# plot(xseries,yseries,direct_sol_reshaped,st=:surface,camera=(45,45))
+SBPp = 2
+test_direct_convergence(SBPp=SBPp)
+    
+SBPp = 4
+test_direct_convergence(SBPp=SBPp)
+    
+SBPp = 6
+test_direct_convergence(SBPp=SBPp)
 
 
-# numerical_error = sqrt((direct_sol - analy_sol)' * H_tilde * (direct_sol - analy_sol))
-# numerical_error_cg = sqrt((iterative_sol - analy_sol)' * H_tilde* (iterative_sol - analy_sol))
-# append!(errors,numerical_error)
