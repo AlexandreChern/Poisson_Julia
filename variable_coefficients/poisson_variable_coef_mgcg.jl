@@ -101,6 +101,7 @@ function test_direct_solve(;level=6,SBPp=SBPp)
     direct_sol = A\b
     x_coord = metrics.coord[1]
     y_coord = metrics.coord[2]
+    e = 1
     analy_sol = vex(x_coord,y_coord,e)[:]
     numerical_error = sqrt((direct_sol - analy_sol)' * H_tilde * (direct_sol - analy_sol))
     return numerical_error
