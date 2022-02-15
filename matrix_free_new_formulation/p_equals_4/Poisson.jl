@@ -36,7 +36,7 @@ end
 h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
 h_list_y = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
 
-function Operators_2d(i, j, h_list_x, h_list_y; SBPp=2)
+function Operators_2d(i, j, h_list_x, h_list_y; SBPp=4)
     hx = h_list_x[i];
     hy = h_list_y[j];
 
@@ -123,7 +123,7 @@ function Assembling_matrix(level)
     Nx = N_x + 1;
     Ny = N_y + 1;
 
-    (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j,h_list_x,h_list_y);
+    (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j,h_list_x,h_list_y;SBPp=4);
     analy_sol = u(x,y');
 
     # Penalty Parameters
@@ -163,8 +163,8 @@ function Assembling_matrix(level)
 
     b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N;
 
-    A = H_tilde*A;
-    b = H_tilde*b;
+    A = -H_tilde*A;
+    b = -H_tilde*b;
 
     return (A,b,H_tilde,Nx,Ny)
 end
