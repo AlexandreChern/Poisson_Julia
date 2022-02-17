@@ -151,5 +151,8 @@ function matrix_free_N(idata,odata,Nx,Ny,hx,hy)
     odata[1,1] = - (bd[1,1] * idata[1,1] + bd[1,2] * idata[1,2] + bd[1,3]*idata[1,3] + bd[1,4]*idata[1,4] + bd[1,5]*idata[1,5]
             +    bd[1,1] * idata[1,1] + bd[1,2] * idata[2,1] + bd[1,3]*idata[3,1] + bd[1,4]*idata[4,1] + bd[1,5]*idata[5,1]) / (bhinv[1]*bhinv[1]) # - H_tilde * D2
     
+    odata[1,2] = - ( bd[2,1] * idata[1,1] + bd[2,2] * idata[1,2] + bd[2,3]*idata[1,3] + bd[2,4]*idata[1,4] + bd[2,5]*idata[1,5] # row-wise bd-index is column index
+            +     bd[1,1] * idata[1,2] + bd[1,2] * idata[2,2] + bd[1,3]*idata[3,2] + bd[1,4]*idata[4,2] + bd[1,5]*idata[5,2] # column-wise bd-index is row index
+    ) / (bhinv[1] * bhinv[2])
     nothing
 end
