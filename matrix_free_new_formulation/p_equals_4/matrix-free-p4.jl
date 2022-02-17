@@ -112,9 +112,10 @@ function matrix_free_D2_p4_GPU_kernel_v2(idata,odata,coeff_d,Nx,Ny,hx,hy,::Val{T
     end
 
     if 5 <= i <= Nx-4 && 5 <= j <= Ny - 4
-        odata[i,j] = (-1/12 * idata[i,j-2] + 4/3 * idata[i,j-1] + -5/2 * idata[i,j] + 4/3 * idata[i,j+1] + -1/12 * idata[i,j+2]
-        + -1/12 * 4/3 + coeff_d[2] * idata[i-1,j] + -5/2 * idata[i,j] + 4/3 * idata[i+1,j] + -1/12 * idata[i+2,j]
+        odata[i,j] = -(-1/12 * idata[i,j-2] + 4/3 * idata[i,j-1] + -5/2 * idata[i,j] + 4/3 * idata[i,j+1] + -1/12 * idata[i,j+2]
+        + -1/12 * idata[i-2,j] + 4/3 * idata[i-1,j] + -5/2 * idata[i,j] + 4/3 * idata[i+1,j] + -1/12 * idata[i+2,j]
     ) # removing calculation of division by hx^2
+    # output -H_tilde * D2
     end
     nothing
 end
@@ -127,7 +128,7 @@ function matrix_free_D2_p4_GPU(idata,odata)
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
     coeff_d = CuArray([-1/12 4/3 -5/2 4/3 -1/12])
-    @cuda threads=blockdim blocks=griddim matrix_free_D2_p4_GPU_kernel_v2(idata,odata,coeff_d,Nx,Ny,hx,hy,Val(TILE_DIM_1),Val(TILE_DIM_2))
+    @cuda threads=blockdim blocks=griddim matrix_free_D2_p4_GPU_kernel_v2(idata,odata,coeff_d,Nx,Ny,hx,hy,Val(TILE_DIM_1),Val(TILE_DIM_2)) # kernel_v2 for - H_tilde * D2
     nothing
 end
 
@@ -147,6 +148,8 @@ function matrix_free_N(idata,odata,Nx,Ny,hx,hy)
     BS = [11/6 -3 3/2 -1/3];
 
     # D2 calculation first
+    odata[1,1] = - (bd[1,1] * idata[1,1] + bd[1,2] * idata[1,2] + bd[1,3]*idata[1,3] + bd[1,4]*idata[1,4] + bd[1,5]*idata[1,5]
+            +    bd[1,1] * idata[1,1] + bd[1,2] * idata[2,1] + bd[1,3]*idata[3,1] + bd[1,4]*idata[4,1] + bd[1,5]*idata[5,1]) / (bhinv[1]*bhinv[1]) # - H_tilde * D2
     
     nothing
 end
