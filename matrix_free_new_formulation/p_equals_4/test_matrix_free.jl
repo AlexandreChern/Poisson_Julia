@@ -32,7 +32,7 @@ matrix_free_D2_p4_split(idata,odata,Nx,Ny,hx,hy)
 odata_spmv = D2 * idata_flat
 odata_spmv_reshaped = reshape(odata_spmv,Nx,Ny)
 
-H_D2 = reshape(H_tilde*(D2*idata_flat),Nx,Ny)
+H_D2 = reshape(-H_tilde*(D2*idata_flat),Nx,Ny)
 
 H_tilde_diag = diag(H_tilde)
 
