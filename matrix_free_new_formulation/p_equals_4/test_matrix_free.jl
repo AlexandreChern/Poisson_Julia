@@ -3,7 +3,7 @@ include("matrix-free-p4.jl")
 
 
 
-level = 4
+level = 10
 i = j = level
 
 h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
@@ -31,3 +31,35 @@ idata_flat = idata[:]
 matrix_free_D2_p4_split(idata,odata,Nx,Ny,hx,hy)
 odata_spmv = D2 * idata_flat
 odata_spmv_reshaped = reshape(odata_spmv,Nx,Ny)
+
+
+idata_GPU = CuArray(idata)
+odata_GPU = CuArray(zeros(Nx,Ny))
+
+D2_matrix_free_p2(idata_GPU,odata_GPU)
+
+
+repetitions = 10000
+time_D2 = @elapsed for _ in 1:repetitions
+    odata_GPU .= 0
+    D2_matrix_free_p2(idata_GPU,odata_GPU)
+end
+
+through_put = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2)
+
+
+
+# time_D2_SPMV = @elapsed for _ in 1:repetitions
+#    D2*idata_flat
+# end
+
+matrix_free_D2_p4_GPU(idata_GPU,odata_GPU)
+
+reshape(D2*idata_flat,Nx,Ny)
+
+time_D2_p4 = @elapsed for _ in 1:repetitions
+    odata_GPU .= 0
+    matrix_free_D2_p4_GPU(idata_GPU,odata_GPU)
+end
+
+through_put = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p4)
