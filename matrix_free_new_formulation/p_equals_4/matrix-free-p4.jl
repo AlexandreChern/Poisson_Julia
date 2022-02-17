@@ -82,6 +82,20 @@ end
 
 
 function matrix_free_N(idata,odata,Nx,Ny,hx,hy)
+    ## D2 in 1D
+    # SBP coefficients
+    bhinv = [48/17 48/59 48/43 48/49];
+
+    d  = [-1/12 4/3 -5/2 4/3 -1/12];
+    
+    bd = [ 2    -5       4     -1       0      0;
+           1    -2       1      0       0      0;
+          -4/43 59/43 -110/43  59/43   -4/43   0;
+          -1/49  0      59/49 -118/49  64/49  -4/49];
+
+    BS = [11/6 -3 3/2 -1/3];
+
+    # D2 calculation first
     
     nothing
 end
