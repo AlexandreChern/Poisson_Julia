@@ -175,7 +175,13 @@ function matrix_free_N(idata,odata,Nx,Ny,hx,hy)
         end
     end
    
-    
+    for i in 1:4
+        for j in 5:Ny-4
+            odata[i,j] = - (d[1] * idata[i,j-2] + d[2] * idata[i,j-1] + d[3]*idata[i,j] + d[4]*idata[i,j+1] + d[5]*idata[i,j+2]
+            + bd[i,1] * idata[1,j] + bd[i,2] * idata[2,j] + bd[i,3] * idata[3,j] + bd[i,4]*idata[4,j] + bd[i,5]*idata[5,j] + bd[i,6] * idata[6,j]) /  (bhinv[i]) # calculation for the left upper corner
+        end
+    end
+
 
     nothing
 end

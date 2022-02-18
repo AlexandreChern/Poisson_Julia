@@ -3,7 +3,7 @@ include("matrix-free-p4.jl")
 include("matrix-free-p2.jl")
 
 
-level = 10
+level = 4
 i = j = level
 
 h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
