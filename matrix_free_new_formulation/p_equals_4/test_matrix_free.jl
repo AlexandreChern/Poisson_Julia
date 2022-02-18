@@ -3,7 +3,7 @@ include("matrix-free-p4.jl")
 include("matrix-free-p2.jl")
 
 
-level = 11
+level = 13
 i = j = level
 
 h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
@@ -68,7 +68,7 @@ matrix_free_N(idata,odata,Nx,Ny,hx,hy)
 
 ## Performance benchmarking
 
-repetitions = 100
+repetitions = 1000
 # time_D2 = @elapsed for _ in 1:repetitions
 #     odata_GPU .= 0
 #     D2_matrix_free_p2(idata_GPU,odata_GPU)
@@ -87,12 +87,12 @@ matrix_free_D2_p4_GPU(idata_GPU,odata_GPU)
 reshape(D2*idata_flat,Nx,Ny)
 
 time_D2_p4 = @elapsed for _ in 1:repetitions
-    odata_GPU .= 0
+    # odata_GPU .= 0
     matrix_free_D2_p4_GPU(idata_GPU,odata_GPU)
 end
 
 time_D2_p2 = @elapsed for _ in 1:repetitions
-    odata_GPU .= 0
+    # odata_GPU .= 0
     D2_matrix_free_p2(idata_GPU,odata_GPU)
 end
 
