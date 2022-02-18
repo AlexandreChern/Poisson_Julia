@@ -174,9 +174,8 @@ function matrix_free_N(idata,odata,Nx,Ny,hx,hy)
         + bd[i,1] * idata[1,end+1-j] + bd[i,2] * idata[2,end+1-j] + bd[i,3] * idata[3,end+1-j] + bd[i,4]*idata[4,end+1-j] + bd[i,5]*idata[5,end+1-j] + bd[i,6] * idata[6,end+1-j]) / (bhinv[i]*bhinv[j]) # calculation for the left upper corner
         end
     end
-    # i = j = 1
-    # odata[i,end+1-j] = - (bd[j,1] * idata[i,end] + bd[j,2] * idata[i,end-1] + bd[j,3]*idata[i,end-2] + bd[j,4]*idata[i,end-3] + bd[j,5]*idata[i,end-4] + bd[j,6] * idata[i,end-5]
-    #     + bd[i,1] * idata[1,end+1-j] + bd[i,2] * idata[2,end+1-j] + bd[i,3] * idata[3,end+1-j] + bd[i,4]*idata[4,end+1-j] + bd[i,5]*idata[5,end+1-j] + bd[i,6] * idata[6,end+1-j]) / hx^2# / (bhinv[i]*bhinv[end+1-j])
+   
+    
 
     nothing
 end
