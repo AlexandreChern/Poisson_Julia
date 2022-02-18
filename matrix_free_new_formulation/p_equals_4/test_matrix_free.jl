@@ -100,3 +100,7 @@ end
 through_put_SPMV = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_SPMV)
 through_put_matrix_free_p4 = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p4)
 through_put_matrix_free_p2 = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p2)
+
+@show through_put_SPMV
+@show through_put_matrix_free_p4
+@show through_put_matrix_free_p2
