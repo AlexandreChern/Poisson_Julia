@@ -148,11 +148,36 @@ function matrix_free_N(idata,odata,Nx,Ny,hx,hy)
     BS = [11/6 -3 3/2 -1/3];
 
     # D2 calculation first
-    odata[1,1] = - (bd[1,1] * idata[1,1] + bd[1,2] * idata[1,2] + bd[1,3]*idata[1,3] + bd[1,4]*idata[1,4] + bd[1,5]*idata[1,5]
-            +    bd[1,1] * idata[1,1] + bd[1,2] * idata[2,1] + bd[1,3]*idata[3,1] + bd[1,4]*idata[4,1] + bd[1,5]*idata[5,1]) / (bhinv[1]*bhinv[1]) # - H_tilde * D2
+    # odata[1,1] = - (bd[1,1] * idata[1,1] + bd[1,2] * idata[1,2] + bd[1,3]*idata[1,3] + bd[1,4]*idata[1,4] + bd[1,5]*idata[1,5]
+    #         +    bd[1,1] * idata[1,1] + bd[1,2] * idata[2,1] + bd[1,3]*idata[3,1] + bd[1,4]*idata[4,1] + bd[1,5]*idata[5,1]) / (bhinv[1]*bhinv[1]) # - H_tilde * D2
     
-    odata[1,2] = - ( bd[2,1] * idata[1,1] + bd[2,2] * idata[1,2] + bd[2,3]*idata[1,3] + bd[2,4]*idata[1,4] + bd[2,5]*idata[1,5] # row-wise bd-index is column index
-            +     bd[1,1] * idata[1,2] + bd[1,2] * idata[2,2] + bd[1,3]*idata[3,2] + bd[1,4]*idata[4,2] + bd[1,5]*idata[5,2] # column-wise bd-index is row index
-    ) / (bhinv[1] * bhinv[2])
+    # odata[1,2] = - ( bd[2,1] * idata[1,1] + bd[2,2] * idata[1,2] + bd[2,3]*idata[1,3] + bd[2,4]*idata[1,4] + bd[2,5]*idata[1,5] # row-wise bd-index is column index
+    #         +     bd[1,1] * idata[1,2] + bd[1,2] * idata[2,2] + bd[1,3]*idata[3,2] + bd[1,4]*idata[4,2] + bd[1,5]*idata[5,2] # column-wise bd-index is row index
+    # ) / (bhinv[1] * bhinv[2])
+
+
+    # for j in 1:4
+    #     odata[1,j] = - (bd[j,1] * idata[1,1] + bd[j,2] * idata[1,2] + bd[j,3]*idata[1,3] + bd[j,4]*idata[1,4] + bd[j,5]*idata[1,5] + bd[j,6] * idata[1,6]
+    #     + bd[1,1] * idata[1,j] + bd[1,2] * idata[2,j] + bd[1,3] * idata[3,j] + bd[1,4]*idata[4,j] + bd[1,5]*idata[5,j] + bd[1,6] * idata[6,j]) / (bhinv[1]*bhinv[j])
+    # end
+
+    for i in 1:4
+        for j in 1:4
+                odata[i,j] = - (bd[j,1] * idata[i,1] + bd[j,2] * idata[i,2] + bd[j,3]*idata[i,3] + bd[j,4]*idata[i,4] + bd[j,5]*idata[i,5] + bd[j,6] * idata[i,6]
+        + bd[i,1] * idata[1,j] + bd[i,2] * idata[2,j] + bd[i,3] * idata[3,j] + bd[i,4]*idata[4,j] + bd[i,5]*idata[5,j] + bd[i,6] * idata[6,j]) / (bhinv[i]*bhinv[j]) # calculation for the left upper corner
+        end
+    end
+
+    for i in 1:4
+        for j in 1:4
+                odata[i,end+1-j] = - (bd[j,1] * idata[i,end] + bd[j,2] * idata[i,end-1] + bd[j,3]*idata[i,end-2] + bd[j,4]*idata[i,end-3] + bd[j,5]*idata[i,end-4] + bd[j,6] * idata[i,end-5]
+        + bd[i,1] * idata[1,end+1-j] + bd[i,2] * idata[2,end+1-j] + bd[i,3] * idata[3,end+1-j] + bd[i,4]*idata[4,end+1-j] + bd[i,5]*idata[5,end+1-j] + bd[i,6] * idata[6,end+1-j]) / (bhinv[i]*bhinv[j]) # calculation for the left upper corner
+        end
+    end
+    # i = j = 1
+    # odata[i,end+1-j] = - (bd[j,1] * idata[i,end] + bd[j,2] * idata[i,end-1] + bd[j,3]*idata[i,end-2] + bd[j,4]*idata[i,end-3] + bd[j,5]*idata[i,end-4] + bd[j,6] * idata[i,end-5]
+    #     + bd[i,1] * idata[1,end+1-j] + bd[i,2] * idata[2,end+1-j] + bd[i,3] * idata[3,end+1-j] + bd[i,4]*idata[4,end+1-j] + bd[i,5]*idata[5,end+1-j] + bd[i,6] * idata[6,end+1-j]) / hx^2# / (bhinv[i]*bhinv[end+1-j])
+
     nothing
 end
+|
