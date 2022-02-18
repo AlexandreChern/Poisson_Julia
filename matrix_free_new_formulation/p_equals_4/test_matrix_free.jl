@@ -68,7 +68,7 @@ matrix_free_N(idata,odata,Nx,Ny,hx,hy)
 
 ## Performance benchmarking
 
-repetitions = 1000
+repetitions = 100
 # time_D2 = @elapsed for _ in 1:repetitions
 #     odata_GPU .= 0
 #     D2_matrix_free_p2(idata_GPU,odata_GPU)
