@@ -133,7 +133,7 @@ function matrix_free_D2_p4_GPU(idata,odata)
 end
 
 
-function matrix_free_N(idata,odata,Nx,Ny,hx,hy)
+function matrix_free_N(idata,odata,Nx,Ny,hx,hy;beta=1)
     ## D2 in 1D
     # SBP coefficients
     bhinv = [48/17 48/59 48/43 48/49];
@@ -173,8 +173,11 @@ function matrix_free_N(idata,odata,Nx,Ny,hx,hy)
     
     # Boundary terms
     for i in 1:4
-        for j in 1:4
+        for j in 1:1
             odata[i,j] = -(-13*idata[i,j]/bhinv[i])  # only -H_tilde * tau_W*HI_x*E_W
+        end
+        for j in 1:4
+            odata[i,j] += -(beta*BS[j]/bhinv[i] * idata[i,1]) # only -H_tilde * beta*HI_x*BS_x'*E_W
         end
     end
 
