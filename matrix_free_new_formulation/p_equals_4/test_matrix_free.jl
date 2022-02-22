@@ -45,15 +45,52 @@ D2_matrix_free_p2(idata_GPU,odata_GPU)
 
 matrix_free_N(idata,odata,Nx,Ny,hx,hy)
 
+odata_N_D2 = zeros(Nx,Ny)
+matrix_free_N_D2(idata,odata_N_D2,Nx,Ny,hx,hy)
 
+odata_S_D2 = zeros(Nx,Ny)
+matrix_free_S_D2(idata,odata_S_D2,Nx,Ny,hx,hy)
+
+odata_W_D2 = zeros(Nx,Ny)
+matrix_free_W_D2(idata,odata_W_D2,Nx,Ny,hx,hy)
+
+odata_E_D2 = zeros(Nx,Ny)
+matrix_free_E_D2(idata,odata_E_D2,Nx,Ny,hx,hy)
+
+H_D2 - odata_N_D2 - odata_S_D2 - odata_W_D2 - odata_E_D2
+
+
+
+odata_N_P = zeros(Nx,Ny)
+matrix_free_N_P(idata,odata_N_P,Nx,Ny,hx,hy)
 
 reshape(-H_tilde*SAT_S*idata_flat,Nx,Ny)
 
 
 
+odata_S_P = zeros(Nx,Ny)
+matrix_free_S_P(idata,odata_S_P,Nx,Ny,hx,hy)
+reshape(-H_tilde*SAT_N*idata_flat,Nx,Ny)
+
+
+odata_W_P = zeros(Nx,Ny)
+matrix_free_W_P(idata,odata_W_P,Nx,Ny,hx,hy)
+reshape(-H_tilde*SAT_W*idata_flat,Nx,Ny)
+
+
+odata_E_P = zeros(Nx,Ny)
+matrix_free_E_P(idata,odata_E_P,Nx,Ny,hx,hy)
+reshape(-H_tilde*SAT_E*idata_flat,Nx,Ny)
+
 
 odata_pseudo = zeros(Nx,Ny)
 matrix_free_N_pseudo(idata,odata_pseudo,Nx,Ny,hx,hy)
+
+
+
+
+
+
 
 reshape(-H_tilde*(D2+SAT_W+SAT_E)*idata_flat,Nx,Ny)
 reshape(-H_tilde*(D2+SAT_W+SAT_E+SAT_S)*idata_flat,Nx,Ny)

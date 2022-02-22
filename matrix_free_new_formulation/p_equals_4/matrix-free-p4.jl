@@ -292,7 +292,7 @@ function matrix_free_N_D2(idata,odata,Nx,Ny,hx,hy)
     end
    
     for i in 1:4
-        for j in 5:Ny-4
+        for j in 5:Nx-4
             odata[i,j] = - (d[1] * idata[i,j-2] + d[2] * idata[i,j-1] + d[3]*idata[i,j] + d[4]*idata[i,j+1] + d[5]*idata[i,j+2]
             + bd[i,1] * idata[1,j] + bd[i,2] * idata[2,j] + bd[i,3] * idata[3,j] + bd[i,4]*idata[4,j] + bd[i,5]*idata[5,j] + bd[i,6] * idata[6,j]) /  (bhinv[i]) # calculation for the left upper corner
         end
@@ -330,7 +330,7 @@ function matrix_free_S_D2(idata,odata,Nx,Ny,hx,hy)
     end
    
     for i in 1:4
-        for j in 5:Ny-4
+        for j in 5:Nx-4
             odata[end+1-i,j] = - (d[1] * idata[end+1-i,j-2] + d[2] * idata[end+1-i,j-1] + d[3]*idata[end+1-i,j] + d[4]*idata[end+1-i,j+1] + d[5]*idata[end+1-i,j+2]
             + bd[i,1] * idata[end,j] + bd[i,2] * idata[end-1,j] + bd[i,3] * idata[end-2,j] + bd[i,4]*idata[end-3,j] + bd[i,5]*idata[end-4,j] + bd[i,6] * idata[end-5,j]) /  (bhinv[i]) # calculation for the left upper corner
         end
@@ -339,8 +339,51 @@ function matrix_free_S_D2(idata,odata,Nx,Ny,hx,hy)
     nothing
 end
 
+function matrix_free_W_D2(idata,odata,Nx,Ny,hx,hy)
+    tau_N = tau_S = -1;
 
-function matrix_free_N_SAT_N(idata,odata)
+    bhinv = [48/17 48/59 48/43 48/49];
+
+    d  = [-1/12 4/3 -5/2 4/3 -1/12];
+    
+    bd = [ 2    -5       4     -1       0      0;
+           1    -2       1      0       0      0;
+          -4/43 59/43 -110/43  59/43   -4/43   0;
+          -1/49  0      59/49 -118/49  64/49  -4/49];
+
+    BS = [11/6 -3 3/2 -1/3];
+
+    for i in 5:Ny-4
+        for j in 1:4
+            odata[i,j] = - (d[1]*idata[i-2,j] + d[2] * idata[i-1,j] + d[3] * idata[i,j] + d[4] * idata[i+1,j] + d[5]*idata[i+2,j]
+                + bd[j,1]*idata[i,1] + bd[j,2]*idata[i,2] + bd[j,3] * idata[i,3] + bd[j,4]*idata[i,4] + bd[j,5]*idata[i,5] + bd[j,6]*idata[i,6]) / bhinv[j]
+        end
+    end
+end
+
+function matrix_free_E_D2(idata,odata,Nx,Ny,hx,hy)
+    tau_N = tau_S = -1;
+
+    bhinv = [48/17 48/59 48/43 48/49];
+
+    d  = [-1/12 4/3 -5/2 4/3 -1/12];
+    
+    bd = [ 2    -5       4     -1       0      0;
+           1    -2       1      0       0      0;
+          -4/43 59/43 -110/43  59/43   -4/43   0;
+          -1/49  0      59/49 -118/49  64/49  -4/49];
+
+    BS = [11/6 -3 3/2 -1/3];
+
+    for i in 5:Ny-4
+        for j in 1:4
+            odata[i,end+1-j] = - (d[1]*idata[i-2,end+1-j] + d[2] * idata[i-1,end+1-j] + d[3] * idata[i,end+1-j] + d[4] * idata[i+1,end+1-j] + d[5]*idata[i+2,end+1-j]
+                + bd[j,1]*idata[i,end] + bd[j,2]*idata[i,end-1] + bd[j,3] * idata[i,end-2] + bd[j,4]*idata[i,end-3] + bd[j,5]*idata[i,end-4] + bd[j,6]*idata[i,end-5]) / bhinv[j]
+        end
+    end
+end
+
+function matrix_free_N_P(idata,odata,Nx,Ny,hx,hy)
     tau_N = tau_S = -1;
 
     bhinv = [48/17 48/59 48/43 48/49];
@@ -359,7 +402,7 @@ function matrix_free_N_SAT_N(idata,odata)
             odata[1,j] += -(tau_N*BS[i]/bhinv[j] * idata[i,j]) # tau_N*HI_y*E_N*BS_y
             odata[1,end+1-j] += -(tau_N*BS[i]/bhinv[j] * idata[i,end+1-j])
         end
-        for j in 5:Ny-4
+        for j in 5:Nx-4
             odata[1,j] += -(tau_N*BS[i]*idata[i,j])
         end
     end
@@ -367,8 +410,9 @@ function matrix_free_N_SAT_N(idata,odata)
     nothing
 end
 
-function matrix_free_SAT_S(idata,odata)
+function matrix_free_S_P(idata,odata,Nx,Ny,hx,hy)
     tau_N = tau_S = -1;
+    beta = 1;
 
     bhinv = [48/17 48/59 48/43 48/49];
 
@@ -384,10 +428,77 @@ function matrix_free_SAT_S(idata,odata)
     for i in 1:4
         for j in 1:4
             odata[end,j] += -(tau_N*BS[i]/bhinv[j] * idata[end+1-i,j]) # tau_N*HI_y*E_N*BS_y
-            odata[end,end+1-j] += -(tau_N*BS[i]/bhinv[j] * idata[i,end+1-j])
+            odata[end,end+1-j] += -(tau_N*BS[i]/bhinv[j] * idata[end+1-i,end+1-j])
         end
         for j in 5:Ny-4
             odata[end,j] += -(tau_N*BS[i]*idata[end+1-i,j])
         end
     end
+end
+
+
+function matrix_free_W_P(idata,odata,Nx,Ny,hx,hy)
+    tau_N = tau_S = -1;
+    beta = 1
+
+    bhinv = [48/17 48/59 48/43 48/49];
+
+    d  = [-1/12 4/3 -5/2 4/3 -1/12];
+    
+    bd = [ 2    -5       4     -1       0      0;
+           1    -2       1      0       0      0;
+          -4/43 59/43 -110/43  59/43   -4/43   0;
+          -1/49  0      59/49 -118/49  64/49  -4/49];
+
+    BS = [11/6 -3 3/2 -1/3];
+
+    for i in 1:4
+        odata[i,1] = -(-13*idata[i,1]/bhinv[i])
+        odata[end+1-i,1] = -(-13*idata[end+1-i,1]/bhinv[i])
+        for j = 1:4
+            odata[i,j] += -(beta*BS[j]/bhinv[i] * idata[i,1])
+            odata[end+1-i,j] += -(beta*BS[j]/bhinv[i] * idata[end+1-i,1])
+        end
+    end
+
+    for i in 5:Ny-4
+        odata[i,1] = -(-13*idata[i,1])
+        for j in 1:4
+            odata[i,j] += -(beta*BS[j] * idata[i,1])
+        end
+    end
+    nothing
+end
+
+function matrix_free_E_P(idata,odata,Nx,Ny,hx,hy)
+    tau_N = tau_S = -1;
+    beta = 1
+
+    bhinv = [48/17 48/59 48/43 48/49];
+
+    d  = [-1/12 4/3 -5/2 4/3 -1/12];
+    
+    bd = [ 2    -5       4     -1       0      0;
+           1    -2       1      0       0      0;
+          -4/43 59/43 -110/43  59/43   -4/43   0;
+          -1/49  0      59/49 -118/49  64/49  -4/49];
+
+    BS = [11/6 -3 3/2 -1/3];
+
+    for i in 1:4
+        odata[i,end] = -(-13*idata[i,end]/bhinv[i])
+        odata[end+1-i,end] = -(-13*idata[end+1-i,end]/bhinv[i])
+        for j = 1:4
+            odata[i,end+1-j] += -(beta*BS[j]/bhinv[i] * idata[i,end])
+            odata[end+1-i,end+1-j] += -(beta*BS[j]/bhinv[i] * idata[end+1-i,end])
+        end
+    end
+
+    for i in 5:Ny-4
+        odata[i,end] = -(-13*idata[i,end])
+        for j in 1:4
+            odata[i,end+1-j] += -(beta*BS[j] * idata[i,end])
+        end
+    end
+    nothing
 end
