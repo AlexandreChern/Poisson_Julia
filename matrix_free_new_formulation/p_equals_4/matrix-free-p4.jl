@@ -175,7 +175,7 @@ function matrix_free_N(idata,odata,Nx,Ny,hx,hy;beta=1)
 
     
     # Boundary terms
-    # SAT_W
+    # SAT_W & SAT_E
     for i in 1:4
         for j in 1:1
             odata[i,j] += -(-13*idata[i,j]/bhinv[i])  # only -H_tilde * tau_W*HI_x*E_W
