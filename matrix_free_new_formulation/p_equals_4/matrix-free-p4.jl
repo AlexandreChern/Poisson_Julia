@@ -301,6 +301,44 @@ function matrix_free_N_D2(idata,odata,Nx,Ny,hx,hy)
     nothing
 end
 
+function matrix_free_S_D2(idata,odata,Nx,Ny,hx,hy)
+    tau_N = tau_S = -1;
+
+    bhinv = [48/17 48/59 48/43 48/49];
+
+    d  = [-1/12 4/3 -5/2 4/3 -1/12];
+    
+    bd = [ 2    -5       4     -1       0      0;
+           1    -2       1      0       0      0;
+          -4/43 59/43 -110/43  59/43   -4/43   0;
+          -1/49  0      59/49 -118/49  64/49  -4/49];
+
+    BS = [11/6 -3 3/2 -1/3];
+
+    for i in 1:4
+        for j in 1:4
+                odata[end+1-i,j] = - (bd[j,1] * idata[end+1-i,1] + bd[j,2] * idata[end+1-i,2] + bd[j,3]*idata[end+1-i,3] + bd[j,4]*idata[end+1-i,4] + bd[j,5]*idata[end+1-i,5] + bd[j,6] * idata[end+1-i,6]
+        + bd[i,1] * idata[end,j] + bd[i,2] * idata[end-1,j] + bd[i,3] * idata[end-2,j] + bd[i,4]*idata[end-3,j] + bd[i,5]*idata[end-4,j] + bd[i,6] * idata[end-5,j]) / (bhinv[i]*bhinv[j]) # calculation for the left upper corner
+        end
+    end
+
+    for i in 1:4
+        for j in 1:4
+                odata[end+1-i,end+1-j] = - (bd[j,1] * idata[end+1-i,end] + bd[j,2] * idata[end+1-i,end-1] + bd[j,3]*idata[end+1-i,end-2] + bd[j,4]*idata[end+1-i,end-3] + bd[j,5]*idata[end+1-i,end-4] + bd[j,6] * idata[end+1-i,end-5]
+        + bd[i,1] * idata[end,end+1-j] + bd[i,2] * idata[end-1,end+1-j] + bd[i,3] * idata[end-2,end+1-j] + bd[i,4]*idata[end-3,end+1-j] + bd[i,5]*idata[end-4,end+1-j] + bd[i,6] * idata[end-5,end+1-j]) / (bhinv[i]*bhinv[j]) # calculation for the left upper corner
+        end
+    end
+   
+    for i in 1:4
+        for j in 5:Ny-4
+            odata[end+1-i,j] = - (d[1] * idata[end+1-i,j-2] + d[2] * idata[end+1-i,j-1] + d[3]*idata[end+1-i,j] + d[4]*idata[end+1-i,j+1] + d[5]*idata[end+1-i,j+2]
+            + bd[i,1] * idata[end,j] + bd[i,2] * idata[end-1,j] + bd[i,3] * idata[end-2,j] + bd[i,4]*idata[end-3,j] + bd[i,5]*idata[end-4,j] + bd[i,6] * idata[end-5,j]) /  (bhinv[i]) # calculation for the left upper corner
+        end
+    end
+
+    nothing
+end
+
 
 function matrix_free_N_SAT_N(idata,odata)
     tau_N = tau_S = -1;
