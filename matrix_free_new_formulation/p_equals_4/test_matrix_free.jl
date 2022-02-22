@@ -33,6 +33,7 @@ odata_spmv = D2 * idata_flat
 odata_spmv_reshaped = reshape(odata_spmv,Nx,Ny)
 
 H_D2 = reshape(-H_tilde*(D2*idata_flat),Nx,Ny)
+H_A = reshape(-H_tilde*(A*idata_flat),Nx,Ny)
 
 H_tilde_diag = diag(H_tilde)
 
@@ -46,13 +47,16 @@ matrix_free_N(idata,odata,Nx,Ny,hx,hy)
 
 
 
+reshape(-H_tilde*SAT_S*idata_flat,Nx,Ny)
 
 
 
 
+odata_pseudo = zeros(Nx,Ny)
+matrix_free_N_pseudo(idata,odata_pseudo,Nx,Ny,hx,hy)
 
-
-
+reshape(-H_tilde*(D2+SAT_W+SAT_E)*idata_flat,Nx,Ny)
+reshape(-H_tilde*(D2+SAT_W+SAT_E+SAT_S)*idata_flat,Nx,Ny)
 
 
 
