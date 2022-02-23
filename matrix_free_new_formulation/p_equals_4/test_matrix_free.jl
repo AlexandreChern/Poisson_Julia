@@ -62,7 +62,7 @@ H_D2 - odata_N_D2 - odata_S_D2 - odata_W_D2 - odata_E_D2
 
 
 odata_GPU_N_D2 = CuArray(zeros(Nx,Ny))
-matrix_free_N_D2(idata_GPU,odata_GPU_N_D2,coef,Nx,Ny,hx,hy)
+matrix_free_N_D2_GPU(idata_GPU,odata_GPU_N_D2,coef,Nx,Ny,hx,hy)
 
 # odata_N_P = zeros(Nx,Ny)
 # matrix_free_N_P(idata,odata_N_P,Nx,Ny,hx,hy)
