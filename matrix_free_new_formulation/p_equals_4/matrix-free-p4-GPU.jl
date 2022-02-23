@@ -1,5 +1,6 @@
 using CUDA
 
+
 function matrix_free_D2_p4_GPU_kernel(idata,odata,coeff_d,Nx,Ny,hx,hy,::Val{TILE_DIM1},::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
     tidx = threadIdx().x
     tidy = threadIdx().y
@@ -49,4 +50,44 @@ function matrix_free_D2_p4_GPU(idata,odata)
     coeff_d = CuArray([-1/12 4/3 -5/2 4/3 -1/12])
     @cuda threads=blockdim blocks=griddim matrix_free_D2_p4_GPU_kernel_v2(idata,odata,coeff_d,Nx,Ny,hx,hy,Val(TILE_DIM_1),Val(TILE_DIM_2)) # kernel_v2 for - H_tilde * D2
     nothing
+end
+
+
+
+struct coef_GPU
+    bhinv::CuArray{Float64, 2, CUDA.Mem.DeviceBuffer}
+    d::CuArray{Float64, 2, CUDA.Mem.DeviceBuffer}
+    bd::CuArray{Float64, 2, CUDA.Mem.DeviceBuffer}
+    BS::CuArray{Float64, 2, CUDA.Mem.DeviceBuffer}
+end
+
+coef = coef_GPU(CuArray([48/17 48/59 48/43 48/49]),
+                CuArray([-1/12 4/3 -5/2 4/3 -1/12]),
+                CuArray([ 2    -5       4     -1       0      0;
+                    1    -2       1      0       0      0;
+                    -4/43 59/43 -110/43  59/43   -4/43   0;
+                    -1/49  0      59/49 -118/49  64/49  -4/49]),
+                CuArray([11/6 -3 3/2 -1/3]))
+
+
+function matrix_free_N_D2_kernel(idata,odata,coef,Nx,Ny,hx,hy,::Val{TILE_DIM1},::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+    if 1 <= i <=4 && 1 <= j <= 4
+        odata[i,j] = coef.bhinv[1] * idata[i,j]
+    end
+    nothing
+end
+
+
+function matrix_free_N_D2(idata,odata,coef,Nx,Ny,hx,hy) 
+    TILE_DIM_1 = 16
+    TILE_DIM_2 = 16
+    griddim = (div(Nx+TILE_DIM_1+1,TILE_DIM_1),div(Ny+TILE_DIM_2-1,TILE_DIM_2))
+    blockdim = (TILE_DIM_1,TILE_DIM_2)
+    @cuda threads=blockdim blocks=griddim matrix_free_N_D2_kernel(idata,odata,coef,Nx,Ny,hx,hy,Val(TILE_DIM_1),Val(TILE_DIM_2))
 end

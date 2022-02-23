@@ -1,6 +1,7 @@
 include("Poisson.jl")
 include("matrix-free-p4.jl")
 include("matrix-free-p2.jl")
+include("matrix-free-p4-GPU.jl")
 
 
 level = 11
@@ -60,11 +61,13 @@ matrix_free_E_D2(idata,odata_E_D2,Nx,Ny,hx,hy)
 H_D2 - odata_N_D2 - odata_S_D2 - odata_W_D2 - odata_E_D2
 
 
+odata_GPU_N_D2 = CuArray(zeros(Nx,Ny))
+matrix_free_N_D2(idata_GPU,odata_GPU_N_D2,coef,Nx,Ny,hx,hy)
 
-odata_N_P = zeros(Nx,Ny)
-matrix_free_N_P(idata,odata_N_P,Nx,Ny,hx,hy)
+# odata_N_P = zeros(Nx,Ny)
+# matrix_free_N_P(idata,odata_N_P,Nx,Ny,hx,hy)
 
-reshape(-H_tilde*SAT_S*idata_flat,Nx,Ny)
+# reshape(-H_tilde*SAT_S*idata_flat,Nx,Ny)
 
 
 
