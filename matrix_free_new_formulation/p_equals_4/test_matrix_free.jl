@@ -4,7 +4,7 @@ include("matrix-free-p2.jl")
 include("matrix-free-p4-GPU.jl")
 
 
-level = 11
+level = 13
 i = j = level
 
 h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
@@ -63,6 +63,19 @@ H_D2 - odata_N_D2 - odata_S_D2 - odata_W_D2 - odata_E_D2
 
 odata_GPU_N_D2 = CuArray(zeros(Nx,Ny))
 matrix_free_N_D2_GPU(idata_GPU,odata_GPU_N_D2,coef_D,Nx,Ny,hx,hy)
+
+
+odata_GPU_N_D2_v2 = CuArray(zeros(Nx,Ny))
+matrix_free_N_D2_GPU_v2(idata_GPU,odata_GPU_N_D2_v2,coef_D,Nx,Ny,hx,hy)
+
+
+t_GPU_N_D2 = @elapsed for _ in 1:10000
+    matrix_free_N_D2_GPU(idata_GPU,odata_GPU_N_D2,coef_D,Nx,Ny,hx,hy)
+end
+
+t_GPU_N_D2_v2 = @elapsed for _ in 1:10000
+    matrix_free_N_D2_GPU(idata_GPU,odata_GPU_N_D2_v2,coef_D,Nx,Ny,hx,hy)
+end
 
 # odata_N_P = zeros(Nx,Ny)
 # matrix_free_N_P(idata,odata_N_P,Nx,Ny,hx,hy)
