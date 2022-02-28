@@ -152,7 +152,7 @@ function matrix_free_N_D2_GPU_1D_kernel(idata,odata,coef_D,Nx,Ny,hx,hy)
     # griddim = (div(Nx+TILE_DIM_1+1,TILE_DIM_1),div(Ny+TILE_DIM_2-1,TILE_DIM_2))
     # blockdim = (TILE_DIM_1,TILE_DIM_2)
 
-    griddim = div(Nx+TILE_DIM_1+1,TILE_DIM_1)
+    griddim = div(Nx+TILE_DIM_1-1,TILE_DIM_1)
     blockdim = TILE_DIM_1
     @cuda threads=blockdim blocks=griddim matrix_free_N_D2_kernel_1D_kernel(idata,odata,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM_1))
 end
@@ -165,6 +165,43 @@ function matrix_free_N_D2_GPU(idata,odata,coef_D,Nx,Ny,hx,hy)
     blockdim = (TILE_DIM_1,TILE_DIM_2)
     @cuda threads=blockdim blocks=griddim matrix_free_N_D2_kernel(idata,odata,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM_1),Val(TILE_DIM_2))
 end
+
+function matrix_free_S_D2_kernel(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}) where {TILE_DIM}
+    tidx = threadIdx().x
+    j = (blockIdx().x - 1) * TILE_DIM + tidx
+
+    if 1 <= j <= 4
+        for i in 1:4
+            @inbounds odata[end+1-i,j] = - (coef_D.bd[j,1] * idata[end+1-i,1] + coef_D.bd[j,2] * idata[end+1-i,2] + coef_D.bd[j,3]*idata[end+1-i,3] + coef_D.bd[j,4]*idata[end+1-i,4] + coef_D.bd[j,5]*idata[end+1-i,5] + coef_D.bd[j,6] * idata[end+1-i,6]
+            + coef_D.bd[i,1] * idata[end,j] + coef_D.bd[i,2] * idata[end-1,j] + coef_D.bd[i,3] * idata[end-2,j] + coef_D.bd[i,4]*idata[end-3,j] + coef_D.bd[i,5]*idata[end-4,j] + coef_D.bd[i,6] * idata[end-5,j]) / (coef_D.bhinv[i]*coef_D.bhinv[j]) # calculation for the left lower corner
+
+            @inbounds odata[end+1-i,end+1-j] = -(coef_D.bd[j,1]*idata[end+1-i,end] + coef_D.bd[j,2]*idata[end+1-i,end-1] + coef_D.bd[j,3]*idata[end+1-i,end-2] + coef_D.bd[j,4]*idata[end+1-i,end-3] + coef_D.bd[j,5]*idata[end+1-i,end-4] + coef_D.bd[j,6]*idata[end+1-i,end-5]
+            + coef_D.bd[i,1] * idata[end,end+1-j] + coef_D.bd[i,2] * idata[end-1,end+1-j] + coef_D.bd[i,3] * idata[end-2,end+1-j] + coef_D.bd[i,4]*idata[end-3,end+1-j] + coef_D.bd[i,5]*idata[end-4,end+1-j] + coef_D.bd[i,6] * idata[end-5,end+1-j]) / (coef_D.bhinv[i]*coef_D.bhinv[j]) # calculation for the right lower corner
+        end
+    end
+
+    if 5 <= j <= Nx-4
+        for i in 1:4
+            @inbounds odata[end+1-i,j] = - (coef_D.d[1] * idata[end+1-i,j-2] + coef_D.d[2] * idata[end+1-i,j-1] + coef_D.d[3]*idata[end+1-i,j] + coef_D.d[4]*idata[end+1-i,j+1] + coef_D.d[5]*idata[end+1-i,j+2]
+            + coef_D.bd[i,1] * idata[end,j] + coef_D.bd[i,2] * idata[end-1,j] + coef_D.bd[i,3] * idata[end-2,j] + coef_D.bd[i,4]*idata[end-3,j] + coef_D.bd[i,5]*idata[end-4,j] + coef_D.bd[i,6] * idata[end-5,j]) / (coef_D.bhinv[i]) # calculation for the lower edge
+        end
+    end
+
+    nothing
+end
+
+function matrix_free_S_D2_GPU(idata,odata,coef_D,Nx,Ny,hx,hy)
+    TILE_DIM = 256
+    griddim = div(Nx+TILE_DIM-1,TILE_DIM)
+    blockdim = TILE_DIM
+    @cuda threads=blockdim blocks=griddim matrix_free_S_D2_kernel(idata,odata,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+end
+
+
+
+
+
+
 
 struct MyStruct
     a :: Union{CuArray{Float32}, CuDeviceArray{Float32}}
