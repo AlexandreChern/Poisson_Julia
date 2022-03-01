@@ -273,13 +273,64 @@ end
 
 
 function _matrix_free_W_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}) where {TILE_DIM}
-    
+    tidx = threadIdx().x
+    i = (blockIdx().x - 1) * TILE_DIM + tidx
+    beta = 1
+    if 1 <= i <= 4
+        odata[i,1] = -(-13*idata[i,1]/coef_D.bhinv[i])
+        odata[end+1-i,1] = -(-13*idata[end+1-i,1]/coef_D.bhinv[i])
+        for j = 1:4
+            odata[i,j] += -(beta*coef_D.BS[j]/coef_D.bhinv[i] * idata[i,1])
+            odata[end+1-i,j] += -(beta*coef_D.BS[j]/coef_D.bhinv[i] * idata[end+1-i,1])
+        end
+    end
+
+    if 5 <= i <= Ny-4
+        odata[i,1] = -(-13*idata[i,1])
+        for j in 1:4
+            odata[i,j] += -(beta*coef_D.BS[j] * idata[i,1])
+        end
+    end
+    nothing
+end
+
+function matrix_free_W_P_GPU(idata,odata,coef_D,Nx,Ny,hx,hy)
+    TILE_DIM = 256
+    griddim = div(Nx+TILE_DIM-1,TILE_DIM)
+    blockdim = TILE_DIM
+    @cuda threads=blockdim blocks=griddim _matrix_free_W_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
 end
 
 
 
+function _matrix_free_E_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}) where {TILE_DIM}
+    tidx = threadIdx().x
+    i = (blockIdx().x - 1) * TILE_DIM + tidx
+    beta = 1
+    if 1 <= i <= 4
+        odata[i,end] = -(-13*idata[i,end]/coef_D.bhinv[i])
+        odata[end+1-i,end] = -(-13*idata[end+1-i,end]/coef_D.bhinv[i])
+        for j = 1:4
+            odata[i,end+1-j] += -(beta*coef_D.BS[j]/coef_D.bhinv[i] * idata[i,end])
+            odata[end+1-i,end+1-j] += -(beta*coef_D.BS[j]/coef_D.bhinv[i] * idata[end+1-i,end])
+        end
+    end
 
+    if 5 <= i <= Ny-4
+        odata[i,end] = -(-13*idata[i,end])
+        for j in 1:4
+            odata[i,end+1-j] += -(beta*coef_D.BS[j] * idata[i,end])
+        end
+    end
+    nothing
+end
 
+function matrix_free_E_P_GPU(idata,odata,coef_D,Nx,Ny,hx,hy)
+    TILE_DIM = 256
+    griddim = div(Nx+TILE_DIM-1,TILE_DIM)
+    blockdim = TILE_DIM
+    @cuda threads=blockdim blocks=griddim _matrix_free_E_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+end
 
 
 

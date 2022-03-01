@@ -118,7 +118,10 @@ odata_GPU_S_P = CuArray(zeros(4,Nx))
 matrix_free_S_P_GPU(idata_GPU,odata_GPU_S_P,coef_D,Nx,Ny,hx,hy)
 
 odata_GPU_W_P = CuArray(zeros(Ny,4))
+matrix_free_W_P_GPU(idata_GPU,odata_GPU_W_P,coef_D,Nx,Ny,hx,hy)
 
+odata_GPU_E_P = CuArray(zeros(Ny,4))
+matrix_free_E_P_GPU(idata_GPU,odata_GPU_E_P,coef_D,Nx,Ny,hx,hy)
 
 
 reshape(-H_tilde*(D2+SAT_W+SAT_E)*idata_flat,Nx,Ny)
