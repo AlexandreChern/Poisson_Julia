@@ -335,7 +335,9 @@ end
 
 
 
-
+function matrix_free_HA_GPU(idata,odata,coef_D,Nx,Ny,hx,hy)
+    
+end
 
 
 
