@@ -118,11 +118,11 @@ function _matrix_free_N_D2_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM
     nothing
 end
 
-function matrix_free_N_D2_GPU_1D_kernel(idata,odata,coef_D,Nx,Ny,hx,hy) 
+function matrix_free_N_D2_GPU(idata,odata,coef_D,Nx,Ny,hx,hy) 
     TILE_DIM = 256
 
     griddim = div(Nx+TILE_DIM-1,TILE_DIM)
-    blockdim = TILE_DIM_1
+    blockdim = TILE_DIM
     @cuda threads=blockdim blocks=griddim _matrix_free_N_D2_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
 end
 
