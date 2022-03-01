@@ -215,6 +215,86 @@ function matrix_free_W_D2_GPU(idata,odata,coef_D,Nx,Ny,hx,hy)
 end
 
 
+## Matrix free boundary Operators
+
+function _matrix_free_N_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}) where {TILE_DIM}
+    tidx = threadIdx().x
+    j = (blockIdx().x - 1) * TILE_DIM + tidx
+    tau_N = -1
+    if 1 <= j <= 4
+        odata[1,j] = 0
+        for i in 1:4
+            odata[1,j] += -(tau_N*coef_D.BS[i]/coef_D.bhinv[j] * idata[i,j]) # tau_N*HI_y*E_N*BS_y
+            odata[1,end+1-j] += -(tau_N*coef_D.BS[i]/coef_D.bhinv[j] * idata[i,end+1-j])
+        end
+    end
+
+    if 5 <= j <= Nx-4
+        for i in 1:4
+            odata[1,j] += -(tau_N*coef_D.BS[i]*idata[i,j])
+        end
+    end
+    nothing
+end
+
+function matrix_free_N_P_GPU(idata,odata,coef_D,Nx,Ny,hx,hy)
+    TILE_DIM = 256
+    griddim = div(Nx+TILE_DIM-1,TILE_DIM)
+    blockdim = TILE_DIM
+    @cuda threads=blockdim blocks=griddim _matrix_free_N_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+end
+
+function _matrix_free_S_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}) where {TILE_DIM}
+    tidx = threadIdx().x
+    j = (blockIdx().x - 1) * TILE_DIM + tidx
+    tau_S = -1
+    if 1 <= j <= 4
+        odata[1,j] = 0
+        for i in 1:4
+            odata[end,j] += -(tau_S*coef_D.BS[i]/coef_D.bhinv[j] * idata[end+1-i,j]) # tau_N*HI_y*E_N*BS_y
+            odata[end,end+1-j] += -(tau_S*coef_D.BS[i]/coef_D.bhinv[j] * idata[end+1-i,end+1-j])
+        end
+    end
+
+    if 5 <= j <= Nx-4
+        for i in 1:4
+            odata[end,j] += -(tau_S*coef_D.BS[i]*idata[end+1-i,j])
+        end
+    end
+    nothing
+end
+
+function matrix_free_S_P_GPU(idata,odata,coef_D,Nx,Ny,hx,hy)
+    TILE_DIM = 256
+    griddim = div(Nx+TILE_DIM-1,TILE_DIM)
+    blockdim = TILE_DIM
+    @cuda threads=blockdim blocks=griddim _matrix_free_S_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+end
+
+
+function _matrix_free_W_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}) where {TILE_DIM}
+    
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 struct MyStruct
     a :: Union{CuArray{Float32}, CuDeviceArray{Float32}}

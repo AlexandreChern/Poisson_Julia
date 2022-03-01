@@ -70,24 +70,26 @@ matrix_free_N_D2_GPU(idata_GPU_N,odata_GPU_N_D2,coef_D,Nx,Ny,hx,hy)
 matrix_free_N_D2_GPU(idata_GPU_N,odata_GPU,coef_D,Nx,Ny,hx,hy)
 
 
-odata_GPU_N_D2_v2 = CuArray(zeros(4,Ny))
+odata_GPU_N_D2_v2 = CuArray(zeros(4,Nx))
 matrix_free_N_D2_GPU_1D_kernel(idata_GPU_N,odata_GPU_N_D2_v2,coef_D,Nx,Ny,hx,hy)
 
-odata_GPU_S_D2 = CuArray(zeros(4,Ny))
+odata_GPU_S_D2 = CuArray(zeros(4,Nx))
 matrix_free_S_D2_GPU(idata_GPU_S,odata_GPU_S_D2,coef_D,Nx,Ny,hx,hy)
 
 idata_GPU_W = @view idata_GPU[1:end,1:6]
 idata_GPU_E = @view idata_GPU[1:end,end-5:end]
 
 
-odata_GPU_E_D2 = CuArray(zeros(Nx,4))
+odata_GPU_E_D2 = CuArray(zeros(Ny,4))
 matrix_free_E_D2_GPU(idata_GPU_E,odata_GPU_E_D2,coef_D,Nx,Ny,hx,hy)
 
-odata_GPU_W_D2 = CuArray(zeros(Nx,4))
+odata_GPU_W_D2 = CuArray(zeros(Ny,4))
 matrix_free_W_D2_GPU(idata_GPU_W,odata_GPU_W_D2,coef_D,Nx,Ny,hx,hy)
 
 
-
+odata_N_P = zeros(Nx,Ny)
+matrix_free_N_P(idata,odata_N_P,Nx,Ny,hx,hy)
+reshape(-H_tilde*SAT_S*idata_flat,Nx,Ny)
 
 odata_S_P = zeros(Nx,Ny)
 matrix_free_S_P(idata,odata_S_P,Nx,Ny,hx,hy)
@@ -109,7 +111,13 @@ matrix_free_N_pseudo(idata,odata_pseudo,Nx,Ny,hx,hy)
 
 
 
+odata_GPU_N_P = CuArray(zeros(4,Nx))
+matrix_free_N_P_GPU(idata_GPU,odata_GPU_N_P,coef_D,Nx,Ny,hx,hy)
 
+odata_GPU_S_P = CuArray(zeros(4,Nx))
+matrix_free_S_P_GPU(idata_GPU,odata_GPU_S_P,coef_D,Nx,Ny,hx,hy)
+
+odata_GPU_W_P = CuArray(zeros(Ny,4))
 
 
 
