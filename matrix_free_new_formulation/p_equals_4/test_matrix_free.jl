@@ -30,6 +30,7 @@ odata = zeros(Nx,Ny)
 idata_flat = idata[:]
 
 matrix_free_D2_p4_split(idata,odata,Nx,Ny,hx,hy)
+
 odata_spmv = D2 * idata_flat
 odata_spmv_reshaped = reshape(odata_spmv,Nx,Ny)
 
