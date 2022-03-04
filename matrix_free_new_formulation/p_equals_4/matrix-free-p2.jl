@@ -19,15 +19,15 @@ function D2_split_dev_p2(idata,odata,coeff,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_
     nothing
 end
 
-function D2_matrix_free_p2(idata,odata)
+function D2_matrix_free_p2_GPU(idata,odata)
     (Nx,Ny) = size(idata)
     h = 1/(Nx-1)
     TILE_DIM_1 = 16
     TILE_DIM_2 = 16
-    griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+    griddim = (div(Nx+TILE_DIM_1-1,TILE_DIM_1), div(Ny+TILE_DIM_2-1,TILE_DIM_2))
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
 
-    coeff = CuArray(Array([1.0,2.0,1.0]))
+    coeff = cudaconvert(CuArray(Array([1.0,2.0,1.0])))
 
     @cuda threads=blockdim blocks=griddim D2_split_dev_p2(idata,odata,coeff,Nx,Ny,h,Val(TILE_DIM_1), Val(TILE_DIM_2))
     nothing
