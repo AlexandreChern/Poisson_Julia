@@ -23,7 +23,7 @@ hy = h_list_y[j]
 
 (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j,h_list_x,h_list_y;SBPp=4);
 (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
-A_GPU = CUDA.CUSPARSE.SparseMatrixCSC(A)
+A_GPU = CUDA.CUSPARSE.CuSparseMatrixCSC(A)
 
 idata = randn(Nx,Ny)
 odata = zeros(Nx,Ny)
