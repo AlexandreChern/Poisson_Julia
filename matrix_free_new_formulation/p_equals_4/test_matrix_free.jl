@@ -4,7 +4,7 @@ include("matrix-free-p2.jl")
 include("matrix-free-p4-GPU.jl")
 
 
-level = 8
+level = 11
 i = j = level
 
 h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
@@ -167,6 +167,7 @@ time_D2_p4 = @elapsed for _ in 1:repetitions
     matrix_free_D2_p4_GPU(idata_GPU,odata_GPU)
 end
 
+D2_matrix_free_p2_GPU(idata_GPU,odata_GPU)
 time_D2_p2 = @elapsed for _ in 1:repetitions
     # odata_GPU .= 0
     D2_matrix_free_p2_GPU(idata_GPU,odata_GPU)
