@@ -144,7 +144,7 @@ matrix_free_W_D2_GPU(idata_GPU_W,odata_GPU_W_D2,coef_D,Nx,Ny,hx,hy)
 
 ## Performance benchmarking
 
-repetitions = 1000
+repetitions = 5000
 # time_D2 = @elapsed for _ in 1:repetitions
 #     odata_GPU .= 0
 #     D2_matrix_free_p2(idata_GPU,odata_GPU)
@@ -173,6 +173,9 @@ time_D2_p2 = @elapsed for _ in 1:repetitions
     D2_matrix_free_p2_GPU(idata_GPU,odata_GPU)
 end
 
+@show time_D2_SPMV
+@show time_D2_p4
+@show time_D2_p2
 
 through_put_SPMV = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_SPMV)
 through_put_matrix_free_p4 = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p4)
