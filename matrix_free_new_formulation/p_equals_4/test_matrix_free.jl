@@ -4,7 +4,7 @@ include("matrix-free-p2.jl")
 include("matrix-free-p4-GPU.jl")
 
 
-level = 11
+level = 13
 i = j = level
 
 h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
@@ -48,6 +48,8 @@ H_tilde_diag = diag(H_tilde)
 idata_GPU = CuArray(idata)
 odata_GPU = CuArray(zeros(Nx,Ny))
 matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+
 # D2_matrix_free_p2(idata_GPU,odata_GPU)
 
 
@@ -144,7 +146,7 @@ matrix_free_W_D2_GPU(idata_GPU_W,odata_GPU_W_D2,coef_D,Nx,Ny,hx,hy)
 
 ## Performance benchmarking
 
-repetitions = 5000
+repetitions = 10000
 # time_D2 = @elapsed for _ in 1:repetitions
 #     odata_GPU .= 0
 #     D2_matrix_free_p2(idata_GPU,odata_GPU)
@@ -192,8 +194,16 @@ t_SPMV = @elapsed for _ in 1:repetitions
 end
 @show t_SPMV
 
+matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+
 t_matrix_free_GPU = @elapsed for _ in 1:repetitions
     matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
 end
-
 @show t_matrix_free_GPU
+
+
+matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+t_matrix_free_GPU_v2 = @elapsed for _ in 1:repetitions
+    matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+end
+@show t_matrix_free_GPU_v2
