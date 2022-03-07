@@ -1,0 +1,70 @@
+include("Poisson.jl")
+include("matrix-free-p4.jl")
+include("matrix-free-p2.jl")
+include("matrix-free-p4-GPU.jl")
+
+
+repetitions = 10000
+
+level = 13
+i = j = level
+
+h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
+h_list_y = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10, 1/2^11, 1/2^12, 1/2^13, 1/2^14]
+
+m_list = 1 ./h_list_x;
+n_list = 1 ./h_list_y;
+
+N_x = Integer(m_list[i]);
+N_y = Integer(n_list[j]);
+
+Nx = N_x + 1
+Ny = N_y + 1
+hx = h_list_x[i]
+hy = h_list_y[j]
+
+
+
+idata = randn(Nx,Ny)
+odata = zeros(Nx,Ny)
+
+idata_GPU = CuArray(idata)
+odata_GPU = CuArray(zeros(Nx,Ny))
+
+
+matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+
+D2_matrix_free_p4_GPU(idata_GPU,odata_GPU)
+time_D2_p4 = @elapsed for _ in 1:repetitions
+    # odata_GPU .= 0
+    matrix_free_D2_p4_GPU(idata_GPU,odata_GPU)
+end
+
+D2_matrix_free_p2_GPU(idata_GPU,odata_GPU)
+time_D2_p2 = @elapsed for _ in 1:repetitions
+    # odata_GPU .= 0
+    D2_matrix_free_p2_GPU(idata_GPU,odata_GPU)
+end
+
+
+through_put_matrix_free_p4 = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p4)
+through_put_matrix_free_p2 = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p2)
+
+
+@show through_put_matrix_free_p4
+@show through_put_matrix_free_p2
+
+matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+
+t_matrix_free_GPU = @elapsed for _ in 1:repetitions
+    matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+end
+@show t_matrix_free_GPU
+
+
+matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+t_matrix_free_GPU_v2 = @elapsed for _ in 1:repetitions
+    matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+end
+@show t_matrix_free_GPU_v2
