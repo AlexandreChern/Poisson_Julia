@@ -45,7 +45,7 @@ odata_GPU_NSWE_tmp = odata_GPU_NSWE(
 
 
 matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
-matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v3(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
 
 matrix_free_D2_p4_GPU(idata_GPU,odata_GPU)
 time_D2_p4 = @elapsed for _ in 1:repetitions
@@ -78,8 +78,8 @@ end
 @show t_matrix_free_GPU
 
 
-matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
-t_matrix_free_GPU_v2 = @elapsed for _ in 1:repetitions
-    matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v3(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
+t_matrix_free_GPU_v3 = @elapsed for _ in 1:repetitions
+    matrix_free_HA_GPU_v3(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
 end
-@show t_matrix_free_GPU_v2
+@show t_matrix_free_GPU_v3
