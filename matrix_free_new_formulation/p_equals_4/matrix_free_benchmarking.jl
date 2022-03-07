@@ -32,10 +32,22 @@ idata_GPU = CuArray(idata)
 odata_GPU = CuArray(zeros(Nx,Ny))
 
 
-matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
-matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+odata_GPU_NSWE_tmp = odata_GPU_NSWE(
+    CuArray(zeros(4,Nx)),
+    CuArray(zeros(4,Nx)),
+    CuArray(zeros(Ny,4)),
+    CuArray(zeros(Ny,4)),
+    CuArray(zeros(4,Nx)),
+    CuArray(zeros(4,Nx)),
+    CuArray(zeros(Ny,4)),
+    CuArray(zeros(Ny,4))
+)
 
-D2_matrix_free_p4_GPU(idata_GPU,odata_GPU)
+
+matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
+
+matrix_free_D2_p4_GPU(idata_GPU,odata_GPU)
 time_D2_p4 = @elapsed for _ in 1:repetitions
     # odata_GPU .= 0
     matrix_free_D2_p4_GPU(idata_GPU,odata_GPU)
@@ -48,9 +60,12 @@ time_D2_p2 = @elapsed for _ in 1:repetitions
 end
 
 
+
 through_put_matrix_free_p4 = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p4)
 through_put_matrix_free_p2 = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p2)
 
+@show time_D2_p4
+@show time_D2_p2
 
 @show through_put_matrix_free_p4
 @show through_put_matrix_free_p2
@@ -63,8 +78,8 @@ end
 @show t_matrix_free_GPU
 
 
-matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
 t_matrix_free_GPU_v2 = @elapsed for _ in 1:repetitions
-    matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+    matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
 end
 @show t_matrix_free_GPU_v2
