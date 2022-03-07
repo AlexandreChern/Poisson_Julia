@@ -52,8 +52,20 @@ H_tilde_diag = diag(H_tilde)
 
 idata_GPU = CuArray(idata)
 odata_GPU = CuArray(zeros(Nx,Ny))
+
+odata_GPU_NSWE_tmp = odata_GPU_NSWE(
+    CuArray(zeros(4,Nx)),
+    CuArray(zeros(4,Nx)),
+    CuArray(zeros(Ny,4)),
+    CuArray(zeros(Ny,4)),
+    CuArray(zeros(4,Nx)),
+    CuArray(zeros(4,Nx)),
+    CuArray(zeros(Ny,4)),
+    CuArray(zeros(Ny,4))
+)
+
 matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
-matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
 
 # D2_matrix_free_p2(idata_GPU,odata_GPU)
 
@@ -207,8 +219,8 @@ end
 @show t_matrix_free_GPU
 
 
-matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
 t_matrix_free_GPU_v2 = @elapsed for _ in 1:repetitions
-    matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+    matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
 end
 @show t_matrix_free_GPU_v2

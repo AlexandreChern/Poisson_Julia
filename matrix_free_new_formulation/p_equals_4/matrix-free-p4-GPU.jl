@@ -400,16 +400,7 @@ struct odata_GPU_NSWE{T}
     odata_GPU_E_P::T
 end
 
-odata_GPU_NSWE_tmp = odata_GPU_NSWE(
-    CuArray(zeros(4,Nx)),
-    CuArray(zeros(4,Nx)),
-    CuArray(zeros(Ny,4)),
-    CuArray(zeros(Ny,4)),
-    CuArray(zeros(4,Nx)),
-    CuArray(zeros(4,Nx)),
-    CuArray(zeros(Ny,4)),
-    CuArray(zeros(Ny,4))
-)
+
 
 function matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NWSE,coef_D,Nx,Ny,hx,hy)
     idata_GPU_N = @view idata_GPU[1:6,1:end]
