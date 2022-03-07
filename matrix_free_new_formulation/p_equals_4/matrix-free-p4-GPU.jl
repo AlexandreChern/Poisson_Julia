@@ -432,10 +432,15 @@ function matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
     @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_W_P_kernel_(idata_GPU_W,odata_GPU_W_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
     @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_E_P_kernel_(idata_GPU_E,odata_GPU_E_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
 
-    copyto!(view(odata_GPU,1:1,1:Nx),view(odata_GPU,1,1:Nx)+view(odata_GPU_N_P,1,1:Nx))
-    copyto!(view(odata_GPU,Ny,1:Nx),view(odata_GPU,Ny,1:Nx)+view(odata_GPU_S_P,4,1:Nx))
-    copyto!(view(odata_GPU,1:Ny,1:4),view(odata_GPU,1:Ny,1:4)+view(odata_GPU_W_P,1:Ny,1:4))
-    copyto!(view(odata_GPU,1:Ny,Nx-3:Nx),view(odata_GPU,1:Ny,Nx-3:Nx)+view(odata_GPU_E_P,1:Ny,1:4))
+    copyto!(view(odata_GPU,1:4,1:Nx),odata_GPU_N_D2)
+    copyto!(view(odata_GPU,Ny-3:Ny,1:Nx),odata_GPU_S_D2)
+    copyto!(view(odata_GPU,5:Ny-4,1:4),view(odata_GPU_W_D2,5:Ny-4,1:4))
+    copyto!(view(odata_GPU,5:Ny-4,Nx-3:Nx),view(odata_GPU_E_D2,5:Ny-4,1:4))
+
+    copyto!(view(odata_GPU,1:1,1:Nx),view(odata_GPU,1,1:Nx).+view(odata_GPU_N_P,1,1:Nx))
+    copyto!(view(odata_GPU,Ny,1:Nx),view(odata_GPU,Ny,1:Nx).+view(odata_GPU_S_P,4,1:Nx))
+    copyto!(view(odata_GPU,1:Ny,1:4),view(odata_GPU,1:Ny,1:4).+view(odata_GPU_W_P,1:Ny,1:4))
+    copyto!(view(odata_GPU,1:Ny,Nx-3:Nx),view(odata_GPU,1:Ny,Nx-3:Nx).+view(odata_GPU_E_P,1:Ny,1:4))
 
 end
 
