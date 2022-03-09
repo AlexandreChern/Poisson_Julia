@@ -88,12 +88,12 @@ through_put_matrix_free_p2 = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p2)
 @show through_put_matrix_free_p4
 @show through_put_matrix_free_p2
 
-matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+# matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
 
-t_matrix_free_GPU = @elapsed for _ in 1:repetitions
-    matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
-end
-@show t_matrix_free_GPU
+# t_matrix_free_GPU = @elapsed for _ in 1:repetitions
+#     matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
+# end
+# @show t_matrix_free_GPU
 
 
 matrix_free_HA_GPU_v3(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
