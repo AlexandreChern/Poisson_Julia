@@ -244,3 +244,10 @@ t_matrix_free_GPU_v2 = @elapsed for _ in 1:repetitions
     matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
 end
 @show t_matrix_free_GPU_v2
+
+
+matrix_free_HA_GPU_v4(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,grid_info_GPU,coef_D,Nx,Ny,hx,hy)
+t_matrix_free_GPU_v4 = @elapsed for _ in 1:repetitions
+    matrix_free_HA_GPU_v4(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,grid_info_GPU,coef_D,Nx,Ny,hx,hy)
+end
+@show t_matrix_free_GPU_v4
