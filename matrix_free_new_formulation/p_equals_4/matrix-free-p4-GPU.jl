@@ -245,6 +245,7 @@ function _matrix_free_N_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}
     tau_N = -1
     if 1 <= j <= 4
         odata[1,j] = 0
+        odata[1,end+1-j] = 0
         for i in 1:4
             odata[1,j] += -(tau_N*coef_D.BS[i]/coef_D.bhinv[j] * idata[i,j]) # tau_N*HI_y*E_N*BS_y
             odata[1,end+1-j] += -(tau_N*coef_D.BS[i]/coef_D.bhinv[j] * idata[i,end+1-j])
@@ -252,6 +253,7 @@ function _matrix_free_N_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}
     end
 
     if 5 <= j <= Nx-4
+        odata[1,j] = 0
         for i in 1:4
             odata[1,j] += -(tau_N*coef_D.BS[i]*idata[i,j])
         end
@@ -271,7 +273,8 @@ function _matrix_free_S_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}
     j = (blockIdx().x - 1) * TILE_DIM + tidx
     tau_S = -1
     if 1 <= j <= 4
-        odata[1,j] = 0
+        odata[end,j] = 0
+        odata[end,end+1-j] = 0
         for i in 1:4
             odata[end,j] += -(tau_S*coef_D.BS[i]/coef_D.bhinv[j] * idata[end+1-i,j]) # tau_N*HI_y*E_N*BS_y
             odata[end,end+1-j] += -(tau_S*coef_D.BS[i]/coef_D.bhinv[j] * idata[end+1-i,end+1-j])
@@ -279,6 +282,7 @@ function _matrix_free_S_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}
     end
 
     if 5 <= j <= Nx-4
+        odata[end,j] = 0
         for i in 1:4
             odata[end,j] += -(tau_S*coef_D.BS[i]*idata[end+1-i,j])
         end
@@ -298,6 +302,13 @@ function _matrix_free_W_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}
     tidx = threadIdx().x
     i = (blockIdx().x - 1) * TILE_DIM + tidx
     beta = 1
+
+    if 1 <= i <= Ny
+        for j in 1:4
+            odata[i,j] = 0 
+        end
+    end
+
     if 1 <= i <= 4
         odata[i,1] = -(-13*idata[i,1]/coef_D.bhinv[i])
         odata[end+1-i,1] = -(-13*idata[end+1-i,1]/coef_D.bhinv[i])
@@ -329,6 +340,13 @@ function _matrix_free_E_P_kernel_(idata,odata,coef_D,Nx,Ny,hx,hy,::Val{TILE_DIM}
     tidx = threadIdx().x
     i = (blockIdx().x - 1) * TILE_DIM + tidx
     beta = 1
+
+    if 1 <= i <= Ny
+        for j in 1:4
+            odata[i,j] = 0 
+        end
+    end
+
     if 1 <= i <= 4
         odata[i,end] = -(-13*idata[i,end]/coef_D.bhinv[i])
         odata[end+1-i,end] = -(-13*idata[end+1-i,end]/coef_D.bhinv[i])
@@ -424,7 +442,7 @@ end
 
 
 
-function matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NWSE,coef_D,Nx,Ny,hx,hy)
+function matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
     idata_GPU_N = @view idata_GPU[1:6,1:end]
     idata_GPU_S = @view idata_GPU[end-5:end,1:end]
     idata_GPU_W = @view idata_GPU[1:end,1:6]
@@ -458,31 +476,31 @@ function matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NWSE,coef_D,Nx,Ny,h
 
     @cuda threads=blockdim_2D blocks=griddim_2D matrix_free_D2_p4_GPU_kernel_v2(idata_GPU,odata_GPU,coeff_d,Nx,Ny,hx,hy,Val(TILE_DIM_1),Val(TILE_DIM_2)) # kernel_v2 for - H_tilde * D2
 
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_N_D2_kernel_(idata_GPU_N,odata_GPU_NWSE.odata_GPU_N_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_S_D2_kernel_(idata_GPU_S,odata_GPU_NWSE.odata_GPU_S_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_W_D2_kernel_(idata_GPU_W,odata_GPU_NWSE.odata_GPU_W_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_E_D2_kernel_(idata_GPU_E,odata_GPU_NWSE.odata_GPU_E_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_N_D2_kernel_(idata_GPU_N,odata_GPU_NSWE_tmp.odata_GPU_N_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_S_D2_kernel_(idata_GPU_S,odata_GPU_NSWE_tmp.odata_GPU_S_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_W_D2_kernel_(idata_GPU_W,odata_GPU_NSWE_tmp.odata_GPU_W_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_E_D2_kernel_(idata_GPU_E,odata_GPU_NSWE_tmp.odata_GPU_E_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
 
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_N_P_kernel_(idata_GPU_N,odata_GPU_NWSE.odata_GPU_N_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_S_P_kernel_(idata_GPU_S,odata_GPU_NWSE.odata_GPU_S_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_W_P_kernel_(idata_GPU_W,odata_GPU_NWSE.odata_GPU_W_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_E_P_kernel_(idata_GPU_E,odata_GPU_NWSE.odata_GPU_E_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_N_P_kernel_(idata_GPU_N,odata_GPU_NSWE_tmp.odata_GPU_N_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_S_P_kernel_(idata_GPU_S,odata_GPU_NSWE_tmp.odata_GPU_S_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_W_P_kernel_(idata_GPU_W,odata_GPU_NSWE_tmp.odata_GPU_W_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_E_P_kernel_(idata_GPU_E,odata_GPU_NSWE_tmp.odata_GPU_E_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
 
-    copyto!(view(odata_GPU,1:4,1:Nx),odata_GPU_NWSE.odata_GPU_N_D2)
-    copyto!(view(odata_GPU,Ny-3:Ny,1:Nx),odata_GPU_NWSE.odata_GPU_S_D2)
-    copyto!(view(odata_GPU,5:Ny-4,1:4),view(odata_GPU_NWSE.odata_GPU_W_D2,5:Ny-4,1:4))
-    copyto!(view(odata_GPU,5:Ny-4,Nx-3:Nx),view(odata_GPU_NWSE.odata_GPU_E_D2,5:Ny-4,1:4))
+    copyto!(view(odata_GPU,1:4,1:Nx),odata_GPU_NSWE_tmp.odata_GPU_N_D2)
+    copyto!(view(odata_GPU,Ny-3:Ny,1:Nx),odata_GPU_NSWE_tmp.odata_GPU_S_D2)
+    copyto!(view(odata_GPU,5:Ny-4,1:4),view(odata_GPU_NSWE_tmp.odata_GPU_W_D2,5:Ny-4,1:4))
+    copyto!(view(odata_GPU,5:Ny-4,Nx-3:Nx),view(odata_GPU_NSWE_tmp.odata_GPU_E_D2,5:Ny-4,1:4))
 
-    copyto!(view(odata_GPU,1:1,1:Nx),view(odata_GPU,1,1:Nx).+view(odata_GPU_NWSE.odata_GPU_N_P,1,1:Nx))
-    copyto!(view(odata_GPU,Ny,1:Nx),view(odata_GPU,Ny,1:Nx).+view(odata_GPU_NWSE.odata_GPU_S_P,4,1:Nx))
-    copyto!(view(odata_GPU,1:Ny,1:4),view(odata_GPU,1:Ny,1:4).+view(odata_GPU_NWSE.odata_GPU_W_P,1:Ny,1:4))
-    copyto!(view(odata_GPU,1:Ny,Nx-3:Nx),view(odata_GPU,1:Ny,Nx-3:Nx).+view(odata_GPU_NWSE.odata_GPU_E_P,1:Ny,1:4))
+    copyto!(view(odata_GPU,1,1:Nx),view(odata_GPU,1,1:Nx).+view(odata_GPU_NSWE_tmp.odata_GPU_N_P,1,1:Nx))
+    copyto!(view(odata_GPU,Ny,1:Nx),view(odata_GPU,Ny,1:Nx).+view(odata_GPU_NSWE_tmp.odata_GPU_S_P,4,1:Nx))
+    copyto!(view(odata_GPU,1:Ny,1:4),view(odata_GPU,1:Ny,1:4).+view(odata_GPU_NSWE_tmp.odata_GPU_W_P,1:Ny,1:4))
+    copyto!(view(odata_GPU,1:Ny,Nx-3:Nx),view(odata_GPU,1:Ny,Nx-3:Nx).+view(odata_GPU_NSWE_tmp.odata_GPU_E_P,1:Ny,1:4))
 
 end
 
 
 
-function matrix_free_HA_GPU_v3(idata_GPU,odata_GPU,odata_GPU_NWSE,coef_D,Nx,Ny,hx,hy)
+function matrix_free_HA_GPU_v3(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
     idata_GPU_N = @view idata_GPU[1:6,1:end]
     idata_GPU_S = @view idata_GPU[end-5:end,1:end]
     idata_GPU_W = @view idata_GPU[1:end,1:6]
@@ -514,27 +532,27 @@ function matrix_free_HA_GPU_v3(idata_GPU,odata_GPU,odata_GPU_NWSE,coef_D,Nx,Ny,h
     # coeff_d = cudaconvert(CuArray([-1/12 4/3 -5/2 4/3 -1/12]))
 
 
-    @cuda threads=blockdim_2D blocks=griddim_2D matrix_free_D2_p4_GPU_kernel_v3(idata_GPU,odata_GPU,Nx,Ny,hx,hy,Val(TILE_DIM_1),Val(TILE_DIM_2)) # kernel_v2 for - H_tilde * D2
+    @cuda threads=blockdim_2D blocks=griddim_2D matrix_free_D2_p4_GPU_kernel_v3(idata_GPU,odata_GPU,Nx,Ny,hx,hy,Val(TILE_DIM_1),Val(TILE_DIM_2)); # kernel_v2 for - H_tilde * D2
 
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_N_D2_kernel_(idata_GPU_N,odata_GPU_NWSE.odata_GPU_N_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_S_D2_kernel_(idata_GPU_S,odata_GPU_NWSE.odata_GPU_S_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_W_D2_kernel_(idata_GPU_W,odata_GPU_NWSE.odata_GPU_W_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_E_D2_kernel_(idata_GPU_E,odata_GPU_NWSE.odata_GPU_E_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_N_D2_kernel_(idata_GPU_N,odata_GPU_NSWE_tmp.odata_GPU_N_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM));
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_S_D2_kernel_(idata_GPU_S,odata_GPU_NSWE_tmp.odata_GPU_S_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM));
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_W_D2_kernel_(idata_GPU_W,odata_GPU_NSWE_tmp.odata_GPU_W_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM));
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_E_D2_kernel_(idata_GPU_E,odata_GPU_NSWE_tmp.odata_GPU_E_D2,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM));
 
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_N_P_kernel_(idata_GPU_N,odata_GPU_NWSE.odata_GPU_N_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_S_P_kernel_(idata_GPU_S,odata_GPU_NWSE.odata_GPU_S_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_W_P_kernel_(idata_GPU_W,odata_GPU_NWSE.odata_GPU_W_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
-    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_E_P_kernel_(idata_GPU_E,odata_GPU_NWSE.odata_GPU_E_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM))
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_N_P_kernel_(idata_GPU_N,odata_GPU_NSWE_tmp.odata_GPU_N_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM));
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_S_P_kernel_(idata_GPU_S,odata_GPU_NSWE_tmp.odata_GPU_S_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM));
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_W_P_kernel_(idata_GPU_W,odata_GPU_NSWE_tmp.odata_GPU_W_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM));
+    @cuda threads=blockdim_1D blocks=griddim_1D _matrix_free_E_P_kernel_(idata_GPU_E,odata_GPU_NSWE_tmp.odata_GPU_E_P,coef_D,Nx,Ny,hx,hy,Val(TILE_DIM));
 
-    copyto!(view(odata_GPU,1:4,1:Nx),odata_GPU_NWSE.odata_GPU_N_D2)
-    copyto!(view(odata_GPU,Ny-3:Ny,1:Nx),odata_GPU_NWSE.odata_GPU_S_D2)
-    copyto!(view(odata_GPU,5:Ny-4,1:4),view(odata_GPU_NWSE.odata_GPU_W_D2,5:Ny-4,1:4))
-    copyto!(view(odata_GPU,5:Ny-4,Nx-3:Nx),view(odata_GPU_NWSE.odata_GPU_E_D2,5:Ny-4,1:4))
+    copyto!(view(odata_GPU,1:4,1:Nx),odata_GPU_NSWE_tmp.odata_GPU_N_D2);
+    copyto!(view(odata_GPU,Ny-3:Ny,1:Nx),odata_GPU_NSWE_tmp.odata_GPU_S_D2);
+    copyto!(view(odata_GPU,5:Ny-4,1:4),view(odata_GPU_NSWE_tmp.odata_GPU_W_D2,5:Ny-4,1:4));
+    copyto!(view(odata_GPU,5:Ny-4,Nx-3:Nx),view(odata_GPU_NSWE_tmp.odata_GPU_E_D2,5:Ny-4,1:4));
 
-    copyto!(view(odata_GPU,1:1,1:Nx),view(odata_GPU,1,1:Nx).+view(odata_GPU_NWSE.odata_GPU_N_P,1,1:Nx))
-    copyto!(view(odata_GPU,Ny,1:Nx),view(odata_GPU,Ny,1:Nx).+view(odata_GPU_NWSE.odata_GPU_S_P,4,1:Nx))
-    copyto!(view(odata_GPU,1:Ny,1:4),view(odata_GPU,1:Ny,1:4).+view(odata_GPU_NWSE.odata_GPU_W_P,1:Ny,1:4))
-    copyto!(view(odata_GPU,1:Ny,Nx-3:Nx),view(odata_GPU,1:Ny,Nx-3:Nx).+view(odata_GPU_NWSE.odata_GPU_E_P,1:Ny,1:4))
+    copyto!(view(odata_GPU,1:1,1:Nx),view(odata_GPU,1,1:Nx).+view(odata_GPU_NSWE_tmp.odata_GPU_N_P,1,1:Nx));
+    copyto!(view(odata_GPU,Ny,1:Nx),view(odata_GPU,Ny,1:Nx).+view(odata_GPU_NSWE_tmp.odata_GPU_S_P,4,1:Nx));
+    copyto!(view(odata_GPU,1:Ny,1:4),view(odata_GPU,1:Ny,1:4).+view(odata_GPU_NSWE_tmp.odata_GPU_W_P,1:Ny,1:4));
+    copyto!(view(odata_GPU,1:Ny,Nx-3:Nx),view(odata_GPU,1:Ny,Nx-3:Nx).+view(odata_GPU_NSWE_tmp.odata_GPU_E_P,1:Ny,1:4));
 
 end
 
