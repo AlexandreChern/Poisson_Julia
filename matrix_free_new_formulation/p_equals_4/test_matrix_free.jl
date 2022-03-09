@@ -64,8 +64,28 @@ odata_GPU_NSWE_tmp = odata_GPU_NSWE(
     CuArray(zeros(Ny,4))
 )
 
+hx=hy = 1/(Nx-1)
+TILE_DIM_1 = 16
+TILE_DIM_2 = 16
+griddim_2D = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
+blockdim_2D = (TILE_DIM_1,TILE_DIM_2)
+
+TILE_DIM = 256
+griddim_1D = div(Nx+TILE_DIM-1,TILE_DIM)
+blockdim_1D = TILE_DIM
+
+grid_info_GPU = grid_info(
+    griddim_1D,
+    blockdim_1D,
+    griddim_2D,
+    blockdim_2D
+)
+
+
 matrix_free_HA_GPU(idata_GPU,odata_GPU,coef_D,Nx,Ny,hx,hy)
 matrix_free_HA_GPU_v2(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v3(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,coef_D,Nx,Ny,hx,hy)
+matrix_free_HA_GPU_v4(idata_GPU,odata_GPU,odata_GPU_NSWE_tmp,grid_info_GPU,coef_D,Nx,Ny,hx,hy)
 
 # D2_matrix_free_p2(idata_GPU,odata_GPU)
 
