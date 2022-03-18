@@ -39,5 +39,5 @@ Base.:*(A::SizedStrangMatrix,B::AbstractVector) = (C = similar(B); mul!(C,A,B))
 
 
 
-U = gmres(A,B,tol=1e-14)
+U = gmres(A,B,reltol=1e-14)
 norm(A*U - B)
