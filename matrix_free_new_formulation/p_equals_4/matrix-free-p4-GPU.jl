@@ -64,8 +64,10 @@ end
 function matrix_free_D2_p4_GPU(idata,odata)
     (Nx,Ny) = size(idata)
     hx=hy = 1/(Nx-1)
-    TILE_DIM_1 = 16
-    TILE_DIM_2 = 16
+    #TILE_DIM_1 = 16
+    #TILE_DIM_2 = 16
+    TILE_DIM_1 = 32
+    TILE_DIM_2 = 32
     griddim = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
 	blockdim = (TILE_DIM_1,TILE_DIM_2)
     # coeff_d = cudaconvert(CuArray([-1/12 4/3 -5/2 4/3 -1/12]))

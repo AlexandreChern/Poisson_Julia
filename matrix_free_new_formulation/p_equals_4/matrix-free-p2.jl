@@ -8,14 +8,52 @@ function D2_split_dev_p2(idata,odata,coeff,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_
 
     global_index = (i-1)*Ny+j
 
-    if 0 <= i <= Nx && 1 <= j <= Ny
-        odata[i,j] = 0
-    end
+    # if 0 <= i <= Nx && 1 <= j <= Ny
+    #     odata[i,j] = 0
+    # end
 
     if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
-        odata[i,j] = (coeff[1] * idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+        @inbounds odata[i,j] = (coeff[1] * idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
     end 
 
+    nothing
+end
+
+function D2_split_dev_p2_v2(idata,odata,Nx,Ny,h,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+    # coeff = CuArray([1.0, 2.0, 1.0])
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+    # if 0 <= i <= Nx && 1 <= j <= Ny
+    #     odata[i,j] = 0
+    # end
+
+    if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
+        @inbounds odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+    end 
+
+    nothing
+end
+
+function matrix_free_D2_p2_GPU_kernel(idata,odata,Nx,Ny,hx,hy,::Val{TILE_DIM1},::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+    # if 0 <= i <= Nx && 1 <= j <= Ny
+    #     odata[i,j] = 0
+    # end
+
+    if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
+        @inbounds odata[i,j] = (idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) 
+    # removing calculation of division by hx^2
+    # output -H_tilde * D2
+    end
     nothing
 end
 

@@ -27,6 +27,7 @@ hy = h_list_y[j]
 if TEST_SPMV
     (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N) = Operators_2d(i,j,h_list_x,h_list_y;SBPp=4);
     (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+    @show Base.summarysize(A)
     A_GPU = CUDA.CUSPARSE.CuSparseMatrixCSC(A)
 end
 
@@ -36,8 +37,10 @@ odata = zeros(Nx,Ny)
 idata_flat = idata[:]
 
 D2_GPU = CUDA.CUSPARSE.CuSparseMatrixCSC(D2)
+H_D2_GPU = CUDA.CUSPARSE.CuSparseMatrixCSC(H_tilde*D2)
 idata_flat_GPU = CuArray(idata_flat)
 D2_GPU * idata_flat_GPU
+H_D2_GPU * idata_flat_GPU
 A_GPU * idata_flat_GPU
 
 matrix_free_D2_p4_split(idata,odata,Nx,Ny,hx,hy)
@@ -212,6 +215,10 @@ time_D2_p2 = @elapsed for _ in 1:repetitions
     D2_matrix_free_p2_GPU(idata_GPU,odata_GPU)
 end
 
+time_D2_SPMV = @elapsed for _ in 1:repetitions
+    D2_GPU*idata_flat_GPU
+ end
+
 @show time_D2_SPMV
 @show time_D2_p4
 @show time_D2_p2
@@ -225,6 +232,21 @@ through_put_matrix_free_p2 = (2*Nx*Ny*8 * repetitions)/ (1024^3 * time_D2_p2)
 @show through_put_matrix_free_p2
 
 
+
+t_SPMV = @elapsed for _ in 1:repetitions
+    A_GPU*idata_flat_GPU
+end
+@show t_SPMV
+
+t_SPMV_D2 = @elapsed for _ in 1:repetitions
+    D2_GPU * idata_flat_GPU
+end
+@show t_SPMV_D2
+
+t_SPMV_H_D2 = @elapsed for _ in 1:repetitions
+    H_D2_GPU * idata_flat_GPU
+end
+@show t_SPMV_H_D2
 
 t_SPMV = @elapsed for _ in 1:repetitions
     A_GPU*idata_flat_GPU
