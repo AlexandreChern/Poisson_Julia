@@ -56,14 +56,14 @@ interpolated_sol_2_initial_guess = zeros(Nx_2,Ny_2)
 matrix_free_prolongation_2d(sol_1,interpolated_sol_2_initial_guess)
 
 
-x_with_initial_guess, history_initial_guess = cg!(interpolated_sol_2_initial_guess[:],A2,b2;abstol=norm(b2)*sqrt(eps(real(eltype(b)))),log=true)
+x_with_initial_guess, history_initial_guess = cg!(interpolated_sol_2_initial_guess[:],A2,b2;abstol=norm(b2)*sqrt(eps(real(eltype(b2)))),log=true)
 
 @show history_initial_guess.iters 
 @show history_initial_guess.data[:resnorm]
 
 
 x_2_zero_initial_guess = zeros(Nx_2*Ny_2)
-x_zero_initialization, history_zero_initialization = cg!(x_2_zero_initial_guess,A2,b2;abstol=norm(b2)*sqrt(eps(real(eltype(b)))),log=true)
+x_zero_initialization, history_zero_initialization = cg!(x_2_zero_initial_guess,A2,b2;abstol=norm(b2)*sqrt(eps(real(eltype(b2)))),log=true)
 
 @show history_zero_initialization.iters
 @show history_zero_initialization.data[:resnorm]
@@ -74,14 +74,14 @@ interpolated_sol_2_one_level_interpolation = zeros(Nx_1,Ny_1)
 matrix_free_prolongation_2d(sol_0,interpolated_sol_2_one_level_interpolation)
 
 # using this initial guess for the CG
-x_with_initial_guess_one_level, history_initial_guess_one_level = cg!(interpolated_sol_2_one_level_interpolation[:],A1,b1;abstol=norm(b2)*sqrt(eps(real(eltype(b)))),log=true)
+x_with_initial_guess_one_level, history_initial_guess_one_level = cg!(interpolated_sol_2_one_level_interpolation[:],A1,b1;abstol=norm(b2)*sqrt(eps(real(eltype(b2)))),log=true)
 @show history_initial_guess_one_level.iters 
 @show history_initial_guess_one_level.data[:resnorm]
 
 # doing another interpolation using this result
 matrix_free_prolongation_2d(reshape(x_with_initial_guess_one_level,Nx_1,Ny_1),interpolated_sol_2_two_level_interpolation)
 
-x_with_initial_guess_two_level, history_initial_guess_two_level = cg!(interpolated_sol_2_two_level_interpolation[:],A2,b2;abstol=norm(b2)*sqrt(eps(real(eltype(b)))),log=true)
+x_with_initial_guess_two_level, history_initial_guess_two_level = cg!(interpolated_sol_2_two_level_interpolation[:],A2,b2;abstol=norm(b2)*sqrt(eps(real(eltype(b2)))),log=true)
 
 @show history_initial_guess_two_level.iters 
 @show history_initial_guess_two_level.data[:resnorm]

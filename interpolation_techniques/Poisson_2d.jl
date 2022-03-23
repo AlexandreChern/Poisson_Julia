@@ -3,7 +3,7 @@ include("diagonal_sbp.jl")
 using LinearAlgebra
 using SparseArrays
 using Plots
-using CUDA
+# using CUDA
 using IterativeSolvers
 using BenchmarkTools
 using MAT
