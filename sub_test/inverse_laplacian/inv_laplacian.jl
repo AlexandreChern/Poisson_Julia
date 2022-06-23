@@ -5,7 +5,7 @@ using Plots
 # pyplot()
 
 
-N = 65
+N = 80
 
 
 
@@ -47,6 +47,17 @@ for i in 1:N
     end
 end
 
+C= zeros(size(A))
+for i in 1:N
+    for j in 1:N
+        if abs(i-j) == 1
+            C[i,j] = 0.25
+        elseif i == j
+            C[i,j] = 0.75
+        end
+    end
+end
+
 # B_alternative = zeros(size(A))
 # for i in 1:N
 #     for j in 1:N
@@ -60,12 +71,22 @@ identity_matrix = sparse(I,N,N)
 
 A_x = kron(A,identity_matrix)
 B_x = kron(B,identity_matrix)
-
+C_x = kron(C,identity_matrix)
 
 A_y = kron(identity_matrix,A)
 B_y = kron(identity_matrix,B)
+C_y = kron(identity_matrix,C)
+
+A_xy = A_x + A_y
+B_xy = B_x + B_y
+C_xy = C_x + C_y
+
+cond(Matrix(A_xy))
+cond(Matrix(A_xy*B_xy))
+cond(Matrix(A_xy*C_xy))
 
 A_x*B_x
+
 
 x = randn(N)
 
