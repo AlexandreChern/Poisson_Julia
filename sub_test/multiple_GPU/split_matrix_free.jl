@@ -1,7 +1,7 @@
 using CUDA
 
 
-function matrix_free_A(idata,odata,Nx,Ny,::Val{TILE_DIM1}, ::Val{TILE_DIM2};type=1) where {TILE_DIM1, TILE_DIM2}
+function matrix_free_A(idata,odata,Nx,Ny,type,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
     tidx = threadIdx().x
     tidy = threadIdx().y
 
