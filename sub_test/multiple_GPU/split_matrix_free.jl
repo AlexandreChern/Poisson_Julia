@@ -10,7 +10,7 @@ function matrix_free_A(idata,odata,Nx,Ny,type,::Val{TILE_DIM1}, ::Val{TILE_DIM2}
 
     if type == 1
         if 1 <= i <= Nx && 1 <= j <= Ny
-            odata[i,j] = 0
+            odata[i,j] = 1
         end
 
         if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
