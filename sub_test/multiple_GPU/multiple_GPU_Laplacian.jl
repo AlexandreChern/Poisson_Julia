@@ -5,10 +5,12 @@ include("split_matrix_free.jl")
 
 gpus = Int(length(devices()))
 
-dims = (8,8)
+# dims = (1024,1024)
+dims = (16,16)
 
 Random.seed!(0)
-idata = randn(Float64,dims) .* 100
+idata = CuArray(randn(Float64,dims) .* 100)
+# idata = CuArray(idata)
 
 
 # CuArray doesn't support unified memory yet,
@@ -52,13 +54,20 @@ finalizer(d_gpu_out2) do _
     Mem.free(buf_gpu2)
 end
 
+# d_gpu1 = CuArray(zeros(dims1))
+# d_gpu2 = CuArray(zeros(dims2))
+# d_gpu_out1 = copy(d_gpu1)
+# d_gpu_out2 = copy(d_gpu2)
+
 
 # copyto!(d_gpu_out1,d_gpu1)
-copyto!(view(d_gpu1,:,1:dims1[2]),view(idata,:,1:dims1[2]))
-copyto!(view(d_gpu2,:,1:dims2[2]),view(idata,:,dims1[2]-1:dims1[2]-2+dims2[2]))
+# copyto!(view(d_gpu1,:,1:dims1[2]),view(idata,:,1:dims1[2]))
+# copyto!(view(d_gpu2,:,1:dims2[2]),view(idata,:,dims1[2]-1:dims1[2]-2+dims2[2]))
+copyto!(d_gpu1,view(idata,:,1:dims1[2]))
+copyto!(d_gpu2,view(idata,:,dims1[2]-1:dims1[2]-2+dims2[2]))
 
-display(d_gpu1)
-display(d_gpu2)
+# display(d_gpu1)
+# display(d_gpu2)
 
 Nx,Ny = size(idata)
 h = 1/(Nx-1)
@@ -76,10 +85,17 @@ idata_lists = [d_gpu1, d_gpu2]
 
 odata_lists = [d_gpu_out1, d_gpu_out2]
 
+# for _ in 1:100
 for (gpu, dev) in enumerate(devices())
     device!(dev)
     idata_lists[gpu] .+= gpu
     type = gpu
     _Nx,_Ny = size(idata_lists[gpu])
-    @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata_lists[gpu],odata_lists[gpu],_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    for _ in 1:2
+        @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata_lists[gpu],odata_lists[gpu],_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
+        synchronize()
+        # odata_lists[gpu] .= idata_lists[gpu] .+ gpu
+    end
+    synchronize()
 end
+# end
