@@ -5,12 +5,17 @@ include("split_matrix_free.jl")
 
 gpus = Int(length(devices()))
 
+dims = (2048,2048)
 # dims = (1024,1024)
-dims = (16,16)
+# dims = (16,16)
+
+
 
 Random.seed!(0)
 idata = CuArray(randn(Float64,dims) .* 100)
 # idata = CuArray(idata)
+
+odata = CuArray(randn(Float64,dims) .* 100)
 
 
 # CuArray doesn't support unified memory yet,
@@ -91,7 +96,7 @@ for (gpu, dev) in enumerate(devices())
     idata_lists[gpu] .+= gpu
     type = gpu
     _Nx,_Ny = size(idata_lists[gpu])
-    for _ in 1:2
+    for _ in 1:20000
         @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata_lists[gpu],odata_lists[gpu],_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
         synchronize()
         # odata_lists[gpu] .= idata_lists[gpu] .+ gpu
@@ -99,3 +104,7 @@ for (gpu, dev) in enumerate(devices())
     synchronize()
 end
 # end
+
+for _ in 1:20000
+    @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata,odata,Nx,Ny,Val(TILE_DIM_1), Val(TILE_DIM_2))
+end
