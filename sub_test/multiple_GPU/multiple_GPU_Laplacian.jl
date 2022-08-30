@@ -196,12 +196,45 @@ t5 = @elapsed @sync begin
     end
 end
 
+t5_new = @elapsed @sync begin
+   Threads.@spawn begin
+        device!(0)
+        for _ in 1:200000
+            # copyto!(odata_lists[1],idata_lists[1])
+            copyto!(d_gpu_out1,d_gpu1)
+        end
+    end
+    Threads.@spawn begin
+        device!(1)
+        for _ in 1:200000
+            # copyto!(odata_lists[2],idata_lists[2])
+            copyto!(d_gpu_out2,d_gpu2)
+        end
+    end
+end
+
+
+# t5_new = @elapsed @sync begin # bad way to do stuffs
+#     for _ in 1:2000
+#         @async begin
+#         device!(0)
+#         # copyto!(odata_lists[1],idata_lists[1])
+#         copyto!(d_gpu_out1,d_gpu1)
+#         end
+#         @async begin
+#         device!(1)
+#             # copyto!(odata_lists[2],idata_lists[2])
+#         copyto!(d_gpu_out2,d_gpu2)
+#         end
+#     end
+# end
+
 
 
 t6 = @elapsed @sync begin
     @async begin
         device!(0)
-        for _ in 1:10000
+        for _ in 1:200000
             # copyto!(odata_lists[1],idata_lists[1])
             copyto!(d_gpu_out1,d_gpu1)
         end
@@ -231,10 +264,10 @@ idata_gpu = CuArray(randn(2048,2048))
 odata_gpu = CuArray(randn(2048,2048))
 
 t8 = @elapsed begin
-    for _ in 1:200000
+    for _ in 1:20000
         copyto!(odata,idata)
     end
 end 
 
 
-Through_put8 = (sizeof(idata_gpu) + sizeof(odata_gpu))*200000/(1024^3*t8)
+Through_put8 = (sizeof(idata_gpu) + sizeof(odata_gpu))*20000/(1024^3*t8)
