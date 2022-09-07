@@ -1,5 +1,43 @@
 using CUDA
 
+function copy_kernel(idata,odata,Nx,Ny,::Val{TILE_DIM1},::Val{TILE_DIM2}) where {TILE_DIM1,TILE_DIM2}
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+    if 1 <= i <= Nx && 1 <= j <= Ny
+        odata[i,j] = idata[i,j]
+    end
+    return nothing
+end
+
+function copy_kernel2(idata,odata,Nx,Ny,::Val{TILE_DIM1},::Val{TILE_DIM2}) where {TILE_DIM1,TILE_DIM2}
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    i = (blockIdx().x - 1) * TILE_DIM1 + tidx
+    j = (blockIdx().y - 1) * TILE_DIM2 + tidy
+
+    if 1 <= i <= Nx && 1 <= j <= Ny
+        odata[i,j] = idata[i,j]
+    end
+    return nothing
+end
+
+function copy_kernel3(idata,odata,Nx,Ny)
+    tidx = threadIdx().x
+    tidy = threadIdx().y
+
+    i = (blockIdx().x - 1) * blockDim().x + tidx
+    j = (blockIdx().y - 1) * blockDim().y + tidy
+
+    if 1 <= i <= Nx && 1 <= j <= Ny
+        odata[i,j] = idata[i,j]
+    end
+    return nothing
+end
 
 function matrix_free_A(idata,odata,Nx,Ny,type,::Val{TILE_DIM1}, ::Val{TILE_DIM2}) where {TILE_DIM1, TILE_DIM2}
     tidx = threadIdx().x

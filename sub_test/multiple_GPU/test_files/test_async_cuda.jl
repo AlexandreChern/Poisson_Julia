@@ -56,8 +56,9 @@ function main(N=1024)
     # make sure this data can be used by other tasks!
     synchronize()
 
-    # run_v2(a, b)
-    run(a,b)
+    run_v2(a, b)
+    # run(a,b)
 end
 
 main()
+

@@ -1,7 +1,11 @@
 using CUDA
 using Random
+using Distributed
+
+@everywhere using CUDA
 devices()
 include("split_matrix_free.jl")
+@everywhere include("split_matrix_free.jl")
 
 gpus = Int(length(devices()))
 
@@ -122,12 +126,121 @@ gpu = 1
 type = gpu
 _Nx,_Ny = size(idata_lists[gpu])
 # for _ in 1:100
+
+
+t0 = @elapsed for _ in 1:20000
+    device!(0)
+    @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata_lists[gpu],odata_lists[gpu],_Nx,_Ny,type,Val(TILE_DIM_1),Val(TILE_DIM_2))
+    # @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata_lists[gpu],odata_lists[gpu],_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    synchronize()
+end
+
+@elapsed for _ in 1:20000
+    device!(0)
+    _Nx,_Ny = size(idata)
+    TILE_DIM_1 = TILE_DIM_2 = 16
+    griddim_2d = (div(_Nx,TILE_DIM_1) + 1, div(_Ny,TILE_DIM_2) + 1)
+    blockdim_2d = (TILE_DIM_1,TILE_DIM_2)
+    # @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel(idata,odata,_Nx,_Ny,Val(TILE_DIM_1),Val(TILE_DIM_2))
+    @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel3(idata,odata,_Nx,_Ny)
+    synchronize()
+end
+
+@elapsed @sync begin
+    Threads.@spawn begin
+        device!(0)
+        _Nx,_Ny = size(d_gpu_out1)
+        TILE_DIM_1 = TILE_DIM_2 = 16
+        griddim_2d = (div(_Nx,TILE_DIM_1) + 1, div(_Ny,TILE_DIM_2) + 1)
+        blockdim_2d = (TILE_DIM_1,TILE_DIM_2)
+        for _ in 1:20000
+            # @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel(d_gpu1,d_gpu_out1,_Nx,_Ny,Val(TILE_DIM_1), Val(TILE_DIM_2))
+            @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel3(d_gpu1,d_gpu_out1,_Nx,_Ny)
+        end
+    end
+    Threads.@spawn begin
+        device!(1)
+        _Nx,_Ny = size(d_gpu_out2)
+        TILE_DIM_1 = TILE_DIM_2 = 16
+        griddim_2d = (div(_Nx,TILE_DIM_1) + 1, div(_Ny,TILE_DIM_2) + 1)
+        blockdim_2d = (TILE_DIM_1,TILE_DIM_2)
+        for _ in 1:20000
+            # @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel2(d_gpu2,d_gpu_out2,_Nx,_Ny,Val(TILE_DIM_1), Val(TILE_DIM_2))
+            @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel3(d_gpu2,d_gpu_out2,_Nx,_Ny)
+        end
+    end
+end
+
+@elapsed @sync begin
+    @async begin
+        device!(0)
+        _Nx,_Ny = size(d_gpu_out1)
+        TILE_DIM_1 = TILE_DIM_2 = 16
+        griddim_2d = (div(_Nx,TILE_DIM_1) + 1, div(_Ny,TILE_DIM_2) + 1)
+        blockdim_2d = (TILE_DIM_1,TILE_DIM_2)
+        for _ in 1:20000
+            # @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel(d_gpu1,d_gpu_out1,_Nx,_Ny,Val(TILE_DIM_1), Val(TILE_DIM_2))
+            # @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel3(d_gpu1,d_gpu_out1,_Nx,_Ny)
+            d_gpu_out1 .= d_gpu1
+        end
+    end
+    @async begin
+        device!(1)
+        _Nx,_Ny = size(d_gpu_out2)
+        TILE_DIM_1 = TILE_DIM_2 = 16
+        griddim_2d = (div(_Nx,TILE_DIM_1) + 1, div(_Ny,TILE_DIM_2) + 1)
+        blockdim_2d = (TILE_DIM_1,TILE_DIM_2)
+        for _ in 1:20000
+            # @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel2(d_gpu2,d_gpu_out2,_Nx,_Ny,Val(TILE_DIM_1), Val(TILE_DIM_2))
+            # @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel3(d_gpu2,d_gpu_out2,_Nx,_Ny)
+            d_gpu_out2 .= d_gpu2
+        end
+    end
+end
+
+@elapsed @sync begin
+    @spawn begin
+        device!(0)
+        for _ in 1:20000
+            @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel(d_gpu1,d_gpu_out1,_Nx,_Ny,Val(TILE_DIM_1), Val(TILE_DIM_2))
+        end
+    end
+    @spawn begin
+        device!(1)
+        for _ in 1:20000
+            @cuda threads=blockdim_2d blocks=griddim_2d copy_kernel(d_gpu2,d_gpu_out2,_Nx,_Ny,Val(TILE_DIM_1), Val(TILE_DIM_2))
+        end
+    end
+end
+
+t0 = @elapsed for _ in 1:50000
+    device!(0)
+    @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata_lists[gpu],odata_lists[gpu],_Nx,_Ny,type,Val(TILE_DIM_1),Val(TILE_DIM_2))
+    # @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata_lists[gpu],odata_lists[gpu],_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
+    synchronize()
+end
+
+@elapsed @sync begin
+    @async begin
+        device!(0)
+        for _ in 1:1000
+            @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(d_gpu1,d_gpu_out1,_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
+        end
+    end
+    @async begin
+        device!(1)
+        for _ in 1:1000
+            @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(d_gpu2,d_gpu_out2,_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
+        end
+    end
+end
+
 t1 = @elapsed  for (gpu, dev) in enumerate(devices())
     device!(dev)
     # idata_lists[gpu] .+= gpu
     # type = gpu
     # _Nx,_Ny = size(idata_lists[gpu])
-    for _ in 1:100000
+    for _ in 1:10000
         @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata_lists[gpu],odata_lists[gpu],_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
         # synchronize()
         # odata_lists[gpu] .= idata_lists[gpu] .+ gpu
@@ -149,14 +262,41 @@ end
     end
 end
 
+# asyncmap((zip(workers(), devices()))) do (p, d)
+#     remotecall_wait(p) do
+#         @info "Worker $p uses $d"
+#         device!(d)
+#         gpu = deviceid(d) + 1
+#         @show gpu
+#         # type = gpu
+#         for _ in 1:10000
+#             # @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(idata_lists[gpu],odata_lists[gpu],_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
+#             odata_lists[gpu] .= idata_lists[gpu]
+#         end
+#     end
+# end
+
+# asyncmap((zip(workers(), devices()))) do (p, d)
+#     remotecall_wait(p) do
+#         @info "Worker $p uses $d"
+#         device!(d)
+#         gpu = deviceid(d) + 1
+#         @info gpu
+#         # type = gpu
+#         # @info CUDA.device(odata_lists[gpu]), CUDA.device(idata_lists[gpu])
+#         # odata_lists[gpu]
+#     end
+# end
+
+
 @elapsed @sync begin
-    @sync begin
+    @async begin
         device!(0)
         for _ in 1:10000
             @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(d_gpu1,d_gpu_out1,_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))
         end
     end
-    @sync begin
+    @async begin
         device!(1)
         for _ in 1:10000
             @cuda threads=blockdim_2d blocks=griddim_2d matrix_free_A(d_gpu2,d_gpu_out2,_Nx,_Ny,type,Val(TILE_DIM_1), Val(TILE_DIM_2))

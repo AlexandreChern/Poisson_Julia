@@ -47,6 +47,13 @@ for (gpu, dev) in enumerate(devices())
     @views d_c[:, :, gpu] .= d_a[:, :, gpu] .+ d_b[:, :, gpu]
 end
 
+for (gpu, dev) in enumerate(devices())
+    device!(dev)
+    for _ in 1:1000
+        @views d_c[:, :, gpu] .= d_a[:, :, gpu] .+ d_b[:, :, gpu]
+    end
+end
+
 for dev in devices()
 
     # NOTE: normally you'd use events and wait for them
