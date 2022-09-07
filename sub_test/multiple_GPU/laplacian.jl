@@ -1,5 +1,20 @@
 using CUDA
 
+##################################################################################
+#   Orientation in 2D:     #       Types of sub-domains
+#   West: 1, East: 3       #       Leftmost: 1  Interior: 2 Rightmost: 3
+#   South: 2, North: 4     #       
+#                          #
+#   ###### 4 ######        #       #########################################
+#   #             #        #       #     |     |     |               |     #
+#   #             #        #       #     |     |     |               |     #
+#   1             3        #       #  1  |  2  | ... |               |  3  #
+#   #             #        #       #     |     |     |               |     #
+#   #             #        #       #     |     |     |               |     #
+#   ###### 2 ######        #       #########################################
+#                          #
+##################################################################################
+
 function copy_kernel(idata,odata,Nx,Ny)
     tidx = threadIdx().x
     tidy = threadIdx().y
@@ -54,7 +69,39 @@ function laplacian_kernel(idata,odata,Nx,Ny)
 end
 
 
-function boundary(idata,odata)
-
+function boundary(idata,odata;orientation=1,type=1)
+    Nx,Ny = size(idata)
+    h = 1/(Nx-1)
+    TILE_DIM_1D = 16
+    blockdim_1D = TILE_DIM_1D
+    griddim_1D = div(Nx,TILE_DIM_1D) + 1
+    boundary_kernel = boundary_kernels[orientation,type]
+    @cuda threads=blockdim_1D blocks=griddim_1D boundary_kernel_1_1(idata,odata,Nx,Ny)
 end
 
+
+
+
+function boundary_kernel_1_1(idata,odata,Nx,Ny)
+    tidx = threadIdx().x
+    i = (blockIdx().x - 1) * blockDim().x + tidx
+
+    if 1 <= i <= Nx
+        # odata[i,1] .= 1
+        # odata[i,2] .= 2
+        odata[i,1] = 1
+        # odata[i,2] = 2
+    end
+    return nothing
+end
+
+boundary_kernels = [boundary_kernel_1_1,]
+
+
+function
+
+
+# boundary_1 = CuArray(randn(10,3))
+# boundary_1_out = CuArray(zeros(10,3))
+
+# boundary(boundary_1,view(boundary_1_out,:,1);orientation=1)
