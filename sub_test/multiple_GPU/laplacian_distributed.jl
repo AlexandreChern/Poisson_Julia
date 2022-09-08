@@ -25,7 +25,7 @@ end
 gpu_devices = Dict(enumerate(devices()))
 gpu_processes = Dict(zip(workers(), CUDA.devices()))
 
-# @everywhere dim_x = dim_y = 8192
+@everywhere dim_x = dim_y = 2^10
 # @everywhere dim_x = dim_y = 16384
 # @everywhere dim_x = dim_y = 2^15 # 32768
 @everywhere dims = (dim_x,dim_y)
