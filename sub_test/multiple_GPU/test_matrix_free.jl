@@ -26,16 +26,38 @@ idata_GPU = CuArray(idata_cpu)
 odata_GPU = CuArray(zeros(size(idata_GPU)))
 
 
+
+
+
+# odata_boundars_GPUs = [
+#     CuArray(zeros(Nx,3)) CuArray(zeros(1,size(idata_GPUs[1])[2])) CuArray(zeros(1,size(idata_GPUs[1])[2])),
+#     CuArray(zeros(Nx,3)) CuArray(zeros(1,size(idata_GPUs[end])[2])) CuArray(zeros(1,size(idata_GPUs[end])[2]))
+# ] 
+
 # laplacian_GPU(idata_GPU,odata_GPU)
 
 laplacian_GPU_v2(idata_GPU,odata_GPU,coef_p2_D)
-
+laplacian_GPU_v2(idata_GPUs[1],odata_GPUs[1],coef_p2_D)
+laplacian_GPU_v2(idata_GPUs[2],odata_GPUs[2],coef_p2_D)
+laplacian_GPU_v2(idata_GPUs[3],odata_GPUs[3],coef_p2_D)
 
 odata_GPU_1_1 = CuArray(zeros(Nx,3))
 odata_GPU_3_3 = CuArray(zeros(Nx,3))
+odata_GPU_2_1 = CuArray(zeros(3,Ny))
+odata_GPU_4_1 = CuArray(zeros(3,Ny))
 
 boundary(idata_GPU,odata_GPU_1_1,coef_p2_D;orientation=1,type=1)
 boundary(idata_GPU,odata_GPU_3_3,coef_p2_D;orientation=3,type=3)
+boundary(idata_GPU,odata_GPU_2_1,coef_p2_D;orientation=2,type=1)
+boundary(idata_GPU,odata_GPU_4_1,coef_p2_D;orientation=4,type=1)
+
+boundary(idata_GPUs[1],odata_GPUs[1],coef_p2_D;orientation=4,type=1)
+
+odata_GPU[1,:] .+= odata_GPU_2_1[1,:]
+odata_GPU[:,1:3] .+= odata_GPU_1_1[:,1:3]
+odata_GPU[:,end-2:end] .+= odata_GPU_3_3[:,1:3]
+
+odata_boundars_GPUs = []
 
 let 
     level = 3

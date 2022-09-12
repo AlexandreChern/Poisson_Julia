@@ -84,7 +84,8 @@ function laplacian_kernel_v2(idata,odata,coef_D)
     tidx = threadIdx().x
     tidy = threadIdx().y
     Nx = coef_D.grid[1]
-    Ny = coef_D.grid[2]
+    # Ny = coef_D.grid[2]
+    Ny = size(odata)[2]
     hx = coef_D.grid[3]
     hy = coef_D.grid[4]
     i = (blockIdx().x - 1) * blockDim().x + tidx
@@ -140,16 +141,50 @@ function boundary_kernel_1_1(idata,odata,coef_D)
         odata[idx,3] = (0.5 * beta * idata[idx,1])
     end
     sync_threads()
-    if idx == 1 || idx == Nx
-        odata[idx,1] =  (2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * (idata[idx,1]) * h )/ 4
-        odata[idx,2] = (2 * beta * (-1 * idata[idx,1])) / 2
-        odata[idx,3] = (0.5 * beta * idata[idx,1]) / 2
-    end
+    # if idx == 1 || idx == Nx
+    #     odata[idx,1] =  (2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * (idata[idx,1]) * h )/ 4
+    #     odata[idx,2] = (2 * beta * (-1 * idata[idx,1])) / 2
+    #     odata[idx,3] = (0.5 * beta * idata[idx,1]) / 2
+    # end
     return nothing
 end
 
 
 function boundary_kernel_2_1(idata,odata,coef_D)
+    tidx = threadIdx().x
+    idx = (blockIdx().x - 1) * blockDim().x + tidx
+    Ny = coef_D.grid[2]
+    h = coef_D.grid[4]
+    tau_S = coef_D.sat[3]
+    tau_W = coef_D.sat[1]
+    beta = coef_D.sat[5]
+    if 4 <= idx <= Ny - 3
+        odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
+    end
+    if idx == 1
+        odata[1,idx] = (-(idata[1,idx] - 2*idata[1,idx+1] + idata[1,idx+2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx])
+                        + 2 * tau_S * (( 1.5* idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) ) / 4 
+                        # + 2 * beta * (1.5 * idata[1,idx]) + 2 * tau_W * (idata[1,idx])) * h / 4 
+
+                       
+        odata[1,idx+1] = (-(idata[1,idx+1] - 2*idata[2,idx+1] + idata[3,idx+1] + idata[1,idx] - 2*idata[1,idx+1] + idata[1,idx+2]) + 2 * tau_S * (1.5 * idata[1,idx+1] - 2*idata[2,idx+1] + 0.5*idata[3,idx+1]))/2
+                        # + 2 * beta * (-1 * idata[1,idx])) / 2  # Dirichlet
+
+        odata[1,idx+2] = (-(idata[1,idx+2] - 2*idata[2,idx+2] + idata[3,idx+2] + idata[1,idx+1] - 2*idata[1,idx+2] + idata[1,idx+3]) + 2 * tau_S * (1.5 * idata[1,idx+2] - 2*idata[2,idx+2] + 0.5*idata[3,idx+2]))/2
+                        # + 0.5 * beta * (idata[1,idx])) / 2# Dirichlet
+
+    end
+    # sync_threads()
+    # if idx == Ny
+    #     odata[1,idx] = (-(idata[1,idx] - 2*idata[1,idx-1] + idata[1,idx-2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx])
+    #                     + 2 * tau_S * (( 1.5* idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx]))  ) / 4 
+    #                     # + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha2 * (idata[3,idx]) * h
+                       
+    #     odata[1,idx-1] = (-(idata[1,idx-1] - 2*idata[2,idx-1] + idata[3,idx-1] + idata[1,idx-2] - 2*idata[1,idx-1] + idata[1,idx]) + 2 * tau_S * (1.5 * idata[1,idx-1] - 2*idata[2,idx-1] + 0.5*idata[3,idx-1])) / 2 # Dirichlet
+    #                     # (2 * beta * (-1 * idata[3,idx])) / 2 +
+    #     odata[1,idx-2] =  (-(idata[1,idx-2] - 2*idata[2,idx-2] + idata[3,idx-2] + idata[1,idx-3] - 2*idata[1,idx-2] + idata[1,idx-1]) + 2 * tau_S * (1.5 * idata[1,idx-2] - 2*idata[2,idx-2] + 0.5*idata[3,idx-2])) / 2# Dirichlet
+    #                     # (0.5 * beta * (idata[3,idx])) / 2 +
+    # end
     return nothing
 end
 
@@ -158,6 +193,29 @@ function boundary_kernel_3_1(idata,odata,coef_D)
 end
 
 function boundary_kernel_4_1(idata,odata,coef_D)
+    tidx = threadIdx().x
+    idx = (blockIdx().x - 1) * blockDim().x + tidx
+    # Ny = coef_D.grid[2]
+    Ny = size(odata)[2]
+    h = coef_D.grid[4]
+    tau_N = coef_D.sat[4]
+    beta = coef_D.sat[5]
+
+    if 4 <= idx <= Ny - 3
+        odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
+    end
+
+    if idx == 1
+        odata[end,idx] = (-(idata[end,idx] - 2*idata[end,idx+1] + idata[end,idx+2] + idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx])
+        + 2 * tau_N * (( 1.5* idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx]))  ) / 4 
+        # + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha1 * (idata[3,idx]) * h
+       
+        odata[end,idx+1] = (-(idata[end,idx+1] - 2*idata[end-1,idx+1] + idata[end-2,idx+1] + idata[end,idx] - 2*idata[end,idx+1] + idata[end,idx+2]) + 2 * tau_N * (1.5 * idata[end,idx+1] - 2*idata[end-1,idx+1] + 0.5*idata[end-2,idx+1])) / 2  # Dirichlet
+        #   (2 * beta * (-1 * idata[3,idx])) / 2  
+        odata[end,idx+2] = (-(idata[end,idx+2] - 2*idata[end-1,idx+2] + idata[end-2,idx+2] + idata[end,idx+1] - 2*idata[end,idx+2] + idata[end,idx+3]) + 2 * tau_N * (1.5 * idata[end,idx+2] - 2*idata[end-1,idx+2] + 0.5*idata[end-2,idx+2])) / 2# Dirichlet
+        #  (0.5 * beta * (idata[3,idx])) / 2 +
+    end
+
     return nothing
 end
 
@@ -249,7 +307,7 @@ struct coef_GPU_sbp_sat{T}
     bd::T
     BS::T
     grid::T # Nx, Ny, hx, hy
-    sat::T # tau_W, tau_E, tau_N, tau_S, beta
+    sat::T # tau_W, tau_E, tau_S, tau_N, beta
 end
 
 Adapt.@adapt_structure coef_GPU
@@ -284,3 +342,93 @@ coef_p2_D = cudaconvert(coef_p2)
 # boundary_1_out = CuArray(zeros(10,3))
 
 # boundary(boundary_1,view(boundary_1_out,:,1);orientation=1)
+
+
+# function allocate_boundaries_GPU(type,Nx,)
+#     if type == 1
+#         boundaries_GPUs = [CuArray()]
+#     end
+# end
+
+
+function allocate_GPU_arrays(;num_blocks=length(devices()))
+    # num_blocks = length(devices())
+    # num_blocks = 3
+    sub_block_width = div(Ny,num_blocks)
+
+    y_indeces = 1:sub_block_width:Ny
+
+    # odata_GPUs = Array(undef,0,num_blocks)
+
+    # odata_GPUs = [CuArray(zeros(Nx,sub_block_width)) for i in 1:num_blocks]
+    # odata_GPUs[end] = CuArray(zeros(Nx,Ny-sub_block_width*(num_blocks-1)))
+
+    # Setting up idata_GPUs
+    idata_GPUs = [CuArray(zeros(Nx,sub_block_width)) for i in 1:num_blocks]
+    idata_GPUs[1] = CuArray(zeros(Nx,size(idata_GPUs[1])[2]+1))
+    idata_GPUs[end] = CuArray(zeros(Nx,size(idata_GPUs[end])[2]+1))
+    if length(idata_GPUs) >= 3
+        for i = 2:num_blocks-1
+            idata_GPUs[i] = CuArray(zeros(Nx,size(idata_GPUs[i])[2]+2))
+        end
+    end
+
+    copyto!(idata_GPUs[1],idata_GPU[:,1:y_indeces[2]])
+    copyto!(idata_GPUs[end],idata_GPU[:,end-size(idata_GPUs[end])[2]+1:end])
+
+    if length(idata_GPUs) >= 3
+        for i = 2:num_blocks-1
+            copyto!(idata_GPUs[i],idata_GPU[:,y_indeces[i]-1:y_indeces[i+1]])
+        end
+    end
+
+    # Setting up odata_GPUs
+    odata_GPUs = [CuArray(zeros(Nx,sub_block_width)) for i in 1:num_blocks]
+    odata_GPUs[1] = CuArray(zeros(Nx,size(odata_GPUs[1])[2]+1))
+    odata_GPUs[end] = CuArray(zeros(Nx,size(odata_GPUs[end])[2]+1))
+    if length(idata_GPUs) >= 3
+        for i = 2:num_blocks-1
+            odata_GPUs[i] = CuArray(zeros(Nx,size(odata_GPUs[i])[2]+2))
+        end
+    end
+
+
+    odata_boundaries_GPUs = [CuArray(zeros(Nx,3)), CuArray(zeros(1,size(odata_GPUs[1])[2])),CuArray(zeros(1,size(odata_GPUs[1])[2]))]
+    for i in 2:num_blocks-1
+        append!(odata_boundaries_GPUs,[CuArray(zeros(1,size(odata_GPUs[i])[2])), CuArray(zeros(1,size(odata_GPUs[i])[2]))])
+    end
+    append!(odata_boundaries_GPUs,[CuArray(zeros(1,size(odata_GPUs[end])[2])), CuArray(zeros(Nx,3)), CuArray(zeros(1,size(odata_GPUs[end])[2]))])
+
+    return idata_GPUs, odata_GPUs, odata_boundaries_GPUs
+end
+
+
+function find_boundaries_GPUs(orientation,block_idx,num_blocks)
+    idx = 0
+    if block_idx == 1
+        if orientation == 1
+            idx = 1
+        elseif orientation == 2
+            idx = 2
+        elseif orientation == 4
+            idx = 3
+        end
+    elseif 2 <= block_idx <= num_blocks-1
+        if orientation == 2
+            idx = (block_idx - 2) * 2 + 3 + 1
+        elseif orientation == 4
+            idx = (block_idx - 2) * 2 + 3 + 1
+        end
+    elseif block_idx == num_blocks
+        if orientation == 2
+            idx = block_idx * 2
+        elseif orientation == 3
+            idx = block_idx * 2 + 1
+        elseif orientation == 4
+            idx = block_idx * 2 + 2
+        end
+    end
+    return idx
+end
+
+idata_GPUs, odata_GPUs, odata_boundaries_GPUs = allocate_GPU_arrays()
