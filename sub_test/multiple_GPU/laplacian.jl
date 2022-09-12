@@ -202,7 +202,7 @@ function boundary_kernel_4_1(idata,odata,coef_D)
     tau_N = coef_D.sat[4]
     beta = coef_D.sat[5]
 
-    if 4 <= idx <= Ny - 3
+    if 4 <= idx <= Ny - 1
         odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
     end
 
@@ -272,7 +272,8 @@ function boundary_kernel_2_3(idata,odata,coef_D)
     tau_W = coef_D.sat[1]
     beta = coef_D.sat[5]
     if 2 <= idx <= Ny - 3
-        odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
+        odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) 
+                    + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
     end
     # if idx == 1
     #     odata[1,idx] = (-(idata[1,idx] - 2*idata[1,idx+1] + idata[1,idx+2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx])
@@ -293,9 +294,11 @@ function boundary_kernel_2_3(idata,odata,coef_D)
                         + 2 * tau_S * (( 1.5* idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx]))  ) / 4 
                         # + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha2 * (idata[3,idx]) * h
                        
-        odata[1,idx-1] = (-(idata[1,idx-1] - 2*idata[2,idx-1] + idata[3,idx-1] + idata[1,idx-2] - 2*idata[1,idx-1] + idata[1,idx]) + 2 * tau_S * (1.5 * idata[1,idx-1] - 2*idata[2,idx-1] + 0.5*idata[3,idx-1])) / 2 # Dirichlet
+        odata[1,idx-1] = (-(idata[1,idx-1] - 2*idata[2,idx-1] + idata[3,idx-1] + idata[1,idx-2] - 2*idata[1,idx-1] + idata[1,idx]) 
+                        + 2 * tau_S * (1.5 * idata[1,idx-1] - 2*idata[2,idx-1] + 0.5*idata[3,idx-1])) / 2 # Dirichlet
                         # (2 * beta * (-1 * idata[3,idx])) / 2 +
-        odata[1,idx-2] =  (-(idata[1,idx-2] - 2*idata[2,idx-2] + idata[3,idx-2] + idata[1,idx-3] - 2*idata[1,idx-2] + idata[1,idx-1]) + 2 * tau_S * (1.5 * idata[1,idx-2] - 2*idata[2,idx-2] + 0.5*idata[3,idx-2])) / 2# Dirichlet
+        odata[1,idx-2] =  (-(idata[1,idx-2] - 2*idata[2,idx-2] + idata[3,idx-2] + idata[1,idx-3] - 2*idata[1,idx-2] + idata[1,idx-1]) 
+                        + 2 * tau_S * (1.5 * idata[1,idx-2] - 2*idata[2,idx-2] + 0.5*idata[3,idx-2])) / 2# Dirichlet
                         # (0.5 * beta * (idata[3,idx])) / 2 +
     end
     return nothing
@@ -325,12 +328,37 @@ function boundary_kernel_3_3(idata,odata,coef_D)
 end
 
 function boundary_kernel_4_3(idata,odata,coef_D)
+    tidx = threadIdx().x
+    idx = (blockIdx().x - 1) * blockDim().x + tidx
+    # Ny = coef_D.grid[2]
+    Ny = size(odata)[2]
+    h = coef_D.grid[4]
+    tau_N = coef_D.sat[4]
+    beta = coef_D.sat[5]
+
+    if 2 <= idx <= Ny - 3
+        odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) 
+                    + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
+    end
+
+    if idx == Ny
+        odata[end,idx] = (-(idata[end,idx] - 2*idata[end,idx-1] + idata[end,idx-2] + idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx])
+        + 2 * tau_N * (( 1.5* idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx]))  ) / 4 
+        # + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha1 * (idata[3,idx]) * h
+       
+        odata[end,idx-1] = (-(idata[end,idx-1] - 2*idata[end-1,idx-1] + idata[end-2,idx-1] + idata[end,idx-2] - 2*idata[end,idx-1] + idata[end,idx]) 
+                        + 2 * tau_N * (1.5 * idata[end,idx-1] - 2*idata[end-1,idx-1] + 0.5*idata[end-2,idx-1])) / 2  # Dirichlet
+        #   (2 * beta * (-1 * idata[3,idx])) / 2  
+        odata[end,idx-2] = (-(idata[end,idx-2] - 2*idata[end-1,idx-2] + idata[end-2,idx-2] + idata[end,idx-3] - 2*idata[end,idx-2] + idata[end,idx-1]) 
+                        + 2 * tau_N * (1.5 * idata[end,idx-2] - 2*idata[end-1,idx-2] + 0.5*idata[end-2,idx-2])) / 2# Dirichlet
+        #  (0.5 * beta * (idata[3,idx])) / 2 +
+    end
     return nothing
 end
 
 boundary_kernels = [boundary_kernel_1_1 boundary_kernel_2_1 boundary_kernel_3_1 boundary_kernel_4_1;
-boundary_kernel_2_1 boundary_kernel_2_2 boundary_kernel_3_2 boundary_kernel_4_2;
-boundary_kernel_3_1 boundary_kernel_3_2 boundary_kernel_3_3 boundary_kernel_4_3
+boundary_kernel_1_2 boundary_kernel_2_2 boundary_kernel_3_2 boundary_kernel_4_2;
+boundary_kernel_1_3 boundary_kernel_2_3 boundary_kernel_3_3 boundary_kernel_4_3
 ]
 
 

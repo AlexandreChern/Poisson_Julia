@@ -64,7 +64,8 @@ boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(4,1,num_blocks
 boundary(idata_GPUs[2],odata_boundaries_GPUs[find_boundaries_GPUs(2,2,num_blocks)],coef_p2_D;orientation=2,type=2)
 boundary(idata_GPUs[2],odata_boundaries_GPUs[find_boundaries_GPUs(4,2,num_blocks)],coef_p2_D;orientation=4,type=2)
 boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(3,3,num_blocks)],coef_p2_D;orientation=3,type=3)
-
+boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(2,3,num_blocks)],coef_p2_D;orientation=2,type=3)
+boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(4,3,num_blocks)],coef_p2_D;orientation=4,type=3)
 let 
     level = 4
     i = j = level
