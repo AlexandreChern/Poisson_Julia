@@ -150,7 +150,7 @@ function boundary_kernel_1_1(idata,odata,coef_D)
 end
 
 
-function boundary_kernel_2_1(idata,odata,coef_D)
+function boundary_kernel_1_2(idata,odata,coef_D)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
     # Ny = coef_D.grid[2]
@@ -189,11 +189,11 @@ function boundary_kernel_2_1(idata,odata,coef_D)
     return nothing
 end
 
-function boundary_kernel_3_1(idata,odata,coef_D)
+function boundary_kernel_1_3(idata,odata,coef_D)
     return nothing
 end
 
-function boundary_kernel_4_1(idata,odata,coef_D)
+function boundary_kernel_1_4(idata,odata,coef_D)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
     # Ny = coef_D.grid[2]
@@ -220,7 +220,8 @@ function boundary_kernel_4_1(idata,odata,coef_D)
     return nothing
 end
 
-function boundary_kernel_1_2(idata,odata,coef_D)
+function boundary_kernel_2_1(idata,odata,coef_D)
+    # This function should be empty
     return nothing
 end
 
@@ -239,11 +240,12 @@ function boundary_kernel_2_2(idata,odata,coef_D)
     return nothing
 end
 
-function boundary_kernel_3_2(idata,odata,coef_D)
+function boundary_kernel_2_3(idata,odata,coef_D)
+    # This function should be empty
     return nothing
 end
 
-function boundary_kernel_4_2(idata,odata,coef_D)
+function boundary_kernel_2_4(idata,odata,coef_D)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
     # Ny = coef_D.grid[2]
@@ -258,11 +260,11 @@ function boundary_kernel_4_2(idata,odata,coef_D)
     return nothing
 end
 
-function boundary_kernel_1_3(idata,odata,coef_D)
+function boundary_kernel_3_1(idata,odata,coef_D)
     return nothing
 end
 
-function boundary_kernel_2_3(idata,odata,coef_D)
+function boundary_kernel_3_2(idata,odata,coef_D)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
     # Ny = coef_D.grid[2]
@@ -327,7 +329,7 @@ function boundary_kernel_3_3(idata,odata,coef_D)
     return nothing
 end
 
-function boundary_kernel_4_3(idata,odata,coef_D)
+function boundary_kernel_3_4(idata,odata,coef_D)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
     # Ny = coef_D.grid[2]
@@ -356,9 +358,9 @@ function boundary_kernel_4_3(idata,odata,coef_D)
     return nothing
 end
 
-boundary_kernels = [boundary_kernel_1_1 boundary_kernel_2_1 boundary_kernel_3_1 boundary_kernel_4_1;
-boundary_kernel_1_2 boundary_kernel_2_2 boundary_kernel_3_2 boundary_kernel_4_2;
-boundary_kernel_1_3 boundary_kernel_2_3 boundary_kernel_3_3 boundary_kernel_4_3
+boundary_kernels = [boundary_kernel_1_1 boundary_kernel_1_2 boundary_kernel_1_3 boundary_kernel_1_4;
+boundary_kernel_2_1 boundary_kernel_2_2 boundary_kernel_2_3 boundary_kernel_2_4;
+boundary_kernel_3_1 boundary_kernel_3_2 boundary_kernel_3_3 boundary_kernel_3_4
 ]
 
 
