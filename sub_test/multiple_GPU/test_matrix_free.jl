@@ -3,7 +3,7 @@ include("assembling_matrix.jl")
 using Random
 Random.randn(0)
 
-level = 3 # 2^3 +1 points in each direction
+level = 4 # 2^3 +1 points in each direction
 idata_cpu = randn(2^level+1,2^level+1)
 
 (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
@@ -12,8 +12,8 @@ coef_p2 = coef_GPU_sbp_sat(CuArray([2. 0]), # The 0 here is only to make them id
     CuArray([1. -2 1]),
     CuArray([1. -2 1]),
     CuArray([3/2 -2 1/2]),
-    CuArray([9 9 1/8 1/8]),
-    CuArray([13/(1/8) 13/(1/8) 1 1 -1]))  
+    CuArray([Nx Ny 1/(Nx-1) 1/(Ny-1)]),
+    CuArray([13/(1/(Nx-1)) 13/(1/(Ny-1)) 1 1 -1]))  
 coef_p2_D = cudaconvert(coef_p2)
 
 odata_H_tilde_D2 = reshape(H_tilde*-D2*idata_cpu[:],Nx,Ny)
@@ -57,10 +57,16 @@ odata_GPU[1,:] .+= odata_GPU_2_1[1,:]
 odata_GPU[:,1:3] .+= odata_GPU_1_1[:,1:3]
 odata_GPU[:,end-2:end] .+= odata_GPU_3_3[:,1:3]
 
-odata_boundars_GPUs = []
+
+boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(1,1,num_blocks)],coef_p2_D;orientation=1,type=1)
+boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(2,1,num_blocks)],coef_p2_D;orientation=2,type=1)
+boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(4,1,num_blocks)],coef_p2_D;orientation=4,type=1)
+boundary(idata_GPUs[2],odata_boundaries_GPUs[find_boundaries_GPUs(2,2,num_blocks)],coef_p2_D;orientation=2,type=2)
+boundary(idata_GPUs[2],odata_boundaries_GPUs[find_boundaries_GPUs(4,2,num_blocks)],coef_p2_D;orientation=4,type=2)
+boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(3,3,num_blocks)],coef_p2_D;orientation=3,type=3)
 
 let 
-    level = 3
+    level = 4
     i = j = level
     hx = h_list_x[i];
     hy = h_list_y[j];
