@@ -6,6 +6,7 @@ addprocs(gpus)
 @everywhere using CUDA
 @everywhere using DistributedData
 @everywhere using LinearAlgebra
+@everywhere using Adapt
 
 @everywhere include("assembling_matrix.jl")
 @everywhere include("laplacian.jl")
@@ -34,6 +35,9 @@ idata_cpu = randn(2^level+1,2^level+1)
     CuArray([Nx Ny 1/(Nx-1) 1/(Ny-1)]),
     CuArray([13/(1/(Nx-1)) 13/(1/(Ny-1)) 1 1 -1]))  
 coef_p2_D = cudaconvert(coef_p2)
+# @everywhere coef_p2_D
+@everywhere coef_p2_D = cudaconvert(coef_p2)
+
 
 odata_H_tilde_D2 = reshape(H_tilde*-D2*idata_cpu[:],Nx,Ny)
 odata_H_tilde_A = reshape(A*idata_cpu[:],Nx,Ny)
@@ -77,15 +81,19 @@ end
         # @spawnat proc begin
             if proc == workers()[1]
                 save_at(proc,:idata_GPU_proc,:(CuArray(zeros(Nx,sub_block_width+1))))
+                save_at(proc,:odata_GPU_proc,:(CuArray(zeros(Nx,sub_block_width+1))))
             elseif proc == workers()[end]
                 save_at(proc,:idata_GPU_proc,:(CuArray(zeros(Nx,Ny-sub_block_width*(num_blocks-1)+1))))
+                save_at(proc,:odata_GPU_proc,:(CuArray(zeros(Nx,Ny-sub_block_width*(num_blocks-1)+1))))
             else
                 save_at(proc,:idata_GPU_proc,:(CuArray(zeros(Nx,sub_block_width+2))))
+                save_at(proc,:odata_GPU_proc,:(CuArray(zeros(Nx,sub_block_width+2))))
             end
         # end
     end
 end
 
+# Copying input data to different processes
 @sync begin
     for (proc,dev) in gpu_processes
         @show proc
@@ -98,6 +106,34 @@ end
                 @show size(idata_GPU_temp)
                 copyto!(idata_GPU_proc,idata_GPU_temp)
             end
+        end
+    end
+end
+
+# Creating boundaries data on different processes
+@async begin 
+    for (proc,dev) in gpu_processes
+        if proc == workers()[1]
+            save_at(proc,:odata_boundaries,[CuArray(zeros(Nx,length(y_indeces[(workers_dict[proc])]))),
+                                            CuArray(zeros(3,length(y_indeces[(workers_dict[proc])]))),
+                                            CuArray(zeros(3,length(y_indeces[(workers_dict[proc])])))])
+        elseif proc == workers()[end]
+            save_at(proc,:odata_boundaries,[CuArray(zeros(3,length(y_indeces[(workers_dict[proc])]))),
+                                            CuArray(zeros(Nx,length(y_indeces[(workers_dict[proc])]))),
+                                            CuArray(zeros(3,length(y_indeces[(workers_dict[proc])])))])
+        else
+            save_at(proc,:odata_boundaries,[CuArray(zeros(3,length(y_indeces[workers_dict[proc]]))),
+                                            CuArray(zeros(3,length(y_indeces[workers_dict[proc]])))])
+        end
+    end
+end
+
+
+@sync begin
+    for (proc,dev) in gpu_processes
+        @spawnat proc begin
+            # laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,coef_p2_D)
+            @show coef_p2_D
         end
     end
 end
