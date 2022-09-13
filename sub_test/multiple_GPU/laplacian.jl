@@ -519,4 +519,4 @@ function find_boundaries_GPUs(orientation,block_idx,num_blocks)
     return idx
 end
 
-idata_GPUs, odata_GPUs, odata_boundaries_GPUs, num_blocks = allocate_GPU_arrays(idata_GPU,num_blocks=3)
+# idata_GPUs, odata_GPUs, odata_boundaries_GPUs, num_blocks = allocate_GPU_arrays(idata_GPU,num_blocks=3)

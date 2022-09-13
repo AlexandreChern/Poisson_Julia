@@ -1,7 +1,7 @@
 include("laplacian.jl")
 include("assembling_matrix.jl")
 using Random
-Random.randn(0)
+Random.seed!(0)
 
 level = 4 # 2^3 +1 points in each direction
 idata_cpu = randn(2^level+1,2^level+1)
