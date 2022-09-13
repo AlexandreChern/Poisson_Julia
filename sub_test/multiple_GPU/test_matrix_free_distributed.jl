@@ -15,6 +15,11 @@ gpuworkers = asyncmap(collect(zip(workers(), CUDA.devices()))) do (p, d)
     p
 end
 
+gpu_devices = Dict(enumerate(devices()))
+gpu_processes = Dict(zip(workers(), CUDA.devices()))
+@everywhere workers_dict = Dict(zip(workers(),1:length(workers())))
+
+
 Random.seed!(0)
 
 @everywhere level = 4 # 2^3 +1 points in each direction
@@ -40,3 +45,66 @@ idata_GPU = CuArray(idata_cpu)
 odata_GPU = CuArray(zeros(size(idata_GPU)))
 
 
+@everywhere num_blocks = length(devices())
+@everywhere sub_block_width = div(Ny,num_blocks)
+# @everywhere y_indeces = 1:sub_block_width:Ny
+# y_indeces = [1:9,9:17]
+y_indeces = Vector{UnitRange{Int64}}(undef,num_blocks)
+for i in 1:length(y_indeces)
+    if i == 1
+        y_indeces[i] = 1:sub_block_width+1
+    elseif i == length(y_indeces)
+        y_indeces[i] = sub_block_width*(i-1):Ny
+    else
+        y_indeces[i] = (i-1)*sub_block_width:i*sub_block_width+1
+    end
+end
+@everywhere y_indeces
+
+@sync begin
+    for (proc,dev) in gpu_processes
+        # @spawnat proc begin
+        #     @show proc, dev
+        #     device!(dev)
+        #     idata_GPU_proc = CuArray(zeros(Nx,sub_block_width))
+        # end
+        save_at(proc,:idata_GPU_proc,:(CuArray(zeros(Nx,sub_block_width))))
+    end
+end
+
+@sync begin
+    for (proc,dev) in gpu_processes
+        # @spawnat proc begin
+            if proc == workers()[1]
+                save_at(proc,:idata_GPU_proc,:(CuArray(zeros(Nx,sub_block_width+1))))
+            elseif proc == workers()[end]
+                save_at(proc,:idata_GPU_proc,:(CuArray(zeros(Nx,Ny-sub_block_width*(num_blocks-1)+1))))
+            else
+                save_at(proc,:idata_GPU_proc,:(CuArray(zeros(Nx,sub_block_width+2))))
+            end
+        # end
+    end
+end
+
+@sync begin
+    for (proc,dev) in gpu_processes
+        @show proc
+        # worker_index = workers_dict[proc]
+        @spawnat proc begin
+            if myid() == workers()[1]
+                worker_index = workers_dict[myid()]
+                @show worker_index
+                idata_GPU_temp = get_val_from(1,:(idata_GPU[:,$(y_indeces[worker_index])]))
+                @show size(idata_GPU_temp)
+                copyto!(idata_GPU_proc,idata_GPU_temp)
+            end
+        end
+    end
+end
+
+
+# @sync begin
+#     for (proc,dev) in gpu_processes
+#         @spawnat proc 
+#     end
+# end
