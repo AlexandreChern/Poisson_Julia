@@ -374,57 +374,80 @@ function boundary(idata,odata,coef_D;orientation=1,type=1)
     @cuda threads=blockdim_1D blocks=griddim_1D boundary_kernel(idata,odata,coef_D)
 end
 
-struct coef_GPU{T}
-    bhinv::T
-    d::T
-    bd::T
-    BS::T
+# struct coef_GPU{T} where {T<:Number}
+#     bhinv::T
+#     d::T
+#     bd::T
+#     BS::T
+# end
+
+# struct coef_GPU_v2{T} where {T<:Number}
+#     bhinv::T
+#     d::T
+#     bd::T
+#     BS::T
+#     grid::T
+# end
+
+# T<:CuDeviceMatrix
+
+# struct coef_GPU_sbp_sat{T}
+# # struct coef_GPU_sbp_sat{T} where {T<:CuDeviceMatrix}
+#     bhinv::T
+#     d::T
+#     bd::T
+#     BS::T
+#     grid::T # Nx, Ny, hx, hy
+#     sat::T # tau_W, tau_E, tau_S, tau_N, beta
+# end
+
+# # coef_GPU_sbp_sat(bhinv::T) where T = coef_GPU_sbp_sat{T}(bhinv)
+# # Adapt.@adapt_structure coef_GPU
+# # Adapt.@adapt_structure coef_GPU_v2
+# Adapt.@adapt_structure coef_GPU_sbp_sat
+
+
+struct coef_GPU_sbp_sat_v4{CuArray}
+    # struct coef_GPU_sbp_sat{T} where {T<:CuDeviceMatrix}
+    bhinv::CuArray
+    d::CuArray
+    bd::CuArray
+    BS::CuArray
+    grid::CuArray # Nx, Ny, hx, hy
+    sat::CuArray # tau_W, tau_E, tau_S, tau_N, beta
 end
-
-struct coef_GPU_v2{T}
-    bhinv::T
-    d::T
-    bd::T
-    BS::T
-    grid::T
-end
-
-struct coef_GPU_sbp_sat{T}
-    bhinv::T
-    d::T
-    bd::T
-    BS::T
-    grid::T # Nx, Ny, hx, hy
-    sat::T # tau_W, tau_E, tau_S, tau_N, beta
-end
-
-Adapt.@adapt_structure coef_GPU
-Adapt.@adapt_structure coef_GPU_v2
-Adapt.Adapt.@adapt_structure coef_GPU_sbp_sat
-
-coef_p4 = coef_GPU(CuArray([48/17 48/59 48/43 48/49]),
-                CuArray([-1/12 4/3 -5/2 4/3 -1/12]),
-                CuArray([ 2    -5       4     -1       0      0;
-                    1    -2       1      0       0      0;
-                    -4/43 59/43 -110/43  59/43   -4/43   0;
-                    -1/49  0      59/49 -118/49  64/49  -4/49]),
-                CuArray([11/6 -3 3/2 -1/3]))
-
-coef_p2 = coef_GPU_v2(CuArray([2. 0]), # The 0 here is only to make them identical arrays
+Adapt.@adapt_structure coef_GPU_sbp_sat_v4
+coef_eg = coef_GPU_sbp_sat_v4(CuArray([2. 0]), # The 0 here is only to make them identical arrays
     CuArray([1. -2 1]),
     CuArray([1. -2 1]),
     CuArray([3/2 -2 1/2]),
-    CuArray([9 9 1/8 1/8]))   
+    CuArray([5 5 1/(5-1) 1/(5-1)]),
+    CuArray([13/(1/(5-1)) 13/(1/(5-1)) 1 1 -1]))  
+coef_eg_D = cudaconvert(coef_eg)
+isbits(coef_eg_D)
+# coef_p4 = coef_GPU(CuArray([48/17 48/59 48/43 48/49]),
+#                 CuArray([-1/12 4/3 -5/2 4/3 -1/12]),
+#                 CuArray([ 2    -5       4     -1       0      0;
+#                     1    -2       1      0       0      0;
+#                     -4/43 59/43 -110/43  59/43   -4/43   0;
+#                     -1/49  0      59/49 -118/49  64/49  -4/49]),
+#                 CuArray([11/6 -3 3/2 -1/3]))
 
-coef_p2_D = cudaconvert(coef_p2)
+# coef_p2 = coef_GPU_v2(CuArray([2. 0]), # The 0 here is only to make them identical arrays
+#     CuArray([1. -2 1]),
+#     CuArray([1. -2 1]),
+#     CuArray([3/2 -2 1/2]),
+#     CuArray([9 9 1/8 1/8]))   
 
-coef_p2 = coef_GPU_sbp_sat(CuArray([2. 0]), # The 0 here is only to make them identical arrays
-    CuArray([1. -2 1]),
-    CuArray([1. -2 1]),
-    CuArray([3/2 -2 1/2]),
-    CuArray([9 9 1/8 1/8]),
-    CuArray([13/(1/8) 13/(1/8) 1 1 -1]))  
-coef_p2_D = cudaconvert(coef_p2)
+# coef_p2_D = cudaconvert(coef_p2)
+
+# coef_p2 = coef_GPU_sbp_sat(CuArray([2. 0]), # The 0 here is only to make them identical arrays
+#     CuArray([1. -2 1]),
+#     CuArray([1. -2 1]),
+#     CuArray([3/2 -2 1/2]),
+#     CuArray([9 9 1/8 1/8]),
+#     CuArray([13/(1/8) 13/(1/8) 1 1 -1]))  
+# coef_p2_D = cudaconvert(coef_p2)
 
 # boundary_1 = CuArray(randn(10,3))
 # boundary_1_out = CuArray(zeros(10,3))

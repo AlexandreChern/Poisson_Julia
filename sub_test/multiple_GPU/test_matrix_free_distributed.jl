@@ -5,8 +5,10 @@ gpus = Int(length(devices()))
 addprocs(gpus)
 @everywhere using CUDA
 @everywhere using DistributedData
+@everywhere using Distributed
 @everywhere using LinearAlgebra
 @everywhere using Adapt
+@everywhere using Random
 
 @everywhere include("assembling_matrix.jl")
 @everywhere include("laplacian.jl")
@@ -28,7 +30,7 @@ idata_cpu = randn(2^level+1,2^level+1)
 
 @everywhere (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
 
-@everywhere coef_p2 = coef_GPU_sbp_sat(CuArray([2. 0]), # The 0 here is only to make them identical arrays
+@everywhere coef_p2 = coef_GPU_sbp_sat_v4(CuArray([2. 0]), # The 0 here is only to make them identical arrays
     CuArray([1. -2 1]),
     CuArray([1. -2 1]),
     CuArray([3/2 -2 1/2]),
@@ -53,7 +55,7 @@ odata_GPU = CuArray(zeros(size(idata_GPU)))
 @everywhere sub_block_width = div(Ny,num_blocks)
 # @everywhere y_indeces = 1:sub_block_width:Ny
 # y_indeces = [1:9,9:17]
-y_indeces = Vector{UnitRange{Int64}}(undef,num_blocks)
+@everywhere y_indeces = Vector{UnitRange{Int64}}(undef,num_blocks)
 for i in 1:length(y_indeces)
     if i == 1
         y_indeces[i] = 1:sub_block_width+1
@@ -133,7 +135,8 @@ end
     for (proc,dev) in gpu_processes
         @spawnat proc begin
             # laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,coef_p2_D)
-            @show coef_p2_D
+            # @show coef_p2_D
+            laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,coef_p2_D)
         end
     end
 end
