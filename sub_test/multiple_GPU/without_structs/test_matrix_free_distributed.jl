@@ -35,7 +35,7 @@ idata_cpu = randn(2^level+1,2^level+1)
     CuArray([1. -2 1]),
     CuArray([3/2 -2 1/2]),
     CuArray([Nx Ny 1/(Nx-1) 1/(Ny-1)]),
-    CuArray([13/(1/(Nx-1)) 13/(1/(Ny-1)) 1 1 -1]))  
+    CuArray([13/(1/(Nx-1)) 13/(1/(Nx-1)) 1 1 -1]))  
 coef_p2_D = cudaconvert(coef_p2)
 # @everywhere coef_p2_D
 @everywhere coef_p2_D = cudaconvert(coef_p2)

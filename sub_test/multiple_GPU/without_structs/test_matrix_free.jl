@@ -7,16 +7,18 @@ level = 4 # 2^3 +1 points in each direction
 idata_cpu = randn(2^level+1,2^level+1)
 
 (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+hx = 1/(Nx-1)
+hy = 1/(Ny-1)
 
-coef_p2 = coef_GPU_sbp_sat(CuArray([2. 0]), # The 0 here is only to make them identical arrays
+coef_p2 = coef_GPU_sbp_sat_v4(CuArray([2. 0]), # The 0 here is only to make them identical arrays
     CuArray([1. -2 1]),
     CuArray([1. -2 1]),
     CuArray([3/2 -2 1/2]),
     CuArray([Nx Ny 1/(Nx-1) 1/(Ny-1)]),
-    CuArray([13/(1/(Nx-1)) 13/(1/(Ny-1)) 1 1 -1]))  
+    CuArray([13/(1/(Nx-1)) 13/(1/(Nx-1)) 1 1 -1]))  
 coef_p2_D = cudaconvert(coef_p2)
 
-odata_H_tilde_D2 = reshape(H_tilde*-D2*idata_cpu[:],Nx,Ny)
+# odata_H_tilde_D2 = reshape(H_tilde*-D2*idata_cpu[:],Nx,Ny)
 odata_H_tilde_A = reshape(A*idata_cpu[:],Nx,Ny)
 
 
@@ -25,7 +27,7 @@ odata_cpu = reshape(A*idata_cpu[:],Nx,Ny)
 idata_GPU = CuArray(idata_cpu)
 odata_GPU = CuArray(zeros(size(idata_GPU)))
 
-
+idata_GPUs, odata_GPUs, odata_boundaries_GPUs, num_blocks = allocate_GPU_arrays(idata_GPU;num_blocks=3)
 
 
 
@@ -36,36 +38,41 @@ odata_GPU = CuArray(zeros(size(idata_GPU)))
 
 # laplacian_GPU(idata_GPU,odata_GPU)
 
-laplacian_GPU_v2(idata_GPU,odata_GPU,coef_p2_D)
-laplacian_GPU_v2(idata_GPUs[1],odata_GPUs[1],coef_p2_D)
-laplacian_GPU_v2(idata_GPUs[2],odata_GPUs[2],coef_p2_D)
-laplacian_GPU_v2(idata_GPUs[3],odata_GPUs[3],coef_p2_D)
+
+
+laplacian_GPU_v2(idata_GPU,odata_GPU,Nx,Ny,hx,hy)
+laplacian_GPU_v2(idata_GPUs[1],odata_GPUs[1],Nx,Ny,hx,hy)
+laplacian_GPU_v2(idata_GPUs[2],odata_GPUs[2],Nx,Ny,hx,hy)
+laplacian_GPU_v2(idata_GPUs[3],odata_GPUs[3],Nx,Ny,hx,hy)
 
 odata_GPU_1_1 = CuArray(zeros(Nx,3))
 odata_GPU_3_3 = CuArray(zeros(Nx,3))
 odata_GPU_2_1 = CuArray(zeros(3,Ny))
 odata_GPU_4_1 = CuArray(zeros(3,Ny))
 
-boundary(idata_GPU,odata_GPU_1_1,coef_p2_D;orientation=1,type=1)
-boundary(idata_GPU,odata_GPU_3_3,coef_p2_D;orientation=3,type=3)
-boundary(idata_GPU,odata_GPU_2_1,coef_p2_D;orientation=2,type=1)
-boundary(idata_GPU,odata_GPU_4_1,coef_p2_D;orientation=4,type=1)
+boundary(idata_GPU,odata_GPU_1_1,Nx,Ny,hx,hy;orientation=1,type=1)
+boundary(idata_GPU,odata_GPU_3_3,Nx,Ny,hx,hy;orientation=3,type=3)
+boundary(idata_GPU,odata_GPU_2_1,Nx,Ny,hx,hy;orientation=2,type=1)
+boundary(idata_GPU,odata_GPU_4_1,Nx,Ny,hx,hy;orientation=4,type=1)
 
-boundary(idata_GPUs[1],odata_GPUs[1],coef_p2_D;orientation=4,type=1)
+boundary(idata_GPUs[1],odata_GPUs[1],Nx,Ny,hx,hy;orientation=4,type=1)
 
 odata_GPU[1,:] .+= odata_GPU_2_1[1,:]
 odata_GPU[:,1:3] .+= odata_GPU_1_1[:,1:3]
 odata_GPU[:,end-2:end] .+= odata_GPU_3_3[:,1:3]
 
 
-boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(1,1,num_blocks)],coef_p2_D;orientation=1,type=1)
-boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(2,1,num_blocks)],coef_p2_D;orientation=2,type=1)
-boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(4,1,num_blocks)],coef_p2_D;orientation=4,type=1)
-boundary(idata_GPUs[2],odata_boundaries_GPUs[find_boundaries_GPUs(2,2,num_blocks)],coef_p2_D;orientation=2,type=2)
-boundary(idata_GPUs[2],odata_boundaries_GPUs[find_boundaries_GPUs(4,2,num_blocks)],coef_p2_D;orientation=4,type=2)
-boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(3,3,num_blocks)],coef_p2_D;orientation=3,type=3)
-boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(2,3,num_blocks)],coef_p2_D;orientation=2,type=3)
-boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(4,3,num_blocks)],coef_p2_D;orientation=4,type=3)
+boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(1,1,num_blocks)],Nx,Ny,hx,hy;orientation=1,type=1)
+boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(2,1,num_blocks)],Nx,Ny,hx,hy;orientation=2,type=1)
+boundary(idata_GPUs[1],odata_boundaries_GPUs[find_boundaries_GPUs(4,1,num_blocks)],Nx,Ny,hx,hy;orientation=4,type=1)
+
+boundary(idata_GPUs[2],odata_boundaries_GPUs[find_boundaries_GPUs(2,2,num_blocks)],Nx,Ny,hx,hy;orientation=2,type=2)
+boundary(idata_GPUs[2],odata_boundaries_GPUs[find_boundaries_GPUs(4,2,num_blocks)],Nx,Ny,hx,hy;orientation=4,type=2)
+
+boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(3,3,num_blocks)],Nx,Ny,hx,hy;orientation=3,type=3)
+boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(2,3,num_blocks)],Nx,Ny,hx,hy;orientation=2,type=3)
+boundary(idata_GPUs[3],odata_boundaries_GPUs[find_boundaries_GPUs(4,3,num_blocks)],Nx,Ny,hx,hy;orientation=4,type=3)
+
 let 
     level = 4
     i = j = level

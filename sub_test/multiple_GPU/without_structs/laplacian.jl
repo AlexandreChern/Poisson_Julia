@@ -30,8 +30,8 @@ function copy_kernel(idata,odata,Nx,Ny)
 end
 
 
-function copy_GPU(idata,odata)
-    Nx,Ny = size(idata)
+function copy_GPU(idata,odata,Nx,Ny)
+    # Nx,Ny = size(idata)
     h = 1/(Nx-1)
     TILE_DIM_1 = 16
     TILE_DIM_2 = 16
@@ -41,22 +41,24 @@ function copy_GPU(idata,odata)
 end
 
 
-function laplacian_GPU(idata,odata)
-    Nx,Ny = size(idata)
-    h = 1/(Nx-1)
+function laplacian_GPU(idata,odata,Nx,Ny,hx,hy)
+    # Nx,Ny = size(idata)
+    # h = 1/(Nx-1)
     TILE_DIM_1 = 16
     TILE_DIM_2 = 16
     griddim_2d = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
     blockdim_2d = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim_2d blocks=griddim_2d laplacian_kernel(idata,odata,Nx,Ny)
+    @cuda threads=blockdim_2d blocks=griddim_2d laplacian_kernel(idata,odata,Nx,Ny,hx,hy)
 end
 
-function laplacian_kernel(idata,odata,Nx,Ny)
+function laplacian_kernel(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     tidy = threadIdx().y
 
     i = (blockIdx().x - 1) * blockDim().x + tidx
     j = (blockIdx().y - 1) * blockDim().y + tidy
+
+    Ny = size(idata)[2]
 
     if 1 <= i <= Nx && 1 <= j <= Ny
         if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
@@ -70,26 +72,28 @@ function laplacian_kernel(idata,odata,Nx,Ny)
 end
 
 
-function laplacian_GPU_v2(idata,odata,coef_D)
-    Nx,Ny = size(idata)
-    h = 1/(Nx-1)
+function laplacian_GPU_v2(idata,odata,Nx,Ny,hx,hy)
+    # Nx,Ny = size(idata)
+    # h = 1/(Nx-1)
     TILE_DIM_1 = 16
     TILE_DIM_2 = 16
     griddim_2d = (div(Nx,TILE_DIM_1) + 1, div(Ny,TILE_DIM_2) + 1)
     blockdim_2d = (TILE_DIM_1,TILE_DIM_2)
-    @cuda threads=blockdim_2d blocks=griddim_2d laplacian_kernel_v2(idata,odata,coef_D)
+    @cuda threads=blockdim_2d blocks=griddim_2d laplacian_kernel_v2(idata,odata,Nx,Ny,hx,hy)
 end
 
-function laplacian_kernel_v2(idata,odata,coef_D)
+function laplacian_kernel_v2(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     tidy = threadIdx().y
-    Nx = coef_D.grid[1]
-    # Ny = coef_D.grid[2]
-    Ny = size(odata)[2]
-    hx = coef_D.grid[3]
-    hy = coef_D.grid[4]
+    # Nx = coef_D.grid[1]
+    # # Ny = coef_D.grid[2]
+    # Ny = size(odata)[2]
+    # hx = coef_D.grid[3]
+    # hy = coef_D.grid[4]
     i = (blockIdx().x - 1) * blockDim().x + tidx
     j = (blockIdx().y - 1) * blockDim().y + tidy
+    Ny = size(idata)[2]
+
 
     if 1 <= i <= Nx && 1 <= j <= Ny
         if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
@@ -127,22 +131,20 @@ end
 #     return nothing
 # end
 
-function boundary_kernel_1_1(idata,odata,coef_D)
+function boundary_kernel_1_1(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
-    Nx = coef_D.grid[1]
-    h = coef_D.grid[3]
-    tau_W = coef_D.sat[1]
-    beta = coef_D.sat[5]
+    tau_W = 13/hx
+    beta = -1
     if 2 <= idx <= Nx - 1
-        odata[idx,1] = (-(idata[idx-1,1] - 2*idata[idx,1] + idata[idx+1,1] + idata[idx,1] - 2*idata[idx,2] + idata[idx,3]) + 2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * idata[idx,1] * h) / 2
+        odata[idx,1] = (-(idata[idx-1,1] - 2*idata[idx,1] + idata[idx+1,1] + idata[idx,1] - 2*idata[idx,2] + idata[idx,3]) + 2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * idata[idx,1] * hx) / 2
         # (2 * beta * (1.5 * CPU_W_T[1,i]) + 2 * alpha2 * CPU_W_T[1,i] * h) / 2
         odata[idx,2] = (2 * beta * (-1 * idata[idx,1]))
         odata[idx,3] = (0.5 * beta * idata[idx,1])
     end
     sync_threads()
     if idx == 1 || idx == Nx
-        odata[idx,1] =  (2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * (idata[idx,1]) * h )/ 4
+        odata[idx,1] =  (2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * (idata[idx,1]) * hx )/ 4
         odata[idx,2] = (2 * beta * (-1 * idata[idx,1])) / 2
         odata[idx,3] = (0.5 * beta * idata[idx,1]) / 2
     end
@@ -150,15 +152,13 @@ function boundary_kernel_1_1(idata,odata,coef_D)
 end
 
 
-function boundary_kernel_1_2(idata,odata,coef_D)
+function boundary_kernel_1_2(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
-    # Ny = coef_D.grid[2]
-    Ny = size(odata)[2]
-    h = coef_D.grid[4]
-    tau_S = coef_D.sat[3]
-    tau_W = coef_D.sat[1]
-    beta = coef_D.sat[5]
+    tau_S = 1
+    Ny = size(idata)[2]
+    tau_W = 13/hx
+    beta = -1
     if 4 <= idx <= Ny - 1
         odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
     end
@@ -175,33 +175,19 @@ function boundary_kernel_1_2(idata,odata,coef_D)
                         # + 0.5 * beta * (idata[1,idx])) / 2# Dirichlet
 
     end
-    # sync_threads()
-    # if idx == Ny
-    #     odata[1,idx] = (-(idata[1,idx] - 2*idata[1,idx-1] + idata[1,idx-2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx])
-    #                     + 2 * tau_S * (( 1.5* idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx]))  ) / 4 
-    #                     # + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha2 * (idata[3,idx]) * h
-                       
-    #     odata[1,idx-1] = (-(idata[1,idx-1] - 2*idata[2,idx-1] + idata[3,idx-1] + idata[1,idx-2] - 2*idata[1,idx-1] + idata[1,idx]) + 2 * tau_S * (1.5 * idata[1,idx-1] - 2*idata[2,idx-1] + 0.5*idata[3,idx-1])) / 2 # Dirichlet
-    #                     # (2 * beta * (-1 * idata[3,idx])) / 2 +
-    #     odata[1,idx-2] =  (-(idata[1,idx-2] - 2*idata[2,idx-2] + idata[3,idx-2] + idata[1,idx-3] - 2*idata[1,idx-2] + idata[1,idx-1]) + 2 * tau_S * (1.5 * idata[1,idx-2] - 2*idata[2,idx-2] + 0.5*idata[3,idx-2])) / 2# Dirichlet
-    #                     # (0.5 * beta * (idata[3,idx])) / 2 +
-    # end
     return nothing
 end
 
-function boundary_kernel_1_3(idata,odata,coef_D)
+function boundary_kernel_1_3(idata,odata,Nx,Ny,hx,hy)
     return nothing
 end
 
-function boundary_kernel_1_4(idata,odata,coef_D)
+function boundary_kernel_1_4(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
-    # Ny = coef_D.grid[2]
-    Ny = size(odata)[2]
-    h = coef_D.grid[4]
-    tau_N = coef_D.sat[4]
-    beta = coef_D.sat[5]
-
+    tau_N = 1
+    Ny = size(idata)[2]
+    beta = -1
     if 4 <= idx <= Ny - 1
         odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
     end
@@ -220,59 +206,54 @@ function boundary_kernel_1_4(idata,odata,coef_D)
     return nothing
 end
 
-function boundary_kernel_2_1(idata,odata,coef_D)
+function boundary_kernel_2_1(idata,odata,Nx,Ny,hx,hy)
     # This function should be empty
     return nothing
 end
 
-function boundary_kernel_2_2(idata,odata,coef_D)
+function boundary_kernel_2_2(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
-    # Ny = coef_D.grid[2]
-    Ny = size(odata)[2]
-    h = coef_D.grid[4]
-    tau_S = coef_D.sat[3]
-    tau_W = coef_D.sat[1]
-    beta = coef_D.sat[5]
+    tau_S = 1
+    Ny = size(idata)[2]
+    tau_W = 13/hx
+    beta = -1
     if 2 <= idx <= Ny - 1
         odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
     end
     return nothing
 end
 
-function boundary_kernel_2_3(idata,odata,coef_D)
+function boundary_kernel_2_3(idata,odata,Nx,Ny,hx,hy)
     # This function should be empty
     return nothing
 end
 
-function boundary_kernel_2_4(idata,odata,coef_D)
+function boundary_kernel_2_4(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
     # Ny = coef_D.grid[2]
-    Ny = size(odata)[2]
-    h = coef_D.grid[4]
-    tau_N = coef_D.sat[3]
-    tau_W = coef_D.sat[1]
-    beta = coef_D.sat[5]
+    tau_N = 1
+    Ny = size(idata)[2]
+    tau_W = 13/hx
+    beta = -1
     if 2 <= idx <= Ny - 1
         odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
     end
     return nothing
 end
 
-function boundary_kernel_3_1(idata,odata,coef_D)
+function boundary_kernel_3_1(idata,odata,Nx,Ny,hx,hy)
     return nothing
 end
 
-function boundary_kernel_3_2(idata,odata,coef_D)
+function boundary_kernel_3_2(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
-    # Ny = coef_D.grid[2]
-    Ny = size(odata)[2]
-    h = coef_D.grid[4]
-    tau_S = coef_D.sat[3]
-    tau_W = coef_D.sat[1]
-    beta = coef_D.sat[5]
+    tau_S = 1
+    Ny = size(idata)[2]
+    tau_W = 13/hx
+    beta = -1
     if 2 <= idx <= Ny - 3
         odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) 
                     + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
@@ -307,36 +288,32 @@ function boundary_kernel_3_2(idata,odata,coef_D)
 end
 
 
-function boundary_kernel_3_3(idata,odata,coef_D)
+function boundary_kernel_3_3(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
-    Nx = coef_D.grid[1]
-    h = coef_D.grid[3]
-    tau_E = coef_D.sat[2]
-    beta = coef_D.sat[5]
+    tau_E = 13/hx
+    beta = -1
     if 2 <= idx <= Nx - 1
-        odata[idx,end] = (-(idata[idx-1,end] - 2*idata[idx,end] + idata[idx+1,end] + idata[idx,end] - 2*idata[idx,end-1] + idata[idx,end-2]) + 2 * beta * (1.5 * idata[idx,end]) + 2 * tau_E * idata[idx,end] * h) / 2
+        odata[idx,end] = (-(idata[idx-1,end] - 2*idata[idx,end] + idata[idx+1,end] + idata[idx,end] - 2*idata[idx,end-1] + idata[idx,end-2]) + 2 * beta * (1.5 * idata[idx,end]) + 2 * tau_E * idata[idx,end] * hx) / 2
         # (2 * beta * (1.5 * CPU_W_T[1,i]) + 2 * alpha2 * CPU_W_T[1,i] * h) / 2
         odata[idx,end-1] = (2 * beta * (-1 * idata[idx,end]))
         odata[idx,end-2] = (0.5 * beta * idata[idx,end])
     end
     sync_threads()
     if idx == 1 || idx == Nx
-        odata[idx,end] =  (2 * beta * (1.5 * idata[idx,end]) + 2 * tau_E * (idata[idx,end]) * h )/ 4
+        odata[idx,end] =  (2 * beta * (1.5 * idata[idx,end]) + 2 * tau_E * (idata[idx,end]) * hx )/ 4
         odata[idx,end-1] = (2 * beta * (-1 * idata[idx,end])) / 2
         odata[idx,end-2] = (0.5 * beta * idata[idx,end]) / 2
     end
     return nothing
 end
 
-function boundary_kernel_3_4(idata,odata,coef_D)
+function boundary_kernel_3_4(idata,odata,Nx,Ny,hx,hy)
     tidx = threadIdx().x
     idx = (blockIdx().x - 1) * blockDim().x + tidx
-    # Ny = coef_D.grid[2]
-    Ny = size(odata)[2]
-    h = coef_D.grid[4]
-    tau_N = coef_D.sat[4]
-    beta = coef_D.sat[5]
+    tau_N = 1
+    Ny = size(idata)[2]
+    beta = -1
 
     if 2 <= idx <= Ny - 3
         odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) 
@@ -364,14 +341,12 @@ boundary_kernel_3_1 boundary_kernel_3_2 boundary_kernel_3_3 boundary_kernel_3_4
 ]
 
 
-function boundary(idata,odata,coef_D;orientation=1,type=1)
-    Nx,Ny = size(idata)
-    h = 1/(Nx-1)
+function boundary(idata,odata,Nx,Ny,hx,hy;orientation=1,type=1)
     TILE_DIM_1D = 16
     blockdim_1D = TILE_DIM_1D
     griddim_1D = div(Nx,TILE_DIM_1D) + 1
     boundary_kernel = boundary_kernels[type,orientation]
-    @cuda threads=blockdim_1D blocks=griddim_1D boundary_kernel(idata,odata,coef_D)
+    @cuda threads=blockdim_1D blocks=griddim_1D boundary_kernel(idata,odata,Nx,Ny,hx,hy)
 end
 
 # struct coef_GPU{T} where {T<:Number}
@@ -417,6 +392,7 @@ struct coef_GPU_sbp_sat_v4{CuArray}
     sat::CuArray # tau_W, tau_E, tau_S, tau_N, beta
 end
 Adapt.@adapt_structure coef_GPU_sbp_sat_v4
+
 coef_eg = coef_GPU_sbp_sat_v4(CuArray([2. 0]), # The 0 here is only to make them identical arrays
     CuArray([1. -2 1]),
     CuArray([1. -2 1]),

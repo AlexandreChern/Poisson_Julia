@@ -1,4 +1,4 @@
-include("../diagonal_sbp.jl")
+include("../../diagonal_sbp.jl")
 using LinearAlgebra
 using SparseArrays
 using Plots
