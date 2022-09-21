@@ -175,5 +175,5 @@ function Assembling_matrix(level)
     A = H_tilde*A;
     b = H_tilde*b;
 
-    return (A,b,H_tilde,Nx,Ny)
+    return (A,D2,b,H_tilde,Nx,Ny)
 end

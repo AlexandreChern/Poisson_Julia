@@ -25,10 +25,10 @@ gpu_processes = Dict(zip(workers(), CUDA.devices()))
 
 Random.seed!(0)
 
-@everywhere level = 4 # 2^3 +1 points in each direction
+@everywhere level = 8 # 2^3 +1 points in each direction
 idata_cpu = randn(2^level+1,2^level+1)
 
-@everywhere (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+@everywhere (A,D2,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
 @everywhere hx = 1/(Nx-1)
 @everywhere hy = 1/(Ny-1)
 
