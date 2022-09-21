@@ -29,6 +29,8 @@ Random.seed!(0)
 idata_cpu = randn(2^level+1,2^level+1)
 
 @everywhere (A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+@everywhere hx = 1/(Nx-1)
+@everywhere hy = 1/(Ny-1)
 
 @everywhere coef_p2 = coef_GPU_sbp_sat_v4(CuArray([2. 0]), # The 0 here is only to make them identical arrays
     CuArray([1. -2 1]),
@@ -133,15 +135,40 @@ end
 
 @sync begin
     for (proc,dev) in gpu_processes
-        @spawnat proc begin
-            # laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,coef_p2_D)
-            # @show coef_p2_D
-            laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,coef_p2_D)
+        # @spawnat proc begin
+        #     # laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,coef_p2_D)
+        #     # @show coef_p2_D
+        #     laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)
+        # end
+        if proc == workers()[1]
+            @spawnat proc begin
+            laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)
+            boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=1,type=1)
+            boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=2,type=1)
+            boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=1)
+            end
+        elseif proc == workers()[end]
+            @spawnat proc begin
+            laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
+            boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=3)
+            boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=3,type=3)
+            boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=3)
+            end
+        else
+            laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
+            boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=2)
+            boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=4,type=2)
         end
     end
 end
 
+@fetchfrom 2 device(odata_GPU_proc)
+@fetchfrom 3 device(odata_GPU_proc)
 
+@fetchfrom 2 odata_GPU_proc
+@fetchfrom 2 odata_boundaries[1]
+@fetchfrom 2 odata_boundaries[2]
+@fetchfrom 2 odata_boundaries[3]
 # @sync begin
 #     for (proc,dev) in gpu_processes
 #         @spawnat proc 
