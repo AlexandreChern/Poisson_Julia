@@ -142,6 +142,7 @@ sum_1 = sum(idata_GPU)
 end
 
 
+@everywhere REPEAT_TIMES = 10000
 @elapsed @sync begin
     for (proc,dev) in gpu_processes
         # @spawnat proc begin
@@ -151,40 +152,52 @@ end
         # end
         if proc == workers()[1]
             @spawnat proc begin
-            laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)
-            boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=1,type=1)
-            boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=2,type=1)
-            boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=1)
-            # adding boundary data into odata_GPU_proc
-            # @inbounds odata_GPU_proc[:,1:3] .+= odata_boundaries[1][:,1:3]
-            copyto!((@view odata_GPU_proc[:,1:3]), (@view odata_GPU_proc[:,1:3]) .+ (@view odata_boundaries[1][:,1:3]))
-            # @inbounds odata_GPU_proc[1,:] .+= odata_boundaries[2][1,:] # this line of the code is extremely slow
-            copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[2][1,:]))
-            # @inbounds odata_GPU_proc[end,:] .+= odata_boundaries[3][end,:]
-            copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[3][end,:]))
+                for _ in 1:REPEAT_TIMES
+                    laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)
+                    # # Boundary calculation
+                    # boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=1,type=1)
+                    # boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=2,type=1)
+                    # boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=1)
+                    # # adding boundary data into odata_GPU_proc
+                    # # @inbounds odata_GPU_proc[:,1:3] .+= odata_boundaries[1][:,1:3]
+                    # copyto!((@view odata_GPU_proc[:,1:3]), (@view odata_GPU_proc[:,1:3]) .+ (@view odata_boundaries[1][:,1:3]))
+                    # # @inbounds odata_GPU_proc[1,:] .+= odata_boundaries[2][1,:] # this line of the code is extremely slow
+                    # copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[2][1,:]))
+                    # # @inbounds odata_GPU_proc[end,:] .+= odata_boundaries[3][end,:]
+                    # copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[3][end,:]))
+                end
             end
         elseif proc == workers()[end]
             @spawnat proc begin
-            laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
-            boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=3)
-            boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=3,type=3)
-            boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=3)
-            # adding boundary data into odata_GPU_proc
-            # odata_GPU_proc[:,end-2:end] .+= odata_boundaries[2][:,end-2:end]
+                for _ in 1:REPEAT_TIMES
+                    laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)  
+                    # # Boundary calculation          
+                    # boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=3)
+                    # boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=3,type=3)
+                    # boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=3)
+                    # # adding boundary data into odata_GPU_proc
+                    # # odata_GPU_proc[:,end-2:end] .+= odata_boundaries[2][:,end-2:end]
 
-            copyto!((@view odata_GPU_proc[:,end-2:end]),(@view odata_GPU_proc[:,end-2:end]) .+ (@view odata_boundaries[2][:,end-2:end]))
-            # odata_GPU_proc[1,:] .+= odata_boundaries[1][1,:] # this line of code is extremely slow
-            copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
-            copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[3][end,:]))
+                    # copyto!((@view odata_GPU_proc[:,end-2:end]),(@view odata_GPU_proc[:,end-2:end]) .+ (@view odata_boundaries[2][:,end-2:end]))
+                    # # odata_GPU_proc[1,:] .+= odata_boundaries[1][1,:] # this line of code is extremely slow
+                    # copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
+                    # copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[3][end,:]))
+                end
             end
         else
-            laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
-            boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=2)
-            boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=4,type=2)
-            copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
-            copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[2][end,:]))
+            for _ in 1:REPEAT_TIMES
+                # laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
+                # boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=2)
+                # boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=4,type=2)
+                # copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
+                # copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[2][end,:]))
+            end
         end
     end
+end
+
+@elapsed for _ in 1:REPEAT_TIMES
+    laplacian_GPU_v2(idata_GPU,odata_GPU,Nx,Ny,hx,hy)
 end
 
 @fetchfrom 2 device(odata_GPU_proc)

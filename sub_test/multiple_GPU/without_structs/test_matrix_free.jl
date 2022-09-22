@@ -6,7 +6,7 @@ Random.seed!(0)
 level = 4 # 2^3 +1 points in each direction
 idata_cpu = randn(2^level+1,2^level+1)
 
-(A,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+(A,D2,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
 hx = 1/(Nx-1)
 hy = 1/(Ny-1)
 

@@ -97,10 +97,10 @@ function laplacian_kernel_v2(idata,odata,Nx,Ny,hx,hy)
 
     if 1 <= i <= Nx && 1 <= j <= Ny
         if 2 <= i <= Nx-1 && 2 <= j <= Ny - 1
-            odata[i,j] = -(idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) # - representing -D2
+            @inbounds odata[i,j] = -(idata[i-1,j] + idata[i+1,j] + idata[i,j-1] + idata[i,j+1] - 4*idata[i,j]) # - representing -D2
         else
             # odata[i,j] += 1
-            odata[i,j] = 0
+            @inbounds odata[i,j] = 0
         end
     end
     return nothing
@@ -137,16 +137,16 @@ function boundary_kernel_1_1(idata,odata,Nx,Ny,hx,hy)
     tau_W = 13/hx
     beta = -1
     if 2 <= idx <= Nx - 1
-        odata[idx,1] = (-(idata[idx-1,1] - 2*idata[idx,1] + idata[idx+1,1] + idata[idx,1] - 2*idata[idx,2] + idata[idx,3]) + 2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * idata[idx,1] * hx) / 2
+        @inbounds odata[idx,1] = (-(idata[idx-1,1] - 2*idata[idx,1] + idata[idx+1,1] + idata[idx,1] - 2*idata[idx,2] + idata[idx,3]) + 2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * idata[idx,1] * hx) / 2
         # (2 * beta * (1.5 * CPU_W_T[1,i]) + 2 * alpha2 * CPU_W_T[1,i] * h) / 2
-        odata[idx,2] = (2 * beta * (-1 * idata[idx,1]))
-        odata[idx,3] = (0.5 * beta * idata[idx,1])
+        @inbounds odata[idx,2] = (2 * beta * (-1 * idata[idx,1]))
+        @inbounds odata[idx,3] = (0.5 * beta * idata[idx,1])
     end
     sync_threads()
     if idx == 1 || idx == Nx
-        odata[idx,1] =  (2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * (idata[idx,1]) * hx )/ 4
-        odata[idx,2] = (2 * beta * (-1 * idata[idx,1])) / 2
-        odata[idx,3] = (0.5 * beta * idata[idx,1]) / 2
+        @inbounds odata[idx,1] =  (2 * beta * (1.5 * idata[idx,1]) + 2 * tau_W * (idata[idx,1]) * hx )/ 4
+        @inbounds odata[idx,2] = (2 * beta * (-1 * idata[idx,1])) / 2
+        @inbounds odata[idx,3] = (0.5 * beta * idata[idx,1]) / 2
     end
     return nothing
 end
@@ -160,18 +160,18 @@ function boundary_kernel_1_2(idata,odata,Nx,Ny,hx,hy)
     tau_W = 13/hx
     beta = -1
     if 4 <= idx <= Ny - 1
-        odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
+        @inbounds odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
     end
     if idx == 1
-        odata[1,idx] = (-(idata[1,idx] - 2*idata[1,idx+1] + idata[1,idx+2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx])
+        @inbounds odata[1,idx] = (-(idata[1,idx] - 2*idata[1,idx+1] + idata[1,idx+2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx])
                         + 2 * tau_S * (( 1.5* idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) ) / 4 
                         # + 2 * beta * (1.5 * idata[1,idx]) + 2 * tau_W * (idata[1,idx])) * h / 4 
 
                        
-        odata[1,idx+1] = (-(idata[1,idx+1] - 2*idata[2,idx+1] + idata[3,idx+1] + idata[1,idx] - 2*idata[1,idx+1] + idata[1,idx+2]) + 2 * tau_S * (1.5 * idata[1,idx+1] - 2*idata[2,idx+1] + 0.5*idata[3,idx+1]))/2
+        @inbounds odata[1,idx+1] = (-(idata[1,idx+1] - 2*idata[2,idx+1] + idata[3,idx+1] + idata[1,idx] - 2*idata[1,idx+1] + idata[1,idx+2]) + 2 * tau_S * (1.5 * idata[1,idx+1] - 2*idata[2,idx+1] + 0.5*idata[3,idx+1]))/2
                         # + 2 * beta * (-1 * idata[1,idx])) / 2  # Dirichlet
 
-        odata[1,idx+2] = (-(idata[1,idx+2] - 2*idata[2,idx+2] + idata[3,idx+2] + idata[1,idx+1] - 2*idata[1,idx+2] + idata[1,idx+3]) + 2 * tau_S * (1.5 * idata[1,idx+2] - 2*idata[2,idx+2] + 0.5*idata[3,idx+2]))/2
+        @inbounds odata[1,idx+2] = (-(idata[1,idx+2] - 2*idata[2,idx+2] + idata[3,idx+2] + idata[1,idx+1] - 2*idata[1,idx+2] + idata[1,idx+3]) + 2 * tau_S * (1.5 * idata[1,idx+2] - 2*idata[2,idx+2] + 0.5*idata[3,idx+2]))/2
                         # + 0.5 * beta * (idata[1,idx])) / 2# Dirichlet
 
     end
@@ -189,17 +189,17 @@ function boundary_kernel_1_4(idata,odata,Nx,Ny,hx,hy)
     Ny = size(idata)[2]
     beta = -1
     if 4 <= idx <= Ny - 1
-        odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
+        @inbounds odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
     end
 
     if idx == 1
-        odata[end,idx] = (-(idata[end,idx] - 2*idata[end,idx+1] + idata[end,idx+2] + idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx])
+        @inbounds odata[end,idx] = (-(idata[end,idx] - 2*idata[end,idx+1] + idata[end,idx+2] + idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx])
         + 2 * tau_N * (( 1.5* idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx]))  ) / 4 
         # + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha1 * (idata[3,idx]) * h
        
-        odata[end,idx+1] = (-(idata[end,idx+1] - 2*idata[end-1,idx+1] + idata[end-2,idx+1] + idata[end,idx] - 2*idata[end,idx+1] + idata[end,idx+2]) + 2 * tau_N * (1.5 * idata[end,idx+1] - 2*idata[end-1,idx+1] + 0.5*idata[end-2,idx+1])) / 2  # Dirichlet
+        @inbounds odata[end,idx+1] = (-(idata[end,idx+1] - 2*idata[end-1,idx+1] + idata[end-2,idx+1] + idata[end,idx] - 2*idata[end,idx+1] + idata[end,idx+2]) + 2 * tau_N * (1.5 * idata[end,idx+1] - 2*idata[end-1,idx+1] + 0.5*idata[end-2,idx+1])) / 2  # Dirichlet
         #   (2 * beta * (-1 * idata[3,idx])) / 2  
-        odata[end,idx+2] = (-(idata[end,idx+2] - 2*idata[end-1,idx+2] + idata[end-2,idx+2] + idata[end,idx+1] - 2*idata[end,idx+2] + idata[end,idx+3]) + 2 * tau_N * (1.5 * idata[end,idx+2] - 2*idata[end-1,idx+2] + 0.5*idata[end-2,idx+2])) / 2# Dirichlet
+        @inbounds odata[end,idx+2] = (-(idata[end,idx+2] - 2*idata[end-1,idx+2] + idata[end-2,idx+2] + idata[end,idx+1] - 2*idata[end,idx+2] + idata[end,idx+3]) + 2 * tau_N * (1.5 * idata[end,idx+2] - 2*idata[end-1,idx+2] + 0.5*idata[end-2,idx+2])) / 2# Dirichlet
         #  (0.5 * beta * (idata[3,idx])) / 2 +
     end
 
@@ -219,7 +219,7 @@ function boundary_kernel_2_2(idata,odata,Nx,Ny,hx,hy)
     tau_W = 13/hx
     beta = -1
     if 2 <= idx <= Ny - 1
-        odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
+        @inbounds odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
     end
     return nothing
 end
@@ -238,7 +238,7 @@ function boundary_kernel_2_4(idata,odata,Nx,Ny,hx,hy)
     tau_W = 13/hx
     beta = -1
     if 2 <= idx <= Ny - 1
-        odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
+        @inbounds odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
     end
     return nothing
 end
@@ -255,7 +255,7 @@ function boundary_kernel_3_2(idata,odata,Nx,Ny,hx,hy)
     tau_W = 13/hx
     beta = -1
     if 2 <= idx <= Ny - 3
-        odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) 
+        @inbounds odata[1,idx] = (-(idata[1,idx] - 2*idata[2,idx] + idata[3,idx] + idata[1,idx-1] - 2*idata[1,idx] + idata[1,idx+1]) 
                     + 2 * tau_S * (1.5 * idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx])) / 2
     end
     # if idx == 1
@@ -273,14 +273,14 @@ function boundary_kernel_3_2(idata,odata,Nx,Ny,hx,hy)
     # end
     # sync_threads()
     if idx == Ny
-        odata[1,idx] = (-(idata[1,idx] - 2*idata[1,idx-1] + idata[1,idx-2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx])
+        @inbounds odata[1,idx] = (-(idata[1,idx] - 2*idata[1,idx-1] + idata[1,idx-2] + idata[1,idx] - 2*idata[2,idx] + idata[3,idx])
                         + 2 * tau_S * (( 1.5* idata[1,idx] - 2*idata[2,idx] + 0.5*idata[3,idx]))  ) / 4 
                         # + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha2 * (idata[3,idx]) * h
                        
-        odata[1,idx-1] = (-(idata[1,idx-1] - 2*idata[2,idx-1] + idata[3,idx-1] + idata[1,idx-2] - 2*idata[1,idx-1] + idata[1,idx]) 
+        @inbounds odata[1,idx-1] = (-(idata[1,idx-1] - 2*idata[2,idx-1] + idata[3,idx-1] + idata[1,idx-2] - 2*idata[1,idx-1] + idata[1,idx]) 
                         + 2 * tau_S * (1.5 * idata[1,idx-1] - 2*idata[2,idx-1] + 0.5*idata[3,idx-1])) / 2 # Dirichlet
                         # (2 * beta * (-1 * idata[3,idx])) / 2 +
-        odata[1,idx-2] =  (-(idata[1,idx-2] - 2*idata[2,idx-2] + idata[3,idx-2] + idata[1,idx-3] - 2*idata[1,idx-2] + idata[1,idx-1]) 
+        @inbounds odata[1,idx-2] =  (-(idata[1,idx-2] - 2*idata[2,idx-2] + idata[3,idx-2] + idata[1,idx-3] - 2*idata[1,idx-2] + idata[1,idx-1]) 
                         + 2 * tau_S * (1.5 * idata[1,idx-2] - 2*idata[2,idx-2] + 0.5*idata[3,idx-2])) / 2# Dirichlet
                         # (0.5 * beta * (idata[3,idx])) / 2 +
     end
@@ -294,16 +294,16 @@ function boundary_kernel_3_3(idata,odata,Nx,Ny,hx,hy)
     tau_E = 13/hx
     beta = -1
     if 2 <= idx <= Nx - 1
-        odata[idx,end] = (-(idata[idx-1,end] - 2*idata[idx,end] + idata[idx+1,end] + idata[idx,end] - 2*idata[idx,end-1] + idata[idx,end-2]) + 2 * beta * (1.5 * idata[idx,end]) + 2 * tau_E * idata[idx,end] * hx) / 2
+        @inbounds odata[idx,end] = (-(idata[idx-1,end] - 2*idata[idx,end] + idata[idx+1,end] + idata[idx,end] - 2*idata[idx,end-1] + idata[idx,end-2]) + 2 * beta * (1.5 * idata[idx,end]) + 2 * tau_E * idata[idx,end] * hx) / 2
         # (2 * beta * (1.5 * CPU_W_T[1,i]) + 2 * alpha2 * CPU_W_T[1,i] * h) / 2
-        odata[idx,end-1] = (2 * beta * (-1 * idata[idx,end]))
-        odata[idx,end-2] = (0.5 * beta * idata[idx,end])
+        @inbounds odata[idx,end-1] = (2 * beta * (-1 * idata[idx,end]))
+        @inbounds odata[idx,end-2] = (0.5 * beta * idata[idx,end])
     end
     sync_threads()
     if idx == 1 || idx == Nx
-        odata[idx,end] =  (2 * beta * (1.5 * idata[idx,end]) + 2 * tau_E * (idata[idx,end]) * hx )/ 4
-        odata[idx,end-1] = (2 * beta * (-1 * idata[idx,end])) / 2
-        odata[idx,end-2] = (0.5 * beta * idata[idx,end]) / 2
+        @inbounds odata[idx,end] =  (2 * beta * (1.5 * idata[idx,end]) + 2 * tau_E * (idata[idx,end]) * hx )/ 4
+        @inbounds odata[idx,end-1] = (2 * beta * (-1 * idata[idx,end])) / 2
+        @inbounds odata[idx,end-2] = (0.5 * beta * idata[idx,end]) / 2
     end
     return nothing
 end
@@ -316,19 +316,19 @@ function boundary_kernel_3_4(idata,odata,Nx,Ny,hx,hy)
     beta = -1
 
     if 2 <= idx <= Ny - 3
-        odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) 
+        @inbounds  odata[end,idx] = (-(idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx] + idata[end,idx-1] - 2*idata[end,idx] + idata[end,idx+1]) 
                     + 2 * tau_N * (1.5 * idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx])) / 2
     end
 
     if idx == Ny
-        odata[end,idx] = (-(idata[end,idx] - 2*idata[end,idx-1] + idata[end,idx-2] + idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx])
+        @inbounds odata[end,idx] = (-(idata[end,idx] - 2*idata[end,idx-1] + idata[end,idx-2] + idata[end,idx] - 2*idata[end-1,idx] + idata[end-2,idx])
         + 2 * tau_N * (( 1.5* idata[end,idx] - 2*idata[end-1,idx] + 0.5*idata[end-2,idx]))  ) / 4 
         # + 2 * beta * (1.5 * idata[3,idx]) + 2 * alpha1 * (idata[3,idx]) * h
        
-        odata[end,idx-1] = (-(idata[end,idx-1] - 2*idata[end-1,idx-1] + idata[end-2,idx-1] + idata[end,idx-2] - 2*idata[end,idx-1] + idata[end,idx]) 
+        @inbounds odata[end,idx-1] = (-(idata[end,idx-1] - 2*idata[end-1,idx-1] + idata[end-2,idx-1] + idata[end,idx-2] - 2*idata[end,idx-1] + idata[end,idx]) 
                         + 2 * tau_N * (1.5 * idata[end,idx-1] - 2*idata[end-1,idx-1] + 0.5*idata[end-2,idx-1])) / 2  # Dirichlet
         #   (2 * beta * (-1 * idata[3,idx])) / 2  
-        odata[end,idx-2] = (-(idata[end,idx-2] - 2*idata[end-1,idx-2] + idata[end-2,idx-2] + idata[end,idx-3] - 2*idata[end,idx-2] + idata[end,idx-1]) 
+        @inbounds odata[end,idx-2] = (-(idata[end,idx-2] - 2*idata[end-1,idx-2] + idata[end-2,idx-2] + idata[end,idx-3] - 2*idata[end,idx-2] + idata[end,idx-1]) 
                         + 2 * tau_N * (1.5 * idata[end,idx-2] - 2*idata[end-1,idx-2] + 0.5*idata[end-2,idx-2])) / 2# Dirichlet
         #  (0.5 * beta * (idata[3,idx])) / 2 +
     end
@@ -475,7 +475,7 @@ function allocate_GPU_arrays(idata_GPU;num_blocks=length(devices()))
     odata_GPUs[end] = CuArray(zeros(Nx,size(odata_GPUs[end])[2]+1))
     if length(idata_GPUs) >= 3
         for i = 2:num_blocks-1
-            odata_GPUs[i] = CuArray(zeros(Nx,size(odata_GPUs[i])[2]+2))
+            @inbounds odata_GPUs[i] = CuArray(zeros(Nx,size(odata_GPUs[i])[2]+2))
         end
     end
 
