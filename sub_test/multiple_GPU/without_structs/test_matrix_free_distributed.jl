@@ -25,22 +25,22 @@ gpu_processes = Dict(zip(workers(), CUDA.devices()))
 
 Random.seed!(0)
 
-@everywhere level = 6 # 2^3 +1 points in each direction
+@everywhere level = 12 # 2^3 +1 points in each direction
 idata_cpu = randn(2^level+1,2^level+1)
 
 @everywhere (A,D2,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
 @everywhere hx = 1/(Nx-1)
 @everywhere hy = 1/(Ny-1)
 
-@everywhere coef_p2 = coef_GPU_sbp_sat_v4(CuArray([2. 0]), # The 0 here is only to make them identical arrays
-    CuArray([1. -2 1]),
-    CuArray([1. -2 1]),
-    CuArray([3/2 -2 1/2]),
-    CuArray([Nx Ny 1/(Nx-1) 1/(Ny-1)]),
-    CuArray([13/(1/(Nx-1)) 13/(1/(Nx-1)) 1 1 -1]))  
-coef_p2_D = cudaconvert(coef_p2)
-# @everywhere coef_p2_D
-@everywhere coef_p2_D = cudaconvert(coef_p2)
+# @everywhere coef_p2 = coef_GPU_sbp_sat_v4(CuArray([2. 0]), # The 0 here is only to make them identical arrays
+#     CuArray([1. -2 1]),
+#     CuArray([1. -2 1]),
+#     CuArray([3/2 -2 1/2]),
+#     CuArray([Nx Ny 1/(Nx-1) 1/(Ny-1)]),
+#     CuArray([13/(1/(Nx-1)) 13/(1/(Nx-1)) 1 1 -1]))  
+# coef_p2_D = cudaconvert(coef_p2)
+# # @everywhere coef_p2_D
+# @everywhere coef_p2_D = cudaconvert(coef_p2)
 
 
 odata_H_tilde_D2 = reshape(H_tilde*-D2*idata_cpu[:],Nx,Ny)
@@ -69,16 +69,16 @@ for i in 1:length(y_indeces)
 end
 @everywhere y_indeces
 
-@sync begin
-    for (proc,dev) in gpu_processes
-        # @spawnat proc begin
-        #     @show proc, dev
-        #     device!(dev)
-        #     idata_GPU_proc = CuArray(zeros(Nx,sub_block_width))
-        # end
-        save_at(proc,:idata_GPU_proc,:(CuArray(zeros(Nx,sub_block_width))))
-    end
-end
+# @sync begin
+#     for (proc,dev) in gpu_processes
+#         # @spawnat proc begin
+#         #     @show proc, dev
+#         #     device!(dev)
+#         #     idata_GPU_proc = CuArray(zeros(Nx,sub_block_width))
+#         # end
+#         save_at(proc,:idata_GPU_proc,:(CuArray(zeros(Nx,sub_block_width))))
+#     end
+# end
 
 @sync begin
     for (proc,dev) in gpu_processes
@@ -97,7 +97,10 @@ end
     end
 end
 
+
+
 # Copying input data to different processes
+
 @sync begin
     for (proc,dev) in gpu_processes
         @show proc
@@ -113,6 +116,12 @@ end
         end
     end
 end
+
+sum_2 = @fetchfrom 2 sum(idata_GPU_proc[:,1:end-1])
+sum_3 = @fetchfrom 3 sum(idata_GPU_proc[:,2:end])
+
+sum_1 = sum(idata_GPU)
+@assert sum_1 ≈ sum_2 + sum_3
 
 # Creating boundaries data on different processes
 @async begin 
@@ -148,11 +157,11 @@ end
             boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=1)
             # adding boundary data into odata_GPU_proc
             # @inbounds odata_GPU_proc[:,1:3] .+= odata_boundaries[1][:,1:3]
-            copyto!((@view odata_GPU_proc[:,1:3]), (@view odata_GPU_proc[:,1:3]) .+= (@view odata_boundaries[1][:,1:3]))
+            copyto!((@view odata_GPU_proc[:,1:3]), (@view odata_GPU_proc[:,1:3]) .+ (@view odata_boundaries[1][:,1:3]))
             # @inbounds odata_GPU_proc[1,:] .+= odata_boundaries[2][1,:] # this line of the code is extremely slow
-            copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+= (@view odata_boundaries[2][1,:]))
+            copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[2][1,:]))
             # @inbounds odata_GPU_proc[end,:] .+= odata_boundaries[3][end,:]
-            copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+= (@view odata_boundaries[3][end,:]))
+            copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[3][end,:]))
             end
         elseif proc == workers()[end]
             @spawnat proc begin
@@ -162,23 +171,25 @@ end
             boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=3)
             # adding boundary data into odata_GPU_proc
             # odata_GPU_proc[:,end-2:end] .+= odata_boundaries[2][:,end-2:end]
-            copyto!((@view odata_GPU_proc[:,end-2:end]),(@view odata_GPU_proc[:,end-2:end]) .+= (@view odata_boundaries[2][:,end-2:end]))
+
+            copyto!((@view odata_GPU_proc[:,end-2:end]),(@view odata_GPU_proc[:,end-2:end]) .+ (@view odata_boundaries[2][:,end-2:end]))
             # odata_GPU_proc[1,:] .+= odata_boundaries[1][1,:] # this line of code is extremely slow
-            copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+= (@view odata_boundaries[1][1,:]))
-            copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+= (@view odata_boundaries[3][end,:]))
+            copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
+            copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[3][end,:]))
             end
         else
             laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
             boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=2)
             boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=4,type=2)
-            copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+= (@view odata_boundaries[1][1,:]))
-            copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+= (@view odata_boundaries[2][end,:]))
+            copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
+            copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[2][end,:]))
         end
     end
 end
 
 @fetchfrom 2 device(odata_GPU_proc)
 @fetchfrom 2 device.(odata_boundaries)
+
 
 @fetchfrom 2 odata_GPU_proc
 @fetchfrom 2 odata_boundaries[1]
