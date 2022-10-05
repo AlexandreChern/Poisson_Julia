@@ -44,6 +44,7 @@ idata_cpu = randn(2^level+1,2^level+1)
 
 
 odata_H_tilde_D2 = reshape(H_tilde*-D2*idata_cpu[:],Nx,Ny)
+
 odata_H_tilde_A = reshape(A*idata_cpu[:],Nx,Ny)
 
 
@@ -123,6 +124,9 @@ sum_3 = @fetchfrom 3 sum(idata_GPU_proc[:,2:end])
 sum_1 = sum(idata_GPU)
 @assert sum_1 ≈ sum_2 + sum_3
 
+# Creating boundaries data on host process
+odata_boundaries_local = [CuArray(zeros(Nx,3)),CuArray(zeros(3,Ny)),CuArray(zeros(Nx,3)),CuArray(zeros(3,Ny))]
+
 # Creating boundaries data on different processes
 @async begin 
     for (proc,dev) in gpu_processes
@@ -143,7 +147,7 @@ end
 
 
 @everywhere REPEAT_TIMES = 10000
-@elapsed @sync begin
+elapsed_multi_GPUs = @elapsed @sync begin
     for (proc,dev) in gpu_processes
         # @spawnat proc begin
         #     # laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,coef_p2_D)
@@ -155,9 +159,9 @@ end
                 for _ in 1:REPEAT_TIMES
                     laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)
                     # # Boundary calculation
-                    boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=1,type=1)
-                    boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=2,type=1)
-                    boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=1)
+                    boundary((@view idata_GPU_proc[:,1:3]),odata_boundaries[1],Nx,Ny,hx,hy;orientation=1,type=1)
+                    boundary((@view idata_GPU_proc[1:3,:]),odata_boundaries[2],Nx,Ny,hx,hy;orientation=2,type=1)
+                    boundary((@view idata_GPU_proc[end-2:end,:]),odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=1)
                     # # adding boundary data into odata_GPU_proc
                     # # @inbounds odata_GPU_proc[:,1:3] .+= odata_boundaries[1][:,1:3]
                     copyto!((@view odata_GPU_proc[:,1:3]), (@view odata_GPU_proc[:,1:3]) .+ (@view odata_boundaries[1][:,1:3]))
@@ -172,9 +176,9 @@ end
                 for _ in 1:REPEAT_TIMES
                     laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)  
                     # # Boundary calculation          
-                    boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=3)
-                    boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=3,type=3)
-                    boundary(idata_GPU_proc,odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=3)
+                    boundary((@view idata_GPU_proc[1:3,:]),odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=3)
+                    boundary((@view idata_GPU_proc[:,end-2:end]),odata_boundaries[2],Nx,Ny,hx,hy;orientation=3,type=3)
+                    boundary((@view idata_GPU_proc[end-2:end,:]),odata_boundaries[3],Nx,Ny,hx,hy;orientation=4,type=3)
                     # # adding boundary data into odata_GPU_proc
                     # # odata_GPU_proc[:,end-2:end] .+= odata_boundaries[2][:,end-2:end]
 
@@ -186,18 +190,30 @@ end
             end
         else
             for _ in 1:REPEAT_TIMES
-                # laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
-                # boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=2)
-                # boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=4,type=2)
-                # copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
-                # copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[2][end,:]))
+                laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
+                boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=2)
+                boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=4,type=2)
+                copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
+                copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[2][end,:]))
             end
         end
     end
 end
 
 @elapsed for _ in 1:REPEAT_TIMES
+    size(idata_GPU)
+end
+
+elapsed_single_GPU = @elapsed for _ in 1:REPEAT_TIMES
     laplacian_GPU_v2(idata_GPU,odata_GPU,Nx,Ny,hx,hy)
+    boundary(idata_GPU,odata_boundaries_local[1],Nx,Ny,hx,hy;orientation=1,type=1)
+    boundary(idata_GPU,odata_boundaries_local[2],Nx,Ny,hx,hy;orientation=2,type=2)
+    boundary(idata_GPU,odata_boundaries_local[3],Nx,Ny,hx,hy;orientation=3,type=3)
+    boundary(idata_GPU,odata_boundaries_local[4],Nx,Ny,hx,hy;orientation=4,type=2)
+    copyto!((@view odata_GPU[:,1:3]),(@view odata_GPU[:,1:3]) .+= odata_boundaries_local[1])
+    copyto!((@view odata_GPU[1:3,:]),(@view odata_GPU[1:3,:]) .+= odata_boundaries_local[2]) 
+    copyto!((@view odata_GPU[:,end-2:end]),(@view odata_GPU[:,end-2:end]) .+= odata_boundaries_local[3])
+    copyto!((@view odata_GPU[end-2:end,:]),(@view odata_GPU[end-2:end,:]) .+= odata_boundaries_local[4]) 
 end
 
 @fetchfrom 2 device(odata_GPU_proc)
