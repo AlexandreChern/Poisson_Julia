@@ -2,7 +2,9 @@ using CUDA
 using Distributed
 
 gpus = Int(length(devices()))
-addprocs(gpus)
+if length(gpus) == 1
+    addprocs(gpus)
+end
 @everywhere using CUDA
 @everywhere using DistributedData
 @everywhere using Distributed
@@ -13,6 +15,7 @@ addprocs(gpus)
 @everywhere include("assembling_matrix.jl")
 @everywhere include("laplacian.jl")
 
+println("Finish loading packages everywhere!")
 gpuworkers = asyncmap(collect(zip(workers(), CUDA.devices()))) do (p, d)
     remotecall_wait(device!, p, d)
     p
@@ -25,10 +28,24 @@ gpu_processes = Dict(zip(workers(), CUDA.devices()))
 
 Random.seed!(0)
 
-@everywhere level = 13 # 2^3 +1 points in each direction
+@everywhere level = 12 # 2^3 +1 points in each direction
 idata_cpu = randn(2^level+1,2^level+1)
 
-@everywhere (A,D2,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+println("Starting Assembling Matrix in the main process")
+(A,D2,b,H_tilde,Nx,Ny) = Assembling_matrix(level)
+
+A_d = CUDA.CUSPARSE.CuSparseMatrixCSC(A)
+b_d = CuArray(b)
+out_d = similar(b_d)
+out_c = similar(b)
+
+@everywhere Nx,Ny
+
+for worker in workers()
+    @fetchfrom worker Nx,Ny
+end
+
+
 @everywhere hx = 1/(Nx-1)
 @everywhere hy = 1/(Ny-1)
 
@@ -118,11 +135,11 @@ end
     end
 end
 
-sum_2 = @fetchfrom 2 sum(idata_GPU_proc[:,1:end-1])
-sum_3 = @fetchfrom 3 sum(idata_GPU_proc[:,2:end])
+# sum_2 = @fetchfrom 2 sum(idata_GPU_proc[:,1:end-1])
+# sum_3 = @fetchfrom 3 sum(idata_GPU_proc[:,2:end])
 
-sum_1 = sum(idata_GPU)
-@assert sum_1 ≈ sum_2 + sum_3
+# sum_1 = sum(idata_GPU)
+# @assert sum_1 ≈ sum_2 + sum_3
 
 # Creating boundaries data on host process
 odata_boundaries_local = [CuArray(zeros(Nx,3)),CuArray(zeros(3,Ny)),CuArray(zeros(Nx,3)),CuArray(zeros(3,Ny))]
@@ -189,12 +206,14 @@ elapsed_multi_GPUs = @elapsed @sync begin
                 end
             end
         else
-            for _ in 1:REPEAT_TIMES
-                laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
-                boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=2)
-                boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=4,type=2)
-                copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
-                copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[2][end,:]))
+            @spawnat proc begin
+                for _ in 1:REPEAT_TIMES
+                    laplacian_GPU_v2(idata_GPU_proc,odata_GPU_proc,Nx,Ny,hx,hy)            
+                    boundary(idata_GPU_proc,odata_boundaries[1],Nx,Ny,hx,hy;orientation=2,type=2)
+                    boundary(idata_GPU_proc,odata_boundaries[2],Nx,Ny,hx,hy;orientation=4,type=2)
+                    copyto!((@view odata_GPU_proc[1,:]), (@view odata_GPU_proc[1,:]) .+ (@view odata_boundaries[1][1,:]))
+                    copyto!((@view odata_GPU_proc[end,:]), (@view odata_GPU_proc[end,:]) .+ (@view odata_boundaries[2][end,:]))
+                end
             end
         end
     end
