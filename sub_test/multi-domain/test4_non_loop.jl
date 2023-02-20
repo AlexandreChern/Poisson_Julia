@@ -119,11 +119,7 @@ EE = zeros(i_max,)
 
 p = 2
 
-<<<<<<< HEAD
-i=2
-=======
 i=8
->>>>>>> 077ead4a26b49f3997842985f5bfd8a9f58b7b73
 
 j = i
 h = h_list[i]
