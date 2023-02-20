@@ -20,8 +20,13 @@ function mg_vcycle(x,A,f,levels, nu1, nu2)
     end
 
     # Restrict residual to coarser grid
-    r_coarse = A[2:2:end, 1:end-1] * r[1:end-1]
+    # r_coarse = A[2:2:end, 1:end-1] * r[1:end-1] ## rewrite this
+    r_coarse = # TO DO
+    A_coarse = # TO DO
     f_coarse = r_coarse
+
+    print(length(f_coarse))
+    print(length(x))
 
     # solve on coarser grid
     if levels == 1
@@ -29,11 +34,12 @@ function mg_vcycle(x,A,f,levels, nu1, nu2)
     else
         x_coarse = zeros(sizeof(f_coarse))
         for i in 1:nu2
-            x_coarse = mg_vcycle(x_coarse, A[1:2:end,1:2:end], f_coarse, levels-1, nu1, nu2)
+            x_coarse = mg_vcycle(x_coarse, A_coarse, f_coarse, levels-1, nu1, nu2)
         end
     end
 
     # Intepolate correction to finer grid and correct solution
+    print(length(kron(ones(2),x_coarse)[1:end-1]))
     x = x + kron(ones(2),x_coarse)[1:end-1]
 
     # post-smoothing
@@ -50,6 +56,9 @@ function full_multigrid(n, nu1, nu2, levels)
 
     # Initial guess
     x = zeros(n)
+
+    print(length(x))
+    print(length(f))
 
     # V-cycle
     x = mg_vcycle(x,A,f,levels,nu1,nu2)
