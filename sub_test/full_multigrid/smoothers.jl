@@ -12,7 +12,7 @@ using LinearAlgebra
 #     return v_new
 # end
 
-function Jacobi_iter(A,b,x;nu=10,ω = 2/3)
+function Jacobi_iter(A,b,x;nu=10,ω = 1)
     D = Diagonal(A)
     LU = A - D
     for i in 1:nu

@@ -35,3 +35,8 @@ function restrict_matrix(A)
     (N,N) = size(A)
     return A_matrix(div(N,2))
 end
+
+function interpolate_matrix(A)
+    (N,N) = size(A)
+    return A_matrix(2*N+1)
+end
