@@ -1,9 +1,10 @@
 include("smoothers.jl")
+include("source_terms.jl")
 
 using Random
 Random.seed!(0)
 
-# Testing smoothers
+## Testing smoothers
 # Generate a random 5 by 5 matrix
 A = randn(5,5)
 A = A*A' + 2*sparse(I,5,5) # Create a positive definite matrix
@@ -30,3 +31,5 @@ Jacobi_iter(A,b,x;nu=5)
 @assert x ≈ x_5
 
 # Finished testing Jacobi_iter
+
+## Testing A_matrix function

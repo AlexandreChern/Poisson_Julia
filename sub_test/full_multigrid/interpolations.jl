@@ -19,6 +19,7 @@ function linear_interpolation(v)
 end
 
 function weighting(f)
+    # Restrictions 2n+1 -> n
     len_f = length(f)
     f_weighted = zeros(div(len_f-1,2))
     for i in eachindex(f_weighted)
