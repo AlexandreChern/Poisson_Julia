@@ -53,7 +53,7 @@ Jacobi_iter(A,b,x;nu=5,ω=ω)
 
 ## Testing interpolation and restriction
 
-N = 2^6
+N = 2^8
 A = A_matrix(N-1)
 x_range = range(0,1,step=1/N)[2:end-1]
 b = source_terms(C,k,x_range)
@@ -68,9 +68,12 @@ A_coarse \ b_coarse
 
 
 ## Testing V_cycle
+x = zeros(size(b))
 MG_sol = V_cycle(A,b,x;levels=3,iter_times=3)
 analytical_sol = exact_u(C,k,σ,x_range)
+error_MG_norm = 1/N^2 * norm(MG_sol - analytical_sol)
 
-error_norm = 1/N^2 * norm(MG_sol - analytical_sol)
 ## Finished testing V_cycle
-
+x = zeros(size(b))
+FMG_sol = F_MG(A,b,x;levels=3,iter_times=3)
+error_FMG_norm = 1/N^2 * norm(FMG_sol - analytical_sol)
