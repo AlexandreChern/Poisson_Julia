@@ -3,6 +3,8 @@ using LinearAlgebra
 
 
 σ = 0
+C = 1
+k = 1
 
 function exact_u(C,k,σ,x)
     return C/(π^2*k^2 + σ) * sin.(k*π*x)
@@ -26,3 +28,4 @@ function A_matrix(N)
     end
     return A ./ h^2
 end
+

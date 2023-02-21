@@ -2,6 +2,7 @@ using LinearAlgebra
 using SparseArrays
 
 function linear_interpolation(v)
+    # Interpolation n -> 2*n + 1
     len_v = length(v)
     v_interpolated = zeros(2*len_v+1)
     for i in 1:2*len_v+1
@@ -26,4 +27,11 @@ function weighting(f)
         f_weighted[i] = (f[2*i-1] + 2*f[2*i] + f[2*i+1])/4
     end
     return f_weighted
+end
+
+
+
+function restrict_matrix(A)
+    (N,N) = size(A)
+    return A_matrix(div(N,2))
 end
