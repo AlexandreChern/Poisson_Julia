@@ -70,7 +70,7 @@ function F_MG(A,b,x;levels=3,iter_times=3)
         x_tmp = linear_interpolation(x_tmp)
         b_tmp = linear_interpolation(b_tmp)
         A_tmp = interpolate_matrix(A_tmp)
-        x_tmp = V_cycle(A_tmp,b_tmp,x_tmp;levels=i,iter_times=10)
+        x_tmp = V_cycle(A_tmp,b_tmp,x_tmp;levels=i,iter_times=3)
         @show size(A_tmp), norm(A_tmp * x_tmp - b_tmp)
         if i == levels
             @show norm(A*x_tmp - b)
@@ -78,5 +78,5 @@ function F_MG(A,b,x;levels=3,iter_times=3)
     end
     # x_tmp = linear_interpolation(x_tmp)
     # Jacobi_iter(A,b,x_tmp)
-    return x_tmp;
+    return x_tmp
 end
