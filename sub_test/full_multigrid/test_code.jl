@@ -69,13 +69,18 @@ A_coarse \ b_coarse
 
 ## Testing V_cycle
 x = zeros(size(b))
-MG_sol = V_cycle(A,b,x;levels=3,iter_times=3)
+MG_sol = V_cycle(A,b,x;levels=10,iter_times=10)
 analytical_sol = exact_u(C,k,σ,x_range)
-error_MG_norm = 1/N^2 * norm(MG_sol - analytical_sol)
-@show norm(A*MG_sol-b)
+direct_sol = A\b
+error_MG_norm = 1/N^2 * norm(MG_sol - direct_sol)
+@show 1/N^2 * norm(A*MG_sol-b)
 
 ## Finished testing V_cycle
 x = zeros(size(b))
-FMG_sol = F_MG(A,b,x;levels=3,iter_times=3)
-error_FMG_norm = 1/N^2 * norm(FMG_sol - analytical_sol)
-@show norm(A*FMG_sol-b)
+FMG_sol = F_MG(A,b,x;levels=10,iter_times=10)
+error_FMG_norm = 1/N^2 * norm(FMG_sol - direct_sol)
+@show 1/N^2 * norm(A*FMG_sol-b)
+@show norm(A*direct_sol-b)
+
+@show  1/N^2 * norm(MG_sol - analytical_sol)
+@show  1/N^2 * norm(FMG_sol - analytical_sol)

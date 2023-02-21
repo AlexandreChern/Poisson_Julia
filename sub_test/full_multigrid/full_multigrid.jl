@@ -49,13 +49,14 @@ end
 
 
 function F_MG(A,b,x;levels=3,iter_times=3)
+    @show iter_times
     A_tmp = copy(A)
     b_tmp = copy(b)
     x_tmp = copy(x)
     for _ in iter_times
         Jacobi_iter(A_tmp,b_tmp,x_tmp)
     end
-    for i in 1:levels
+    for i in 1:levels-1
         A_tmp = restrict_matrix(A_tmp)
         b_tmp = weighting(b_tmp)
         x_tmp = weighting(x_tmp)
@@ -66,17 +67,17 @@ function F_MG(A,b,x;levels=3,iter_times=3)
     # @show size(A_tmp), size(b_tmp), size(x_tmp)
     # @show A_tmp \ b_tmp
     @show norm(A_tmp * x_tmp - b_tmp)
-    for i in 1:levels
+    for i in 2:levels-1
         x_tmp = linear_interpolation(x_tmp)
         b_tmp = linear_interpolation(b_tmp)
         A_tmp = interpolate_matrix(A_tmp)
-        x_tmp = V_cycle(A_tmp,b_tmp,x_tmp;levels=i,iter_times=3)
         @show size(A_tmp), norm(A_tmp * x_tmp - b_tmp)
+        x_tmp = V_cycle(A_tmp,b_tmp,x_tmp;levels=i,iter_times=iter_times)
         if i == levels
             @show norm(A*x_tmp - b)
         end
     end
-    # x_tmp = linear_interpolation(x_tmp)
-    # Jacobi_iter(A,b,x_tmp)
+    x_tmp = linear_interpolation(x_tmp)
+    Jacobi_iter(A,b,x_tmp)
     return x_tmp
 end
