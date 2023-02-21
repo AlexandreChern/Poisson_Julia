@@ -17,12 +17,13 @@ LU = A - D
 
 # Jacobi interpolation
 x = zeros(size(b))
+ω = 2/3
 
-x_1 = D\(b - LU*x)
-x_2 = D\(b - LU*x_1)
-x_3 = D\(b - LU*x_2)
-x_4 = D\(b - LU*x_3)
-x_5 = D\(b - LU*x_4)
+x_1 = ω * D\(b - LU*x) + (1-ω) * x
+x_2 = ω * D\(b - LU*x_1) + (1-ω) * x_1
+x_3 = ω * D\(b - LU*x_2) + (1-ω) * x_2
+x_4 = ω * D\(b - LU*x_3) + (1-ω) * x_3
+x_5 = ω * D\(b - LU*x_4) + (1-ω) * x_4
 
 Jacobi_iter(A,b,x;nu=5)  
 
