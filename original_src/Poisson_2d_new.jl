@@ -35,8 +35,8 @@ function Diag(A)
     return Diagonal(A[:])
 end
 
-function Operators_2d(i, j, p=2, h_list_x = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8,1/2^9,1/2^10]),
-			 h_list_y = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10])
+function Operators_2d(i, j, p=2, h_list_x = ([1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8,1/2^9,1/2^10]),
+			 h_list_y = ([1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10])
 			 )
     hx = h_list_x[i];
     hy = h_list_y[j];
@@ -108,8 +108,8 @@ function Operators_2d(i, j, p=2, h_list_x = ([1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6,
     return (D1_x, D1_y, D2_x, D2_y, D2, HI_x, HI_y, BS_x, BS_y, HI_tilde, H_tilde, I_Nx, I_Ny, e_E, e_W, e_S, e_N, E_E, E_W, E_S, E_N)
 end
 
-h_list_x = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
-h_list_y = [1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
+h_list_x = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
+h_list_y = [1/2^1, 1/2^2, 1/2^3, 1/2^4, 1/2^5, 1/2^6, 1/2^7, 1/2^8, 1/2^9, 1/2^10]
 
 rel_errs = []
 iter_errs = []
@@ -137,12 +137,12 @@ for k in 1:8
     analy_sol = u(x,y')
 
     # Penalty Parameters
-    tau_E = -13/hx
-    tau_W = -13/hx
-    tau_N = -1
-    tau_S = -1
+    tau_E = 13/hx
+    tau_W = 13/hx
+    tau_N = 1
+    tau_S = 1
 
-    beta = 1
+    beta = -1
 
     # Forming SAT terms
 
@@ -171,9 +171,9 @@ for k in 1:8
     g_N = π*cos.(π*x .+ π)
 
     # Solving with CPU
-    A = D2 + SAT_W + SAT_E + SAT_S + SAT_N
+    A = - D2 + SAT_W + SAT_E + SAT_S + SAT_N
 
-    b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
+    b = 2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
 
     A = H_tilde*A;
     b = H_tilde*b;
@@ -219,3 +219,14 @@ println(log2.(rel_errs))
 
 println(iter_errs)
 println(log2.(iter_errs))
+
+
+debug = false
+
+if debug == true
+    mD = H_tilde * (-D2)
+    mW = H_tilde * (SAT_W)
+    mE = H_tilde * (SAT_E)
+    mS = H_tilde * (SAT_S)
+    mN = H_tilde * (SAT_N)
+end
