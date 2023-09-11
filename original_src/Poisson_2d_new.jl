@@ -153,6 +153,9 @@ for k in 1:8
     # SAT_S = tau_S*HI_y*E_S*D1_y
     # SAT_N = tau_N*HI_y*E_N*D1_y
 
+    # SAT_S = tau_S*HI_y*E_S + beta*HI_y*BS_y'*E_S
+    # SAT_N = tau_N*HI_y*E_N + beta*HI_y*BS_y'*E_N
+
     SAT_S = tau_S*HI_y*E_S*BS_y
     SAT_N = tau_N*HI_y*E_N*BS_y
 
@@ -178,13 +181,17 @@ for k in 1:8
     A = H_tilde*A;
     b = H_tilde*b;
 
-    file = matopen("../data/A_$N_x.mat","w")
-    write(file,"A",A)
-    close(file)
+    savefile = false
 
-    file = matopen("../data/b_$N_x.mat","w")
-    write(file,"b",b)
-    close(file)
+    if savefile == true
+        file = matopen("../data/A_$N_x.mat","w")
+        write(file,"A",A)
+        close(file)
+
+        file = matopen("../data/b_$N_x.mat","w")
+        write(file,"b",b)
+        close(file)
+    end
 
 
     # A_d = cu(A)
