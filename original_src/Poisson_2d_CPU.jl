@@ -139,8 +139,10 @@ for k in 1:length(h_list_x)-5
     ## Formulation 1
     SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W
     SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
-    SAT_S = tau_S*HI_y*E_S*D1_y
-    SAT_N = tau_N*HI_y*E_N*D1_y
+    # SAT_S = tau_S*HI_y*E_S*D1_y
+    # SAT_N = tau_N*HI_y*E_N*D1_y
+    SAT_S = tau_S*HI_y*E_S*BS_y
+    SAT_N = tau_N*HI_y*E_N*BS_y
 
     SAT_W_r = tau_W*HI_x*E_W*e_W + beta*HI_x*BS_x'*E_W*e_W
     SAT_E_r = tau_E*HI_x*E_E*e_E + beta*HI_x*BS_x'*E_E*e_E
@@ -160,6 +162,8 @@ for k in 1:length(h_list_x)-5
 
     b = -2π^2*u(x,y')[:] + SAT_W_r*g_W + SAT_E_r*g_E + SAT_S_r*g_S + SAT_N_r*g_N
 
+    A = H_tilde * A
+    b = H_tilde * b
     #A_d = cu(A)
     #b_d = cu(b)
     #init_guess = cu(rand(length(b)));
