@@ -150,11 +150,14 @@ for k in 1:8
     SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W
     SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
     
-    # SAT_S = tau_S*HI_y*E_S*D1_y
-    # SAT_N = tau_N*HI_y*E_N*D1_y
+    # SAT_S = tau_S*HI_y*E_S*D1_y # should not use D1_y
+    # SAT_N = tau_N*HI_y*E_N*D1_y # should not use D1_y
 
     # SAT_S = tau_S*HI_y*E_S + beta*HI_y*BS_y'*E_S
     # SAT_N = tau_N*HI_y*E_N + beta*HI_y*BS_y'*E_N
+
+    # SAT_W = tau_N * HI_x * E_W * BS_x
+    # SAT_E = tau_S * HI_x * E_E * BS_x
 
     SAT_S = tau_S*HI_y*E_S*BS_y
     SAT_N = tau_N*HI_y*E_N*BS_y
@@ -236,4 +239,7 @@ if debug == true
     mE = H_tilde * (SAT_E)
     mS = H_tilde * (SAT_S)
     mN = H_tilde * (SAT_N)
+    mA = mD + mW + mE + mS + mN
+    # for all Neumann boundary conditions
+    # mA is symmetric but not positive definite, there are 0 eigenvalues (semidefinite)
 end
