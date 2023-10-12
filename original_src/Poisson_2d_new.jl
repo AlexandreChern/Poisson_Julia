@@ -150,8 +150,8 @@ for k in 1:8
     SAT_W = tau_W*HI_x*E_W + beta*HI_x*BS_x'*E_W
     SAT_E = tau_E*HI_x*E_E + beta*HI_x*BS_x'*E_E
     
-    # SAT_S = tau_S*HI_y*E_S*D1_y # should not use D1_y
-    # SAT_N = tau_N*HI_y*E_N*D1_y # should not use D1_y
+    ## SAT_S = tau_S*HI_y*E_S*D1_y # should not use D1_y
+    ## SAT_N = tau_N*HI_y*E_N*D1_y # should not use D1_y
 
     # SAT_S = tau_S*HI_y*E_S + beta*HI_y*BS_y'*E_S
     # SAT_N = tau_N*HI_y*E_N + beta*HI_y*BS_y'*E_N
@@ -234,7 +234,9 @@ println(log2.(iter_errs))
 debug = false
 
 if debug == true
-    mD = H_tilde * (-D2)
+    mDx = H_tilde * (-D2_x)
+    mDy = H_tilde * (-D2_y)
+    mD = mDx + mDy
     mW = H_tilde * (SAT_W)
     mE = H_tilde * (SAT_E)
     mS = H_tilde * (SAT_S)
